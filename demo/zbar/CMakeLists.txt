@@ -1,0 +1,5 @@
+if(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${flash_ldscript} demo_zbar.c demo_zbar_lcd.c demo_zbar_camera.c)
+else(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${file_ldscript} demo_zbar.c demo_zbar_lcd.c demo_zbar_camera.c)
+endif()
