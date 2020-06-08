@@ -117,7 +117,7 @@ INT32 iot_fs_change_size(
                     UINT32 uSize
                 )
 {
-    return IVTBL(change_size)(iFd, uSize);
+    //return IVTBL(change_size)(iFd, uSize);
 }
 
 /**切换当前工作目录

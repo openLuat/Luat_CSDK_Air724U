@@ -22,7 +22,7 @@
 *@return	TRUE: 	    ³É¹¦
 *           FALSE:      Ê§°Ü
 **/
-BOOL iot_gpio_config(                          
+BOOL iot_gpio_open(                          
                         E_AMOPENAT_GPIO_PORT port,  
                         T_AMOPENAT_GPIO_CFG *cfg  
                    );

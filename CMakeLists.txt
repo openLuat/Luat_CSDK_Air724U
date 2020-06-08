@@ -38,9 +38,9 @@ set(pacgen_py ${tools_dir}/pacgen.py)
 set(pacgen_core_py ${tools_dir}/combine_core.py)
 
 if(TTS_ENABLE)
-set(core_name CSDK_V612_RDA8910_TTS)
+set(core_name CSDK_V634_RDA8910_TTS)
 else()
-set(core_name CSDK_V612_RDA8910)
+set(core_name CSDK_V634_RDA8910)
 endif()
 
 if(NOT BUILD_TARGET)

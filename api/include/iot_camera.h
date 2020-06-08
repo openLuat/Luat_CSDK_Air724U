@@ -7,7 +7,7 @@
  * @defgroup iot_sdk_device 外设接口
  * @{
  */
-	/**@example zbar/demo_camera.c
+	/**@example zbar/demo_zbar_camera.c
 	* camera接口示例
 	*/ 
 

@@ -647,7 +647,6 @@ static VOID iot_vat_Modeuleinit(VOID)
 *@param		cmd:  AT命令参数
 *@param   	cmd_count:  AT命令个数
 *@return	TRUE: 成功   FALSE: 失败
-*@note      注意，AT命令字符串cmdStr中需要包含"\r\n"或者"\r"结尾
 **/
 BOOL iot_vat_send_cmd_push(AtCmdEntity cmd[],u8 cmd_count)
 {

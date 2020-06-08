@@ -957,7 +957,7 @@ BOOL OPENAT_set_mic_gain(                                       /* …Ë÷√MIC‘ˆ“ÊΩ”
 
 
 
-int OPENAT_audio_record(									  /* ¬º“ÙΩ”ø⁄ */
+int OPENAT_audio_record( 									  /* ¬º“ÙΩ”ø⁄ */
 										E_AMOPENAT_RECORD_PARAM* param,
 										AUD_RECORD_CALLBACK_T cb);
 
@@ -997,6 +997,13 @@ BOOL OPENAT_set_channel(                                        /* …Ë÷√“Ù∆µÕ®µ¿Ω
                             E_AMOPENAT_AUDIO_CHANNEL channel    /* Õ®µ¿ */
                        );
 
+/*+\BUG\wangyuan\2020.06.08\BUG_2163:CSDKÃ·π©audio“Ù∆µ≤•∑≈Ω”ø⁄*/
+BOOL OPENAT_set_music_volume(UINT32 vol);		/* …Ë÷√“Ù∆µ“Ù¡øΩ”ø⁄ */
+
+UINT32 OPENAT_get_music_volume(void);		/* ªÒ»°“Ù∆µ“Ù¡øΩ”ø⁄ */
+
+void OPENAT_delete_record(VOID);
+/*-\BUG\wangyuan\2020.06.08\BUG_2163:CSDKÃ·π©audio“Ù∆µ≤•∑≈Ω”ø⁄*/
 
 VOID OPENAT_set_channel_with_same_mic(                          /* …Ë÷√π≤”√Õ¨“ª∏ˆMIC“Ù∆µÕ®µ¿Ω”ø⁄ */
                         E_AMOPENAT_AUDIO_CHANNEL channel_1,     /* Õ®µ¿ 1 */
@@ -1527,4 +1534,7 @@ int openat_speexDecoder(char encoded[], int encoded_size, short output[], int ou
 BOOL openat_speexDecoderDestroy(void);
 /*-\NEW\zhuwangbin\2020.05.14\ÃÌº”openat speexΩ”ø⁄*/
 
-
+/*+\new\zhuwangbin\2020.6.2\ÃÌº”“Ù∆µπ¶∑≈¿‡–Õ…Ë÷√Ω”ø⁄*/
+BOOL OPENAT_setpa(OPENAT_SPKPA_TYPE_T type);
+OPENAT_SPKPA_TYPE_T OPENAT_getpa(void);
+/*-\new\zhuwangbin\2020.6.2\ÃÌº”“Ù∆µπ¶∑≈¿‡–Õ…Ë÷√Ω”ø⁄*/

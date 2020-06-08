@@ -12,7 +12,7 @@
  * @{
  */
  
-/**@example zbar/demo_lcd.c
+/**@example zbar/demo_zbar_lcd.c
 * LCD&¼üÅÌ½Ó¿ÚÊ¾Àý
 */ 
 

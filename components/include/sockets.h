@@ -577,6 +577,12 @@ int lwip_ioctl(int s, long cmd, void *argp);
 int lwip_fcntl(int s, int cmd, int val);
 struct netif* lwip_getDefaultNetif();
 
+/*+\NEW\zhuwangbin\2020.06.5\添加善理poc平台*/
+#ifdef CONFIG_POC_SUPPORT
+int lwip_getErrNo(void);
+#endif
+/*-\NEW\zhuwangbin\2020.06.5\添加善理poc平台*/
+
 #if LWIP_COMPAT_SOCKETS
 #if LWIP_COMPAT_SOCKETS != 2
 /** @ingroup socket */

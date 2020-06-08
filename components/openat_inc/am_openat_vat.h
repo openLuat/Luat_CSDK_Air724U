@@ -15,6 +15,10 @@
 
 typedef VOID (*PAT_MESSAGE)(UINT8 *pData, UINT16 length);
 
+/*+\NEW\zhuwangbin\2020.4.22\添加LUA_POC项目， 通过虚拟通道兼容POC的控制*/
+typedef BOOL (*PAT_POC_MESSAGE)(char *pData, int length);
+/*-\NEW\zhuwangbin\2020.4.22\添加LUA_POC项目， 通过虚拟通道兼容POC的控制*/
+
 
 BOOL OPENAT_vat_init(PAT_MESSAGE resp_cb);
 BOOL OPENAT_vat_send_at( const char* pAtCommand, unsigned nLength );
