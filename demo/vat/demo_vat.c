@@ -199,7 +199,7 @@ VOID luat_ATCmdSend(VOID)
 
 int appimg_enter(void *param)
 {    
-    iot_debug_print("[vat] app_main");
+    iot_debug_print("[vat] appimg_enter");
 	luat_ATCmdSend();
 
     return 0;

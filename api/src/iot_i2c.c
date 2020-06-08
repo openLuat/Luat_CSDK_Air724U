@@ -62,6 +62,6 @@ UINT32 iot_i2c_read(
                         UINT32 bufLen                      
                   )
 {
-	UINT8 psalveAddr = salveAddr << 1;
+	UINT8 psalveAddr = slaveAddr << 1;
 	return OPENAT_read_i2c(port, psalveAddr, pRegAddr, buf, bufLen);
 }

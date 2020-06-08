@@ -1,4 +1,4 @@
-INT32#include "iot_lcd.h"
+#include "iot_lcd.h"
 
 
 /**–¥»Î lcd√¸¡Ó

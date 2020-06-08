@@ -393,8 +393,7 @@ static VOID demo_ota_getinfo(VOID)
 		{"AT+VER"AT_CMD_END, 8, demo_ota_getversion},
 		{"AT+WIMEI?"AT_CMD_END,11,demo_ota_getimei},
 	};
-	result = iot_vat_queue_fun_append(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-	iot_vat_SendCMD();
+	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 

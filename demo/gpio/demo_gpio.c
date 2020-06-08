@@ -61,7 +61,7 @@ VOID demo_gpio_output(VOID)
     output_cfg.mode = OPENAT_GPIO_OUTPUT; //配置输出
     output_cfg.param.defaultState = FALSE; // 默认低电平
 
-    err = iot_gpio_config(DEMO_GPIO_9, &output_cfg);
+    err = iot_gpio_open(DEMO_GPIO_9, &output_cfg);
 
     if (!err)
         return;

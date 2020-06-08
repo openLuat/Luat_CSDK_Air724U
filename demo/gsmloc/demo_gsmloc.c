@@ -129,8 +129,7 @@ static VOID gsmloc_SendATCmd(VOID)
 		{AT_CMD_DELAY"1000",10,NULL},
 		{"AT+EEMGINFO?"AT_CMD_END,14,AtCmdCb_EEMGINFO},
 	};
-	result = iot_vat_queue_fun_append(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-	iot_vat_SendCMD();
+	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 
