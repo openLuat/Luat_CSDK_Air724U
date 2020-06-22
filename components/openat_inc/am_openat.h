@@ -92,7 +92,7 @@ typedef struct
 	UINT32 bssid_low;  	//< mac address low
 	UINT16 bssid_high; 	//< mac address high
 	UINT8 channel;	 	//< channel id
-	INT8 rssival; 	 	//< signal strength
+	signed char rssival; 	 	//< signal strength
 } OPENAT_wifiApInfo;
 
 typedef struct
@@ -349,7 +349,9 @@ VOID OPENAT_free(                                   /* 内存释放接口 */
                 );
 
 
-
+/*+\bug2307\zhuwangbin\2020.06.20\添加OPENAT_MemoryUsed接口*/
+VOID OPENAT_MemoryUsed(UINT32* total, UINT32* used); /* 获取可用内存使用情况*/
+/*-\bug2307\zhuwangbin\2020.06.20\添加OPENAT_MemoryUsed接口*/
 /****************************** 杂项接口 ******************************/
 BOOL OPENAT_sleep(                                  /* 系统睡眠接口 */
                             UINT32 nMillisecondes   /* 睡眠时间 */
@@ -534,9 +536,9 @@ INT32 OPENAT_ftell(                             /* 文件定位接口 */
 /*+\NewReq WM-743\maliang\2013.3.28\[OpenAt]增加接口获取文件系统信息*/
 INT32 OPENAT_get_fs_info(                            /* 获取文件系统信息接口 */
                             E_AMOPENAT_FILE_DEVICE_NAME       devName,            /*获取哪块device name的信息*/
-                            T_AMOPENAT_FILE_INFO               *fileInfo                   /*文件系统的信息*/
+                            T_AMOPENAT_FILE_INFO               *fileInfo,                   /*文件系统的信息*/
+                            INT32 isSD                  /*是否获取SD 卡信息*/
                        );
-
 
 
 /*-\NewReq WM-743\maliang\2013.3.28\[OpenAt]增加接口获取文件系统信息*/
@@ -1538,3 +1540,7 @@ BOOL openat_speexDecoderDestroy(void);
 BOOL OPENAT_setpa(OPENAT_SPKPA_TYPE_T type);
 OPENAT_SPKPA_TYPE_T OPENAT_getpa(void);
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
+/*+\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
+BOOL OPENAT_fs_mount_sdcard(void);
+BOOL OPENAT_fs_umount_sdcard(void);
+/*-\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/

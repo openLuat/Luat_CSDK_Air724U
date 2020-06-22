@@ -324,6 +324,16 @@ PVOID iot_os_realloc(
 VOID iot_os_free(                                  
                         PVOID pMemory     
             );
+
+/**获取堆空间大小
+*@param		total:	     总共大小
+*@param   used:        已经使用
+**/
+VOID iot_os_mem_used(                                  
+                        UINT32* total,
+                        UINT32* used   
+            );  
+
 /** @}*/ 
 
 /**

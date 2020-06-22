@@ -193,7 +193,7 @@ VOID luat_ATCmdSend(VOID)
 		{"AT+ICCID"AT_CMD_END,10,AtCmdCb_iccid},
 		{"AT+CIMI"AT_CMD_END,9,AtCmdCb_cimi},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 

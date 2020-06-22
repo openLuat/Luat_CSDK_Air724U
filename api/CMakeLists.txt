@@ -47,7 +47,6 @@ target_sources(${target} PRIVATE
 	src/iot_zbar.c
 	src/iot_camera.c
 	src/iot_tts.c
-	src/iot_fota.c
 	src/iot_audio.c
 )
 

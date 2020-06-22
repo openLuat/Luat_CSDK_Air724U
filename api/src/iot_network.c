@@ -221,7 +221,7 @@ static BOOL network_connect(T_OPENAT_NETWORK_CONNECT* connectParam)
 		{"AT+CGACT?"AT_CMD_END,11,AtCmdCb_cgact_read},
 		{AT_CMD_DELAY"1000",10,NULL},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 
@@ -234,7 +234,7 @@ static BOOL network_disconnect(BOOL flymode)
 		{AT_CMD_DELAY"1000",10,NULL},
 		{"AT+CGACT=0,6"AT_CMD_END,4,NULL},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 
@@ -246,7 +246,7 @@ static BOOL network_get_status(T_OPENAT_NETWORK_STATUS* status)
 		{AT_CMD_DELAY"500",9,NULL},
 		{"AT+CSQ"AT_CMD_END,8,AtCmdCb_csqval},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 	extern BOOL simpresent;
 	iot_os_sleep(1000);
 	status->state = network_state;
@@ -287,7 +287,7 @@ VOID network_check_status(VOID)
 		{AT_CMD_DELAY"2000",10,NULL},
 		{"AT+CREG?"AT_CMD_END,11,AtCmdCb_creg},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 

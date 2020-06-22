@@ -2,7 +2,6 @@
 #include "iot_sys.h"
 #include "iot_os.h"
 #include "iot_debug.h"
-#include "iot_fota.h"
 #include "iot_socket.h"
 #include "iot_network.h"
 #include "iot_fs.h"
@@ -393,7 +392,7 @@ static VOID demo_ota_getinfo(VOID)
 		{"AT+VER"AT_CMD_END, 8, demo_ota_getversion},
 		{"AT+WIMEI?"AT_CMD_END,11,demo_ota_getimei},
 	};
-	result = iot_vat_send_cmd_push(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     return result;
 }
 

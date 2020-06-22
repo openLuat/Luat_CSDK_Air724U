@@ -89,7 +89,7 @@ BOOL iot_vat_send_cmd(UINT8* cmdStr, UINT16 cmdLen);
 *@param   	cmd_count:  AT命令个数
 *@return	TRUE: 成功   FALSE: 失败
 **/
-BOOL iot_vat_send_cmd_push(AtCmdEntity cmd[],u8 cmd_count);
+BOOL iot_vat_push_cmd(AtCmdEntity cmd[],u8 cmd_count);
 
 
 /** @}*/

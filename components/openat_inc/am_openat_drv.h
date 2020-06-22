@@ -1598,8 +1598,8 @@ typedef struct
     union
     {
         struct pwm_pwt{
-        	UINT8  level;
-        	UINT32 freq;
+        	UINT16  level;
+        	UINT16 freq;
         }pwt,pwl;/*注意:使用PWL实现蜂鸣器时，freq实际有效范围:0-0xff*/
         struct pwm_lpg{
         	E_OPENAT_PWM_LPG_PERIOD period;

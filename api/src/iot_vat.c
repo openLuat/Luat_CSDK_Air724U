@@ -648,7 +648,7 @@ static VOID iot_vat_Modeuleinit(VOID)
 *@param   	cmd_count:  AT命令个数
 *@return	TRUE: 成功   FALSE: 失败
 **/
-BOOL iot_vat_send_cmd_push(AtCmdEntity cmd[],u8 cmd_count)
+BOOL iot_vat_push_cmd(AtCmdEntity cmd[],u8 cmd_count)
 {
 	BOOL result = FALSE;
 	iot_vat_Modeuleinit();
@@ -661,12 +661,12 @@ BOOL iot_vat_send_cmd_push(AtCmdEntity cmd[],u8 cmd_count)
 *@param		vatHandle:  虚拟AT主动上报或者AT命令结果返回的回调函数
 *@return	TRUE: 成功   FALSE: 失败
 **/
-BOOL iot_vat_init(PAT_MESSAGE resp_cb)
+BOOL iot_vat_init(PAT_MESSAGE vatHandle)
 {
     iot_vat_Modeuleinit();
-    if(resp_cb)
+    if(vatHandle)
     {
-        g_resp_cb = resp_cb;
+        g_resp_cb = vatHandle;
     }
     return TRUE;
 }

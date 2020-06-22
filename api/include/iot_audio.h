@@ -155,8 +155,8 @@ E_AMOPENAT_AUDIO_CHANNEL iot_audio_get_current_channel(
                                                );
 
 /**开始录音
-*@param     E_AMOPENAT_RECORD_PARAM:   录音参数
-*@param     AUD_RECORD_CALLBACK_T:     获取录音数据回调
+*@param     param:   录音参数
+*@param     cb:     获取录音数据回调
 *@return	TRUE: 	    成功
 *           FALSE:      失败
 **/

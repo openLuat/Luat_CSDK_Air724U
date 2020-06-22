@@ -52,6 +52,7 @@ BOOL iot_audio_stop_tone(
     return IVTBL(stop_tone)();
 }
 
+
 /**播放DTMF音
 *@param  dtmfType:      DTMF类型
 *@param  duration:      播放时长
@@ -59,7 +60,7 @@ BOOL iot_audio_stop_tone(
 *@return	TRUE: 	    成功
 *           FALSE:      失败
 **/
-BOOL iot_audio_play_dtmf(                                          
+BOOL iot_audio_play_dtmf(                                        
                         E_AMOPENAT_DTMF_TYPE dtmfType,     
                         UINT16 duration,                   
                         E_AMOPENAT_SPEAKER_GAIN volume     
@@ -304,13 +305,14 @@ BOOL iot_audio_set_hw_channel(
 E_AMOPENAT_AUDIO_CHANNEL iot_audio_get_current_channel(            
                         VOID
                                                )
+
 {
     return IVTBL(get_current_channel)();
 }
 
 /**开始录音
-*@param     E_AMOPENAT_RECORD_PARAM:   录音参数
-*@param     AUD_RECORD_CALLBACK_T:     获取录音数据回调
+*@param     param:   录音参数
+*@param     cb:     获取录音数据回调
 *@return	TRUE: 	    成功
 *           FALSE:      失败
 **/

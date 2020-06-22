@@ -15,8 +15,19 @@ set(SOURCE_TOP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BINARY_TOP_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_C_COMPILER_FORCED   1)
 set(CMAKE_CXX_COMPILER_FORCED 1)
-set(TTS_ENABLE OFF)
 
+if(NOT BUILD_TARGET)
+	set(BUILD_TARGET $ENV{BUILD_TARGET})
+endif()
+
+
+if (${BUILD_TARGET} STREQUAL "tts")
+set(TTS_ENABLE ON)
+message("TTS_ENABLE SET  ON")
+else()
+set(TTS_ENABLE OFF)
+message("TTS_ENABLE SET OFF")
+endif()
 
 set(out_hex_dir ${CMAKE_CURRENT_BINARY_DIR}/hex)
 set(out_lib_dir ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -38,13 +49,9 @@ set(pacgen_py ${tools_dir}/pacgen.py)
 set(pacgen_core_py ${tools_dir}/combine_core.py)
 
 if(TTS_ENABLE)
-set(core_name CSDK_V634_RDA8910_TTS)
+set(core_name CSDK_V699_RDA8910_TTS)
 else()
-set(core_name CSDK_V634_RDA8910)
-endif()
-
-if(NOT BUILD_TARGET)
-	set(BUILD_TARGET $ENV{BUILD_TARGET})
+set(core_name CSDK_V699_RDA8910)
 endif()
 
 if(TTS_ENABLE)

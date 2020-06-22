@@ -361,6 +361,18 @@ VOID iot_os_free(
     OPENAT_free(pMemory);
 }
 
+/**获取堆空间大小
+*@param		total:	     总共大小
+*@param   used:        已经使用
+**/
+VOID iot_os_mem_used(                                  
+                        UINT32* total,
+                        UINT32* used   
+            )
+{
+    IVTBL(mem_used)(total, used);
+} 
+
 
 BOOL iot_os_sleep(                                 
                         UINT32 nMillisecondes  
