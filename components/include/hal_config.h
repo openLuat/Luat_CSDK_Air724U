@@ -413,7 +413,7 @@
  * This is the total size, minus various reserved size, for example loadable
  * app image reserved size.
  */
-#define CONFIG_APP_RAM_SIZE 0x3f0000
+#define CONFIG_APP_RAM_SIZE 0x300000
 
 /**
  * PSRAM or DDR offset for app image from NOR flash
@@ -421,12 +421,12 @@
  * When loading app image from NOR flash, the reserved size is only for
  * data andd bss sections of loadable app image.
  */
-#define CONFIG_APP_FLASHIMG_RAM_OFFSET 0xff0000
+#define CONFIG_APP_FLASHIMG_RAM_OFFSET 0xf00000
 
 /**
  * PSRAM or DDR size for app image from NOR flash
  */
-#define CONFIG_APP_FLASHIMG_RAM_SIZE 0x10000
+#define CONFIG_APP_FLASHIMG_RAM_SIZE 0x100000
 
 /**
  * PSRAM or DDR offset for app image from RAM

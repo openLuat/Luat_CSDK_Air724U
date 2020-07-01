@@ -5,19 +5,20 @@
 #include "iot_network.h"
 
 
+BOOL  simpresent = FALSE;
 static F_OPENAT_NETWORK_IND_CB g_s_OpenatNetIndCb = NULL;
 E_OPENAT_NETWORK_STATE network_state = 0;
+VOID networkStatusChange(VOID);
 
 int CsqValue = 0;
-static AtCmdRsp AtCmdCb_csqval(u8* pRspStr)
+static AtCmdRsp AtCmdCb_csqval(char* pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_csqval");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+CSQ: ", "OK"};
+    char *rspStrTable[] = {"+CME","+CSQ: ", "OK"};
     s16  rspType = -1;
-	u8 zero = '0';
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char  *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -46,14 +47,7 @@ static AtCmdRsp AtCmdCb_csqval(u8* pRspStr)
         break;
 		
 		case 2:  /* OK */
-		if(CsqValue == 0)
-		{
-			rspValue  = AT_RSP_STEP - 1;
-    	}
-		else
-		{
-			rspValue  = AT_RSP_FINISH;
-		}
+		rspValue  = AT_RSP_CONTINUE;
 		break;
 
         default:
@@ -63,14 +57,14 @@ static AtCmdRsp AtCmdCb_csqval(u8* pRspStr)
 }
 
 static int CregValue = 0;
-static AtCmdRsp AtCmdCb_creg(u8* pRspStr)
+static AtCmdRsp AtCmdCb_creg(char* pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_creg");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[] = {"ERROR", "+CREG: ", "OK"};
+    char *rspStrTable[] = {"ERROR", "+CREG: ", "OK"};
     s16  rspType = -1;
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char  *p = pRspStr + 2;
 	
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
@@ -115,13 +109,13 @@ static AtCmdRsp AtCmdCb_creg(u8* pRspStr)
     return rspValue;
 }
 
-static AtCmdRsp AtCmdCb_cgact_set(u8* pRspStr)
+static AtCmdRsp AtCmdCb_cgact_set(char* pRspStr)
 {
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[] = {"ERROR", "+CME ERROR", "OK"};
+    char *rspStrTable[] = {"ERROR", "+CME", "OK", "+CGACT"};
     s16  rspType = -1;
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char  *p = pRspStr + 2;
 	
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
@@ -149,14 +143,13 @@ static AtCmdRsp AtCmdCb_cgact_set(u8* pRspStr)
 }
 
 static UINT8 CgactValue = 0;
-static AtCmdRsp AtCmdCb_cgact_read(u8* pRspStr)
+static AtCmdRsp AtCmdCb_cgact_read(char* pRspStr)
 {
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[] = {"\r\nERROR", "+CGACT: 6, ", "\r\nOK"};
+    char *rspStrTable[] = {"\r\nERROR", "+CGACT: 6, ", "\r\nOK"};
     s16  rspType = -1;
     u8  i = 0;
-    u8  *p = pRspStr;
-	iot_debug_print("[vat] p %02x %02x %02x %02x ",p[0], p[1], p[2], p[3]);
+    char  *p = pRspStr;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -199,13 +192,13 @@ static AtCmdRsp AtCmdCb_cgact_read(u8* pRspStr)
 }
 
 
-static u8 pAtApn[30] = {0};
+static char pAtApn[80] = {0};
 static BOOL network_connect(T_OPENAT_NETWORK_CONNECT* connectParam)
 {
 	BOOL result = FALSE;
 	network_state = OPENAT_NETWORK_LINKING;
 	networkStatusChange();
-	memset(pAtApn, 0, 30);
+	memset(pAtApn, 0, 80);
 	if(strlen(connectParam->apn))
 	{
 		sprintf(pAtApn,"AT+CGDCONT=6,IP,\"%s\"%s",connectParam->apn,AT_CMD_END);
@@ -242,12 +235,10 @@ static BOOL network_get_status(T_OPENAT_NETWORK_STATUS* status)
 {
 	BOOL result = FALSE;
 	AtCmdEntity atCmdInit[]={
-		{"AT"AT_CMD_END,4,NULL},
 		{AT_CMD_DELAY"500",9,NULL},
 		{"AT+CSQ"AT_CMD_END,8,AtCmdCb_csqval},
 	};
 	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-	extern BOOL simpresent;
 	iot_os_sleep(1000);
 	status->state = network_state;
 	status->simpresent= simpresent;
@@ -278,7 +269,6 @@ VOID networkStatusChange(VOID)
 static int checknetflg = FALSE;
 VOID network_check_status(VOID)
 {
-	BOOL result = FALSE;
 	if(checknetflg)
 		return;
 	checknetflg = TRUE;
@@ -287,8 +277,7 @@ VOID network_check_status(VOID)
 		{AT_CMD_DELAY"2000",10,NULL},
 		{"AT+CREG?"AT_CMD_END,11,AtCmdCb_creg},
 	};
-	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-    return result;
+	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 }
 
 

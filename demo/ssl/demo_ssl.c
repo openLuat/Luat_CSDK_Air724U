@@ -339,8 +339,6 @@ static void SSL_Task(PVOID pParameter)
 	int32_t Socketfd = -1;
 	SSL_CTX * SSLCtrl = SSL_CreateCtrl(1); //缓存1个session，否则下面的打印主KEY会失败
 	SSL * SSLLink = NULL;
-	T_AMOPENAT_SYSTEM_DATETIME Datetime;
-	int i;
 	ReConnCnt = 0;
 	if (!SSLCtrl)
 	{
@@ -351,7 +349,7 @@ static void SSL_Task(PVOID pParameter)
 	{
 		Quit = 0;
 	}
-#ifdef TEST_IP
+#ifdef TEST_URL
 	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, SymantecClass3SecureServerCA_G4, strlen(SymantecClass3SecureServerCA_G4), NULL);
 #else
 	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, RootCert, strlen(RootCert), NULL);
@@ -419,16 +417,6 @@ static void SSL_Task(PVOID pParameter)
 			}
 			continue; //这个是转到那里？
 		}
-
-		//需要对时间校准，DEMO中简化为直接设置时间了
-		Datetime.nYear = 2020;
-		Datetime.nMonth = 3;
-		Datetime.nDay = 27;
-		Datetime.nHour = 10;
-		Datetime.nMin = 14;
-		Datetime.nSec = 11;
-		iot_os_set_system_datetime(&Datetime);
-
 
 		DBG_INFO("start ssl handshake");
 		SSLLink = SSL_NewLink(SSLCtrl, Socketfd, NULL, 0, NULL, NULL);

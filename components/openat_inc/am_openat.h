@@ -122,9 +122,15 @@ VOID OPENAT_delete_task(HANDLE         task);
 HANDLE OPENAT_current_task(                         /* »ñÈ¡µ±Ç°Ïß³Ì½Ó¿Ú */
                             VOID
                           );
+/*+\BUG\wangyuan\2020.06.30\BUG_2411:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
+BOOL OPENAT_suspend_task(                           /* ¹ÒÆðÏß³Ì½Ó¿Ú */
+    HANDLE hTask            /* Ïß³Ì¾ä±ú£¬create_task½Ó¿Ú·µ»ØÖµ */
+);
 
-
-
+BOOL OPENAT_resume_task(                            /* »Ö¸´Ïß³Ì½Ó¿Ú */
+    HANDLE hTask            /* Ïß³Ì¾ä±ú£¬create_task½Ó¿Ú·µ»ØÖµ */
+);
+/*-\BUG\wangyuan\2020.06.30\BUG_2411:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
 BOOL OPENAT_get_task_info(                          /* »ñÈ¡µ±Ç°Ïß³Ì´´½¨ÐÅÏ¢½Ó¿Ú */
                             HANDLE hTask,           /* Ïß³Ì¾ä±ú£¬create_task½Ó¿Ú·µ»ØÖµ */
                             T_AMOPENAT_TASK_INFO *pTaskInfo /* Ïß³ÌÐÅÏ¢´æ´¢½Ó¿Ú */
@@ -153,11 +159,12 @@ BOOL OPENAT_send_message(                           /* ·¢ËÍÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶
                                       void* pMessage,          /* ´æ´¢ÏûÏ¢Ö¸Õë */
                                       int message_length);
 
-
-BOOL OPENAT_send_high_priority_message(             /* ·¢ËÍ¸ßÓÅÏÈ¼¶ÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶ÓÁÐÍ·²¿ */
-                            PVOID pMessage          /* Òª·¢ËÍÏûÏ¢Ö¸Õë */
-                                      );
-
+/*+\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
+BOOL OPENAT_SendHighPriorityMessage(             /* ·¢ËÍ¸ßÓÅÏÈ¼¶ÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶ÓÁÐÍ·²¿ */
+											    HANDLE hTask,           /* Ïß³Ì¾ä±ú£¬create_task½Ó¿Ú·µ»ØÖµ */
+											    PVOID pMessage          /* Òª·¢ËÍÏûÏ¢Ö¸Õë */
+											);
+/*-\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
 
 
 BOOL OPENAT_available_message(                      /* ¼ì²âÏûÏ¢¶ÓÁÐÖÐÊÇ·ñÓÐÏûÏ¢ */
@@ -679,6 +686,9 @@ E_AMOPENAT_CHR_HW_STATUS OPENAT_get_chargerHwStatus(
 
 
 /*-\NEW\RUFEI\2014.2.13\Ôö¼ÓOPENAT²éÑ¯³äµçÆ÷HW×´Ì¬½Ó¿Ú*/
+/*+\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
+int OPENAT_get_chg_param(BOOL *battStatus, u16 *battVolt, u8 *battLevel, BOOL *chargerStatus, u8 *chargeState);
+/*-\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
 BOOL OPENAT_poweron_system(                                     /* Õý³£¿ª»ú */  
                             E_AMOPENAT_STARTUP_MODE simStartUpMode,/* ¿ªÆôSIM¿¨·½Ê½ */
                             E_AMOPENAT_STARTUP_MODE nwStartupMode/* ¿ªÆôÐ­ÒéÕ»·½Ê½ */
@@ -1046,16 +1056,19 @@ int OPENAT_WritePlayData(char* data, unsigned size);
 
     
 /****************************** ADC ******************************/
-BOOL OPENAT_init_adc(
-                            E_AMOPENAT_ADC_CHANNEL chanle
-                    );
+/*+\BUG\wangyuan\2020.06.30\BUG_2424:CSDK-8910 ADC µÄAPI ±àÒë´íÎó*/
+BOOL OPENAT_InitADC(
+				    E_AMOPENAT_ADC_CHANNEL channel  /* ADC±àºÅ */,
+				    E_AMOPENAT_ADC_CFG_MODE mode
+				);
 
 
-BOOL OPENAT_read_adc(
-                            E_AMOPENAT_ADC_CHANNEL chanle,      /* ADCÍ¨µÀ */
-                            UINT16* adcValue,                   /* ADCÖµ£¬¿ÉÒÔÎª¿Õ*/   
-                            UINT16* voltage                     /* µçÑ¹Öµ£¬¿ÉÒÔÎª¿Õ*/
-                    );
+BOOL OPENAT_ReadADC(
+				    E_AMOPENAT_ADC_CHANNEL channel,  /* ADC±àºÅ */
+				    kal_uint32*               adcValue,   /* adcÖµ */
+				    kal_uint32*               voltage    /* µçÑ¹Öµ*/
+				);
+/*-\BUG\wangyuan\2020.06.30\BUG_2424:CSDK-8910 ADC µÄAPI ±àÒë´íÎó*/
 
 
 /****************************** LCD ******************************/
@@ -1092,6 +1105,9 @@ BOOL OPENAT_init_color_lcd(                                     /* ÆÁÄ»³õÊ¼»¯½Ó¿
                             T_AMOPENAT_COLOR_LCD_PARAM *param   /* ²ÊÆÁ³õÊ¼»¯²ÎÊý */
                           );
 
+BOOL OPENAT_spiconfig_color_lcd(                     /* ²ÊÆÁSPIÅäÖÃ */
+                        void                    
+                        );
 
 VOID OPENAT_send_color_lcd_command(                             /* ·¢ËÍÃüÁî½Ó¿Ú */
                             UINT8 cmd                           /* ÃüÁî */

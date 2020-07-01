@@ -31,20 +31,20 @@ typedef enum
 
 }AtCmdRsp;
 
-typedef AtCmdRsp (*AtCmdRspCB)(u8 *pRspStr);
-typedef VOID (*UrcCB)(u8 *pUrcStr, u16 len);
+typedef AtCmdRsp (*AtCmdRspCB)(char *pRspStr);
+typedef VOID (*UrcCB)(char *pUrcStr, u16 len);
 typedef VOID (*ResultNotifyCb)(BOOL result);
 
 typedef struct AtCmdEntityTag
 {
-    u8* p_atCmdStr;				/*ATÃüÁî×Ö·û´®*/
+    char* p_atCmdStr;				/*ATÃüÁî×Ö·û´®*/
     u16 cmdLen;					/*ATÃüÁî³¤¶È*/
     AtCmdRspCB p_atCmdCallBack;	/*ATÃüÁî»Øµ÷º¯Êý*/
 }AtCmdEntity;
 
 typedef struct UrcEntityTag
 {
-    u8* p_urcStr;
+    char* p_urcStr;
     UrcCB p_urcCallBack;
 
 }UrcEntity;

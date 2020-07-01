@@ -1,6 +1,8 @@
 #include "iot_os.h"
 #include "am_openat.h"
+#include "am_openat_debug.h"
 
+BOOL g_s_traceflag = FALSE;
 
 /*******************************************
 **                 SYSTEM                 **
@@ -31,28 +33,6 @@ HANDLE iot_os_create_task(
     return h;
 }
              
-/**启动线程
-*@param	hTask:		线程句柄，create_task接口返回值
-*@param	pParameter:		作为参数传递给线程主函数，会替换create_task接口传入的pParameter参数
-**/
-VOID iot_os_start_task(                         
-                        HANDLE hTask,         
-                        PVOID pParameter      
-                      )
-{
-    //IVTBL(start_task)(hTask, pParameter);
-}
-
-/**停止线程
-*@param	hTask:		线程句柄
-**/	
-VOID iot_os_stop_task(                             
-                        HANDLE hTask            
-                 )
-{
-    //IVTBL(stop_task)(hTask);
-}
-
 /**删除线程
 *@param		hTask:		线程句柄
 *@return	TURE:		删除线程成功
@@ -75,7 +55,7 @@ BOOL iot_os_suspend_task(
                             HANDLE hTask          
                         )
 {
-    //return IVTBL(suspend_task)(hTask);
+	return IVTBL(suspend_task)(hTask);
 }
 
 /**恢复线程
@@ -87,7 +67,7 @@ BOOL iot_os_resume_task(
                         HANDLE hTask          
                    )
 {
-    //return IVTBL(resume_task)(hTask);
+    return IVTBL(resume_task)(hTask);
 }
 
 /**获取当前线程
@@ -112,7 +92,7 @@ BOOL iot_os_get_task_info(
                             T_AMOPENAT_TASK_INFO *pTaskInfo 
                          )
 {
-    //return IVTBL(get_task_info)(hTask, pTaskInfo);
+    return IVTBL(get_task_info)(hTask, pTaskInfo);
 }
 
 
@@ -161,7 +141,7 @@ BOOL iot_os_send_high_priority_message(
                         PVOID pMessage         
                                   )
 {
-    //return IVTBL(send_high_priority_message)(hTask, pMessage);
+    return IVTBL(SendHighPriorityMessage)(hTask, pMessage);
 }
 
 /**检测消息队列中是否有消息
@@ -173,7 +153,7 @@ BOOL iot_os_available_message(
                         HANDLE hTask           
                          )
 {
-    //return IVTBL(available_message)(hTask);
+    return IVTBL(available_message)(hTask);
 }
 
 
@@ -238,7 +218,7 @@ BOOL iot_os_available_timer(
                         HANDLE hTimer         
                        )
 {
-    //return IVTBL(available_timer)(hTimer);
+    return IVTBL(available_timer)(hTimer);
 }
 
 /**获取系统时间
@@ -265,36 +245,43 @@ BOOL iot_os_set_system_datetime(
     return OPENAT_set_system_datetime(pDatetime);
 }
 
-BOOL iot_os_get_minute_tick(                   
-                        PMINUTE_TICKFUNC pFunc
-                       )
-{
-    //return IVTBL(get_minute_tick)(pFunc);
-}
-
+/**闹钟初始化接口
+*@param		pConfig:		闹钟配置参数
+*@return	TURE: 			成功
+*			FALSE: 		    失败
+**/
 BOOL iot_os_init_alarm(                                       
                         T_AMOPENAT_ALARM_CONFIG *pConfig 
                    )
 {
-    //return IVTBL(init_alarm)(pConfig);
-    return FALSE;
+    return IVTBL(InitAlarm)(pConfig);
 }
-
+				   
+/**闹钟设置/删除接口
+*@param		pAlarmSet:		闹钟设置参数
+*@return	TURE: 			成功
+*			FALSE: 		    失败
+**/
 BOOL iot_os_set_alarm(                                        
                         T_AMOPENAT_ALARM_PARAM *pAlarmSet    
                    )
 {
-    //return IVTBL(set_alarm)(pAlarmSet);
-    return FALSE;
+    return IVTBL(SetAlarm)(pAlarmSet);
 }
 
+/**进入临界资源区接口，关闭所有中断
+*@return	HANDLE:    返回临界资源区句柄，
+**/
 HANDLE iot_os_enter_critical_section(            
                         VOID
                                 )
 {
     return OPENAT_enter_critical_section(); 
 }
-
+								
+/**退出临界资源区接口，开启中断
+*@param		hSection:		临界资源区句柄
+**/
 VOID iot_os_exit_critical_section(                
                         HANDLE hSection       
                              )
@@ -302,6 +289,10 @@ VOID iot_os_exit_critical_section(
     OPENAT_exit_critical_section(hSection); 
 }
 
+/**创建信号量接口
+*@param		nInitCount:		信号量数量
+*@return	HANDLE: 	    返回信号量句柄
+**/
 HANDLE iot_os_create_semaphore(                   
                         UINT32 nInitCount     
                           )
@@ -309,6 +300,11 @@ HANDLE iot_os_create_semaphore(
     return OPENAT_create_semaphore(nInitCount); 
 }
 
+/**删除信号量接口
+*@param		hSem:		信号量句柄
+*@return	TURE: 		成功
+*			FALSE: 		失败
+**/
 BOOL iot_os_delete_semaphore(                      
                         HANDLE hSem            
                         )
@@ -316,6 +312,12 @@ BOOL iot_os_delete_semaphore(
     return OPENAT_delete_semaphore(hSem);  
 }
 
+/**等待信号量接口
+*@param		hSem:		信号量句柄
+*@param		nTimeOut:   等待信号量超时时间，if nTimeOut < 5ms, means forever
+*@return	TURE: 		成功
+*			FALSE: 		失败
+**/
 BOOL iot_os_wait_semaphore(                  
                         HANDLE hSem,           
                         UINT32 nTimeOut        
@@ -324,6 +326,11 @@ BOOL iot_os_wait_semaphore(
     return OPENAT_wait_semaphore(hSem, nTimeOut);
 }
 
+/**释放信号量接口
+*@param		hSem:		信号量句柄
+*@return	TURE: 		成功
+*			FALSE: 		失败
+**/
 BOOL iot_os_release_semaphore(
                         HANDLE hSem           
                          )
@@ -331,14 +338,21 @@ BOOL iot_os_release_semaphore(
     return OPENAT_release_semaphore(hSem);
 }
 
+/**获取消耗量值
+*@param		hSem:		 信号量句柄
+*@return	nInitCount:  信号量的个数
+**/
 UINT32 iot_os_get_semaphore_value (                  
                         HANDLE hSem            
                         )
 {
-    //return IVTBL(get_semaphore_value)(hSem);
+    return IVTBL(get_semaphore_value)(hSem);
 }
 
-
+/**内存申请接口malloc
+*@param		nSize:		 申请的内存大小
+*@return	PVOID:       内存指针
+**/
 PVOID iot_os_malloc(                                
                         UINT32 nSize           
                )
@@ -346,6 +360,11 @@ PVOID iot_os_malloc(
     return OPENAT_malloc(nSize);
 }
 
+/**内存申请接口realloc
+*@param		pMemory:	     内存指针，malloc接口返回值
+*@param		nSize:	     申请的内存大小
+*@return	PVOID:       内存指针
+**/
 PVOID iot_os_realloc(                            
                         PVOID pMemory,          
                         UINT32 nSize           
@@ -354,6 +373,9 @@ PVOID iot_os_realloc(
     return OPENAT_realloc(pMemory, nSize);
 }
 
+/**内存释放接口
+*@param		pMemory:	     内存指针，malloc接口返回值
+**/
 VOID iot_os_free(                                  
                         PVOID pMemory          
             )
@@ -370,17 +392,24 @@ VOID iot_os_mem_used(
                         UINT32* used   
             )
 {
-    IVTBL(mem_used)(total, used);
+    IVTBL(MemoryUsed)(total, used);
 } 
 
-
+/**系统睡眠接口
+*@param		nMillisecondes:	     睡眠时间
+*@return	TURE: 		成功
+*			FALSE: 		失败
+**/
 BOOL iot_os_sleep(                                 
                         UINT32 nMillisecondes  
              )
 {
     return OPENAT_sleep(nMillisecondes);
 }
-
+			 
+/**获取系统tick接口
+*@return	tick_num:   返回系统时间tick值
+**/
 UINT32 iot_os_get_system_tick(                   
                         VOID
                          )
@@ -388,6 +417,9 @@ UINT32 iot_os_get_system_tick(
     return OPENAT_get_system_tick();
 }
 
+/**获取随机数接口
+*@return	rand_num:   返回随机数
+**/
 UINT32 iot_os_rand(                                
                         VOID
               )
@@ -395,48 +427,63 @@ UINT32 iot_os_rand(
     return OPENAT_rand();
 }
 
+/**设置随机数种子接口
+*@param		seed:	     随机数种子
+**/
 VOID iot_os_srand(                              
                         UINT32 seed           
              )
 {
-    OPENAT_srand(seed);
+    IVTBL(srand)(seed);
 }
 
+/**关机接口
+**/
 VOID iot_os_shut_down(                             
                         VOID
                  )
 {
-    OPENAT_shut_down();
+    IVTBL(shut_down)();
 }
 
+/**重启接口
+**/
 VOID iot_os_restart(                              
                         VOID
                )
 {
-    OPENAT_restart();
+    IVTBL(restart)();
 }
 
-VOID iot_os_sys_request_freq(                     
-                        E_AMOPENAT_SYS_FREQ freq
-               )
-{
-    //IVTBL(sys_request_freq)(freq);
-}
 /**设置trace打印口
 *@param		port:		0: uart1
                         1: uart2
-                        2: usb modem 当使用usb抓log时,luatools同时也会抓取底层log
+                        2: uart3
+                        3: usb modem
+                        4: usb AP & UART Host口抓log(默认)
 *@return	TURE: 			成功
 *			FALSE  : 		失败
 **/
 BOOL iot_os_set_trace_port(UINT8 port)
 {
-    return OPENAT_set_trace_port(port,0);
+	if((port > OPENAT_TRACE_QTY) || port < 0)
+		return FALSE;
+	if(4 == port)
+	{
+		g_s_traceflag = FALSE;
+		return TRUE;
+	}
+	else
+		g_s_traceflag = TRUE;
+    return IVTBL(set_trace_port)(port,0);
 }
 
+/**获取wifiscan参数接口
+*@param		wifi_info:	wifiscan参数     
+**/
 VOID iot_wifi_scan(OPENAT_wifiScanRequest* wifi_info)
 {
-	return OPENAT_get_wifiinfo(wifi_info);
+	return IVTBL(get_wifiinfo)(wifi_info);
 }
 
 

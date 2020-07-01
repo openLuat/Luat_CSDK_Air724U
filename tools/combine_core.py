@@ -784,7 +784,7 @@ class PacConfig():
             [fh.write(x) for x in files_header]
             [fh.write(x) for x in files_data]
 
-    def pac_combine_appimg(self, in_path, bin_data, out_path):
+    def pac_combine_appimg(self, in_path, bin_data, out_path, is_sffs):
         find_lua = False
         with open(in_path, 'rb') as fh:
             org_data = fh.read()
@@ -803,7 +803,12 @@ class PacConfig():
                 header_size, szFileID, szFileName, unuse, data_size, dwFileFlag, defaultCheck, data_offset, dwCanOmitFlag, unuse2, dwAddress, zero0, zero1, zero2, zero3, unuse3 = struct.unpack(FILE_HEADER_FMT, header_data)
                 file_data = org_data[data_offset: data_offset + data_size]
                 if szFileID.decode('utf-16le').find('APPIMG') != -1:
-                    file_data = bin_data
+                    print("is_sffs ", is_sffs)
+                    if is_sffs == 0:
+                        file_data = bin_data
+                if szFileID.decode('utf-16le').find('SFFS') != -1:
+                    if is_sffs == 1:
+                        file_data = bin_data
                 fheader = struct.pack(
                     FILE_HEADER_FMT,
                     file_header_len,
@@ -874,6 +879,7 @@ class PacConfig():
                 fh.write(header)
                 [fh.write(x) for x in files_header]
                 [fh.write(x) for x in files_data]
+                fh.close()
             return True
         else:
 
@@ -925,5 +931,12 @@ if __name__ == "__main__":
     with open(sys.argv[1], 'rb') as fh:
         bin_data = fh.read()
     object = PacConfig()
-    object.pac_combine_appimg(core_dir+'/'+core_name,bin_data,sys.argv[2])
+    
+    object.pac_combine_appimg(core_dir+'/'+core_name,bin_data,sys.argv[2],0)
+    
+	#通过参数4判断是否替换sffs.img
+    if sys.argv[4] != "NULL":
+        with open(sys.argv[4], 'rb') as sffs_fh:
+            sffs_data = sffs_fh.read()
+            object.pac_combine_appimg(sys.argv[2],sffs_data,sys.argv[2],1)
 

@@ -53,6 +53,7 @@ BOOL iot_tts_set_param(
 **/
 TTS_PARAM_STRUCT *iot_tts_get_param()
 {
-	return OPENAT_tts_get_param();
+	//return OPENAT_tts_get_param();
+	return NULL;
 }
 

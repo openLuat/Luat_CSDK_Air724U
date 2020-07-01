@@ -18,8 +18,39 @@ set(CMAKE_CXX_COMPILER_FORCED 1)
 
 if(NOT BUILD_TARGET)
 	set(BUILD_TARGET $ENV{BUILD_TARGET})
+	#/*+\NEW\zhuwangbin\2020.07.1\add fotaNew */
+	add_definitions(-DCSDK_PRO="${BUILD_TARGET}")
+	#/*-\NEW\zhuwangbin\2020.07.1\add fotaNew */
+	#/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+	message("BUILD_TARGET: ${BUILD_TARGET}")
+	#/*-\NEW\zhuwangbin\2020.07.1\add dofta.bin */
 endif()
 
+#/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+
+if(NOT CSDK_VER)
+	set(CSDK_VER $ENV{CSDK_VER})
+	#/*+\NEW\zhuwangbin\2020.07.1\add fotaNew */
+	add_definitions(-DCSDK_VER="${CSDK_VER}")
+	#/*-\NEW\zhuwangbin\2020.07.1\add fotaNew */
+	message("CSDK_VER: ${CSDK_VER} ")
+endif()
+
+if(DEFINED ENV{FOTA_FLAG})
+	set(FOTA_FLAG $ENV{FOTA_FLAG})
+	set(FOTA_TYPE $ENV{FOTA_TYPE})
+	
+	if (NOT (${FOTA_FLAG} STREQUAL  "fota"))
+		message(FATAL_ERROR "FOTA_FLAG: ${FOTA_FLAG} != fota")
+	endif()
+	
+	if (NOT ((${FOTA_TYPE} STREQUAL  "app") OR (${FOTA_TYPE} STREQUAL  "core") OR (${FOTA_TYPE} STREQUAL "all")))
+		message(FATAL_ERROR "FOTA_TYPE: ${FOTA_TYPE} != app or core or all")
+	endif()
+	
+	message("${FOTA_FLAG}=${FOTA_TYPE}")
+endif()
+#/*-\NEW\zhuwangbin\2020.07.1\add dofta.bin */
 
 if (${BUILD_TARGET} STREQUAL "tts")
 set(TTS_ENABLE ON)
@@ -49,9 +80,9 @@ set(pacgen_py ${tools_dir}/pacgen.py)
 set(pacgen_core_py ${tools_dir}/combine_core.py)
 
 if(TTS_ENABLE)
-set(core_name CSDK_V699_RDA8910_TTS)
+set(core_name CSDK_V757_RDA8910_TTS)
 else()
-set(core_name CSDK_V699_RDA8910)
+set(core_name CSDK_V757_RDA8910)
 endif()
 
 if(TTS_ENABLE)
@@ -199,11 +230,20 @@ if(CONFIG_APPIMG_LOAD_FLASH)
         WORKING_DIRECTORY ${SOURCE_TOP_DIR}
     )
 	message(!!!!!!!!!!!!!!!!!!!!!!${pac_file_with_core})
-	add_custom_command(OUTPUT ${pac_file_with_core}
-		COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE}
-		DEPENDS ${pacgen_core_py} ${pac_dep}
-        WORKING_DIRECTORY ${SOURCE_TOP_DIR}
-	)
+	
+	##+ zhuwangbin 2020-6-30 add sffs.img
+	if (EXISTS ${out_hex_dir}/sffs.img)
+		add_custom_command(OUTPUT ${pac_file_with_core}
+			COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} ${out_hex_dir}/sffs.img
+			DEPENDS ${pacgen_core_py} ${pac_dep}
+			WORKING_DIRECTORY ${SOURCE_TOP_DIR})
+	else()
+		add_custom_command(OUTPUT ${pac_file_with_core}
+			COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} NULL
+			DEPENDS ${pacgen_core_py} ${pac_dep}
+			WORKING_DIRECTORY ${SOURCE_TOP_DIR})
+	endif()
+	##- zhuwangbin 2020-6-30 add sffs.img
 	
 	add_custom_target(${target}_pacgen ALL DEPENDS ${pac_file} ${pac_file_with_core})
 endif()
@@ -244,30 +284,56 @@ add_custom_command(OUTPUT ${hex_app_file} ${hex_app_with_core_file} ${hex_delete
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${hex_bin_dir}
 	COMMAND ${CMAKE_COMMAND} -E copy ${pac_file} ${hex_app_file}
 	COMMAND ${CMAKE_COMMAND} -E copy ${pac_file_with_core} ${hex_app_with_core_file}
-	COMMAND ${CMAKE_COMMAND} -E copy ${pac_delete_file} ${hex_delete_file}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${hex_map_dir}
 	COMMAND ${CMAKE_COMMAND} -E copy ${core_map_dir}/${core_name}.map ${hex_map_file}
 	COMMAND ${CMAKE_COMMAND} -E copy ${core_map_dir}/${core_name}.elf ${hex_elf_file}
-	DEPENDS ${pac_file} ${pac_file_with_core} ${pac_delete_file}
+	DEPENDS ${pac_file} ${pac_file_with_core} 
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 	
-	set(hex_fota_file ${BUILD_TARGET}_1.0.0_${core_name}.dfota.bin)
-add_custom_command(OUTPUT ${hex_fota_file}
-	COMMAND ${CMAKE_COMMAND} -E copy ${out_hex_dir}/${target}.img ${target}.img
-	COMMAND ${CMAKE_COMMAND} -E copy ${core_bin_dir}/${core_name}.pac  ${core_name}.pac
-	COMMAND ${CMAKE_COMMAND} -E rename ${target}.img app.bin
-	COMMAND ${CMAKE_COMMAND} -E rename ${core_name}.pac ${core_name}.bin
-	COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${hex_bin_dir}.zip" "--format=zip" "${core_name}.bin" "app.bin"
-    COMMAND ${CMAKE_COMMAND} -E rename ${hex_bin_dir}.zip ${hex_fota_file}
-	COMMAND ${CMAKE_COMMAND} -E remove [-f] ${core_name}.bin
-	DEPENDS ${out_hex_dir}/${target}.img ${hex_app_file} ${hex_app_with_core_file}
-	WORKING_DIRECTORY ${hex_bin_dir})
-	set(hex_fota_file_app ${BUILD_TARGET}_1.0.0_${core_name}_app.dfota.bin)
-add_custom_command(OUTPUT ${hex_fota_file_app}
-	COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${hex_bin_dir}_app.zip" "--format=zip" "app.bin"
-    COMMAND ${CMAKE_COMMAND} -E rename ${hex_bin_dir}_app.zip ${hex_fota_file_app}
-	COMMAND ${CMAKE_COMMAND} -E remove [-f] app.bin
-	DEPENDS ${out_hex_dir}/${target}.img ${hex_app_file} ${hex_app_with_core_file} ${hex_fota_file}
-	WORKING_DIRECTORY ${hex_bin_dir}) 
-	
-add_custom_target(${target}_release ALL DEPENDS ${hex_app_file} ${hex_app_with_core_file} ${hex_delete_file} ${hex_map_file} ${hex_elf_file} ${hex_fota_file} ${hex_fota_file_app})
+#/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+if(DEFINED ENV{FOTA_TYPE})
+		set(hex_fota_file ${BUILD_TARGET}_${CSDK_VER}_${core_name}.dfota.bin)
+		
+		if (${FOTA_TYPE} STREQUAL  "all")
+			add_custom_command(OUTPUT ${hex_fota_file}
+				COMMAND ${CMAKE_COMMAND} -E copy ${out_hex_dir}/${target}.img ${target}.img
+				COMMAND ${CMAKE_COMMAND} -E copy ${core_bin_dir}/${core_name}.pac  ${core_name}.pac
+				COMMAND ${CMAKE_COMMAND} -E rename ${target}.img app.bin
+				COMMAND ${CMAKE_COMMAND} -E rename ${core_name}.pac ${core_name}.bin
+				COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${hex_bin_dir}.zip" "--format=zip" "${core_name}.bin" "app.bin"
+				COMMAND ${CMAKE_COMMAND} -E rename ${hex_bin_dir}.zip ${hex_fota_file}
+				COMMAND ${CMAKE_COMMAND} -E remove [-f] ${core_name}.bin app.bin
+				DEPENDS ${out_hex_dir}/${target}.img ${hex_app_file} ${hex_app_with_core_file}
+				WORKING_DIRECTORY ${hex_bin_dir})
+				add_custom_target(${target}_release ALL DEPENDS ${hex_app_file} ${hex_app_with_core_file} ${hex_map_file} ${hex_elf_file} ${hex_fota_file})
+		endif()
+		
+		if (${FOTA_TYPE} STREQUAL  "core")
+			add_custom_command(OUTPUT ${hex_fota_file}
+			COMMAND ${CMAKE_COMMAND} -E copy ${core_bin_dir}/${core_name}.pac  ${core_name}.pac
+			COMMAND ${CMAKE_COMMAND} -E rename ${core_name}.pac ${core_name}.bin
+			COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${hex_bin_dir}.zip" "--format=zip" "${core_name}.bin" 
+			COMMAND ${CMAKE_COMMAND} -E rename ${hex_bin_dir}.zip ${hex_fota_file}
+			COMMAND ${CMAKE_COMMAND} -E remove [-f] ${core_name}.bin
+			DEPENDS ${out_hex_dir}/${target}.img ${hex_app_file} ${hex_app_with_core_file}
+			WORKING_DIRECTORY ${hex_bin_dir})
+			add_custom_target(${target}_release ALL DEPENDS ${hex_app_file} ${hex_app_with_core_file} ${hex_map_file} ${hex_elf_file} ${hex_fota_file})
+
+		endif()
+		
+		if (${FOTA_TYPE} STREQUAL  "app")
+			add_custom_command(OUTPUT ${hex_fota_file}
+			COMMAND ${CMAKE_COMMAND} -E copy ${out_hex_dir}/${target}.img ${target}.img
+			COMMAND ${CMAKE_COMMAND} -E rename ${target}.img app.bin
+			COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${hex_bin_dir}.zip" "--format=zip" "app.bin" 
+			COMMAND ${CMAKE_COMMAND} -E rename ${hex_bin_dir}.zip ${hex_fota_file}
+			COMMAND ${CMAKE_COMMAND} -E remove [-f] app.bin
+			DEPENDS ${out_hex_dir}/${target}.img ${hex_app_file} ${hex_app_with_core_file}
+			WORKING_DIRECTORY ${hex_bin_dir})
+			add_custom_target(${target}_release ALL DEPENDS ${hex_app_file} ${hex_app_with_core_file} ${hex_map_file} ${hex_elf_file} ${hex_fota_file})
+		endif()
+else()
+	add_custom_target(${target}_release ALL DEPENDS ${hex_app_file} ${hex_app_with_core_file} ${hex_map_file} ${hex_elf_file})
+endif()
+#/*-\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+

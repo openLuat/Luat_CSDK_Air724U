@@ -98,24 +98,121 @@ VOID demo_fs_init(VOID)
     }
 }
 
-VOID app_main(VOID)
+static void demo_fs_createDir(void)
 {
-	//开机立刻使用文件系统，会看不到打印信息
-	iot_os_sleep(400);
-    fs_print("[fs] app_main");
+	int i,j, fd;
+	char path[64];
+	char dir[16];
+	char subdir[16];
+	char file[16];
+	char subfile[16];
+	
+	for (i=0; i<4; i++)
+	{
+		sprintf(dir, "dir_%d", i);
+		
+		iot_fs_make_dir(dir, 0);
+		for (j=0; j<9; j++)
+		{
+			sprintf(file, "file_%d", j);
+			sprintf(path, "%s/%s", dir, file);
 
-    demo_fs_init();
+			fd = iot_fs_create_file(path);
+			iot_fs_write_file(fd, path, strlen(path));
+			iot_fs_close_file(fd);
+		}
+
+		sprintf(dir, "dir_%d/subdir_%d", i, i);
+		iot_fs_make_dir(dir, 0);
+		for (j=0; j<9; j++)
+		{
+			sprintf(file, "subfile_%d", j);
+			sprintf(path, "%s/%s", dir, file);
+
+			fd = iot_fs_create_file(path);
+			iot_fs_write_file(fd, path, strlen(path));
+			iot_fs_close_file(fd);
+		}
+		
+	}
+
+	
+}
+
+static void demo_fs_ls(char *dirName)
+{
+    AMOPENAT_FS_FIND_DATA findResult;
+    INT32 iFd = -1;
+
+    iFd = iot_fs_find_first(dirName, &findResult);
+
+
+	fs_print("[fs] %s ls:", dirName);
+    fs_print("[fs] \t%s:\t%s\t%d\t%d\t", ((findResult.st_mode&E_FS_ATTR_ARCHIVE)? "FILE":"DIR"),    
+                                                findResult.st_name,
+                                                findResult.st_size,
+                                                findResult.mtime);
+
+    while(iot_fs_find_next(iFd, &findResult) == 0)
+    {
+        fs_print("[fs] \t%s:\t%s\t%d\t%d\t", ((findResult.st_mode&E_FS_ATTR_ARCHIVE)? "FILE":"DIR"),    
+                                                findResult.st_name,
+                                                findResult.st_size,
+                                                findResult.mtime);
+    }
+
+    if(iFd >= 0)
+    {
+        iot_fs_find_close(iFd);
+    }
+    
 }
 
 int appimg_enter(void *param)
 {    
-    	//开机立刻使用文件系统，会看不到打印信息
+    //开机立刻使用文件系统，会看不到打印信息
+    INT32 ret;
+	
 	iot_os_sleep(400);
-    fs_print("[fs] app_main");
+    fs_print("[fs] appimg_enter");
 
+	/*显示预置文件sffs_file.txt*/
+	demo_fs_ls("/");
+
+	/*显示预置文件sffs_dir/sub_sffs_file.txt*/
+	demo_fs_ls("/sffs_dir");
+	
     demo_fs_init();
+	
+	/*创建测试目录和文件*/
+	demo_fs_createDir();
 
-    return 0;
+	/*LS根目录*/
+	demo_fs_ls("/");
+	/*LS dir_1*/
+	demo_fs_ls("dir_1");
+	/*DEL dir_1*/
+	iot_fs_remove_dir("dir_1");
+	/*LS dir_1*/
+	demo_fs_ls("dir_1");
+
+	/*LS dir_2*/
+	demo_fs_ls("dir_2");
+
+	/*LS dir_2/subdir_2*/
+	demo_fs_ls("dir_2/subdir_2");
+
+	/*当前路径设置为dir_2/subdir_2*/
+	iot_fs_change_dir("dir_2/subdir_2");
+
+	/*在当前目录下面创建change_subdir*/
+	ret = iot_fs_create_file("change_subdir_2");
+	iot_fs_write_file(ret, "change_subdir_2", strlen("change_subdir_2"));
+	iot_fs_close_file(ret);
+	/*LS dir_2/subdir_2*/
+	demo_fs_ls("./");
+	
+	return 0;
 }
 
 void appimg_exit(void)

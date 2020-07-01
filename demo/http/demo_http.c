@@ -41,7 +41,7 @@ static void demo_network_connetck(void)
 static void demo_networkIndCallBack(E_OPENAT_NETWORK_STATE state)
 {
     DEMO_NETWORK_MESSAGE* msgptr = iot_os_malloc(sizeof(DEMO_NETWORK_MESSAGE));
-    iot_debug_print("[socket] network ind state %d", state);
+    iot_debug_print("[http] network ind state %d", state);
     if(state == OPENAT_NETWORK_LINKED)
     {
         msgptr->type = SOCKET_MSG_NETWORK_LINKED;

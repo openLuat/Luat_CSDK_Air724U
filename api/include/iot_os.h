@@ -40,21 +40,6 @@ HANDLE iot_os_create_task(
                             PCHAR pTaskName       
 						);
 
-/**启动线程
-*@param	hTask:		线程句柄，create_task接口返回值
-*@param	pParameter:		作为参数传递给线程主函数，会替换create_task接口传入的pParameter参数
-**/
-VOID iot_os_start_task(                           
-                        HANDLE hTask,          
-                        PVOID pParameter 
-                      );
-
-/**停止线程
-*@param	hTask:		线程句柄
-**/		
-VOID iot_os_stop_task(                              
-                        HANDLE hTask        
-                 );			
 
 /**删除线程
 *@param		hTask:		线程句柄
@@ -221,6 +206,32 @@ BOOL iot_os_set_system_datetime(
 					   );
 /** @}*/  
 
+/**
+ * @defgroup 闹钟接口函数类型 闹钟接口函数
+ * @{
+ */
+/**@example demo_alarm/src/demo_alarm.c
+* alarm接口示例
+*/
+
+/**闹钟初始化接口
+*@param		pConfig:		闹钟配置参数
+*@return	TURE: 			成功
+*			FALSE: 		    失败
+**/
+BOOL iot_os_init_alarm(                                      
+                        T_AMOPENAT_ALARM_CONFIG *pConfig  
+                   ); 
+
+/**闹钟设置/删除接口
+*@param		pAlarmSet:		闹钟设置参数
+*@return	TURE: 			成功
+*			FALSE: 		    失败
+**/
+BOOL iot_os_set_alarm(                                        
+                        T_AMOPENAT_ALARM_PARAM *pAlarmSet    
+                   );
+/** @}*/ 
 
 /**
  * @defgroup 临界资源接口函数类型 临界资源接口函数
@@ -383,18 +394,16 @@ VOID iot_os_restart(
                         VOID
                );
 
-/**主频控制接口
-*@param		freq:	     主频值
+/**设置trace打印口
+*@param		port:		0: uart1
+                        1: uart2
+                        2: uart3
+                        3: usb modem
+                        4: usb AP & UART Host口抓log(默认)
+*@return	TURE: 			成功
+*			FALSE  : 		失败
 **/
-VOID iot_os_sys_request_freq(                       
-                        E_AMOPENAT_SYS_FREQ freq
-               );
-/**分钟上报控制接口
-*@param		pFunc:	     调用函数
-**/
-BOOL iot_os_get_minute_tick(                   
-                        PMINUTE_TICKFUNC pFunc
-                );
+BOOL iot_os_set_trace_port(UINT8 port);
 
 
 /**获取wifiscan参数接口

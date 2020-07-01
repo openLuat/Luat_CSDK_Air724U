@@ -56,7 +56,7 @@ INT32 iot_decode_jpeg(
                     T_AMOPENAT_IMAGE_INFO *imageinfo
                     )
 {
-    return IVTBL(imgs_decode_jpeg)(filename,imageinfo);
+    return IVTBL(ImgsDecodeJpegBuffer)(filename,imageinfo);
 }
 
 /** 释放jpg格式解码数据
@@ -67,7 +67,7 @@ INT32 iot_free_jpeg_decodedata(
                     INT16* buffer
                     )
 {
-    return IVTBL(imgs_free_jpeg_decodedata)(buffer);
+    return IVTBL(ImgsFreeJpegDecodedata)((UINT16*)buffer);
 }
     
 

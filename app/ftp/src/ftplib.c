@@ -23,7 +23,6 @@
 #if defined(_WIN32)
 #include <windows.h>
 #endif
-#include <sys/stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "am_openat.h"
@@ -225,7 +224,7 @@ void *memccpy(void *dest, const void *src, int c, size_t n)
  */
 static int socket_wait(netbuf *ctl)
 {
-    fd_set fd,*rfd = NULL,*wfd = NULL;
+    openat_fd_set fd,*rfd = NULL,*wfd = NULL;
     struct timeval tv;
     int rv = 0;
     if ((ctl->dir == FTPLIB_CONTROL) || (ctl->idlecb == NULL))
@@ -1268,7 +1267,7 @@ static int FtpXfer(const char *localfile, const char *path,
             iFlag = FS_O_CREAT|FS_O_WRONLY;
         else
             iFlag = FS_O_RDONLY;
-        local = iot_fs_open_file(localfile, iFlag);
+        local = iot_fs_open_file((char *)localfile, iFlag);
         if (local < 0)
         {
             strncpy(nControl->response, "can't open file",
@@ -1290,7 +1289,7 @@ static int FtpXfer(const char *localfile, const char *path,
     dbuf = malloc(FTPLIB_BUFSIZ);
     if (typ == FTPLIB_FILE_WRITE)
     {
-    	while ((l = iot_fs_read_file(local ,dbuf, FTPLIB_BUFSIZ)) > 0)
+    	while ((l = iot_fs_read_file(local ,(UINT8 *)dbuf, FTPLIB_BUFSIZ)) > 0)
     	{
     	    if ((c = FtpWrite(dbuf, l, nData)) < l)
     	    {
@@ -1304,7 +1303,7 @@ static int FtpXfer(const char *localfile, const char *path,
     {
     	while ((l = FtpRead(dbuf, FTPLIB_BUFSIZ, nData)) > 0)
     	{
-    	    if (iot_fs_write_file(local, dbuf, l) == 0)
+    	    if (iot_fs_write_file(local, (UINT8 *)dbuf, l) == 0)
     	    {
         		if (ftplib_debug)
         		    perror("localfile write");

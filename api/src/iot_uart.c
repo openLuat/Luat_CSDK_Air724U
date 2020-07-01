@@ -70,4 +70,5 @@ BOOL iot_uart_enable_rx_int(
                             )
 {
     //return IVTBL(uart_enable_rx_int)(port, enable);
+    return FALSE;
 }

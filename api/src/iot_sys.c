@@ -18,7 +18,7 @@ E_OPENAT_OTA_RESULT iot_fota_init(void)
 **/
 E_OPENAT_OTA_RESULT iot_fota_download(const char* data, UINT32 len, UINT32 total)
 {
-    return openat_otaProcess(data, len,total);
+    return openat_otaProcess((char*)data, len,total);
 }
 
 /**Ô¶³ÌÉý¼¶
@@ -39,7 +39,7 @@ BOOL iot_ota_newcore(
                     CONST char* newCoreFile
                )
 {
-    return IVTBL(flash_set_newcore)(newCoreFile);
+    return IVTBL(FlashSetNewCoreRegion)((char*)newCoreFile);
 }
 
 
@@ -52,7 +52,7 @@ BOOL iot_ota_newapp(
                     CONST char* newAPPFile
                )
 {
-    return IVTBL(flash_set_newapp)(newAPPFile);
+    return IVTBL(FlashSetNewAppRegion)(newAPPFile);
 }
 
 

@@ -4,7 +4,7 @@
 #include "iot_pmd.h"
 
 #define gpio_print iot_debug_print
-#define DEMO_GPIO_8 8
+#define DEMO_GPIO_7 7
 #define DEMO_GPIO_9 9
 
 VOID demo_gpio_handle (E_OPENAT_DRV_EVT evt, 
@@ -17,7 +17,7 @@ VOID demo_gpio_handle (E_OPENAT_DRV_EVT evt,
     if (OPENAT_DRV_EVT_GPIO_INT_IND == evt)
     {
         // 判断触发中断的管脚
-        if (DEMO_GPIO_8 == gpioPort)
+        if (DEMO_GPIO_7 == gpioPort)
         {   
             // 触发电平的状态
             gpio_print("[gpio] input handle gpio %d, state %d", gpioPort, state);
@@ -43,12 +43,12 @@ VOID demo_gpio_input(VOID)
     input_cfg.param.intCfg.debounce = 50;  //防抖50ms
     input_cfg.param.intCfg.intType = OPENAT_GPIO_INT_BOTH_EDGE; //中断触发方式双边沿
     input_cfg.param.intCfg.intCb = demo_gpio_handle; //中断处理函数
-    err = iot_gpio_open(DEMO_GPIO_8, &input_cfg);
+    err = iot_gpio_open(DEMO_GPIO_7, &input_cfg);
 
     if (!err)
         return;
 
-    gpio_print("[gpio] set gpio8 input");
+    gpio_print("[gpio] set gpio7 input");
 }
 
 VOID demo_gpio_output(VOID)

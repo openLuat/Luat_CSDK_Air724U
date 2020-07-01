@@ -171,7 +171,7 @@
 /**
  * whether to create uart AT device
  */
-#define CONFIG_ATR_CREATE_UART
+/* #undef CONFIG_ATR_CREATE_UART */
 
 /**
  * default uart AT device name

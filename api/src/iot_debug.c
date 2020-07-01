@@ -1,7 +1,10 @@
 #include "iot_debug.h"
 #include "am_openat.h"
 #include "string.h"
+#include <sys/stdio.h>
 
+
+extern BOOL g_s_traceflag;
 /*******************************************
 **                 DEBUG                  **
 *******************************************/
@@ -19,7 +22,7 @@ VOID iot_debug_assert(
                         UINT32 line                       
               )
 {
-    OPENAT_assert(condition, func, line);
+    IVTBL(assert)(condition, func, line);
 }
 
 
@@ -31,7 +34,10 @@ VOID iot_debug_print(CHAR *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	vsnprintf(buff, 256, fmt, args);
-	OPENAT_print("%s", buff);
+	if(g_s_traceflag)
+		IVTBL(lua_print)("%s", buff);
+	else
+		IVTBL(print)("%s", buff);
 	va_end (args);
 }
 

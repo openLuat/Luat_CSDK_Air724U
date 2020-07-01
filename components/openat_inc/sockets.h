@@ -231,8 +231,7 @@ void CFW_SntpStop(CFW_SNTP_CONFIG *sntpconfig);
 #define LWIP_DATA 1
 #define PPP_DATA 2
 #define RNDIS_DATA 3
-bool CFW_get_Netif_dataCount(struct netif *netif, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
-bool CFW_get_Netif_dataCountBySimCid(uint16_t simID, uint16_t CID, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
+bool CFW_get_Netif_dataCount(uint16_t simID, uint16_t CID, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
 
 #if LWIP_IPV4
 #define IP4ADDR_PORT_TO_SOCKADDR(sin, ipaddr, port)       \

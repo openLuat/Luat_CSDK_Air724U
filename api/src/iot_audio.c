@@ -133,6 +133,7 @@ BOOL iot_audio_set_eq(
                     )
 {
     //return IVTBL(set_eq)(setEQ);
+    return FALSE;
 }
 
 /**开启MIC
@@ -144,6 +145,7 @@ BOOL iot_audio_open_mic(
                 )
 {
     //return IVTBL(open_mic)();
+    return FALSE;
 }
 
 /**关闭MIC
@@ -155,6 +157,7 @@ BOOL iot_audio_close_mic(
                  )
 {
     //return IVTBL(close_mic)();
+    return FALSE;
 }
 
 /**设置MIC静音
@@ -166,6 +169,7 @@ BOOL iot_audio_mute_mic(
                 )
 {
     //return IVTBL(close_mic)();
+    return FALSE;
 }
 
 /**解除MIC静音
@@ -177,6 +181,7 @@ BOOL iot_audio_unmute_mic(
                   )
 {
     //return IVTBL(unmute_mic)();
+    return FALSE;
 }
 
 /**设置MIC的增益
@@ -190,6 +195,7 @@ BOOL iot_audio_set_mic_gain(
                     )
 {
     //return IVTBL(unmute_mic)();
+    return FALSE;
 }
 
 /**打开扬声器
@@ -201,6 +207,7 @@ BOOL iot_audio_open_speaker(
                     )
 {
     //return IVTBL(open_speaker)();
+    return FALSE;
 }
 
 /**关闭扬声器
@@ -212,6 +219,7 @@ BOOL iot_audio_close_speaker(
                      )
 {
     //return IVTBL(close_speaker)();
+    return FALSE;
 }
 
 /**设置扬声器静音
@@ -281,6 +289,7 @@ VOID iot_audio_set_channel_with_same_mic(
                )
 {
     //return IVTBL(set_channel_with_same_mic)(channel_1, channel_2);
+    return;
 }
 
 /**完善MIC音频通道设置
@@ -297,6 +306,7 @@ BOOL iot_audio_set_hw_channel(
                      )
 {
     //return IVTBL(set_hw_channel)(hfChanne, erChanne, ldChanne);
+    return FALSE;
 }
 
 /**获取当前通道

@@ -21,6 +21,37 @@
 #include "HTTPClientAuth.h"     // Crypto support (Digest, MD5)
 #include "HTTPClientString.h"   // String utilities
 
+#if TLS_CONFIG_HTTP_CLIENT
+static    UINT32                  HTTPIntrnResizeBuffer         (P_HTTP_SESSION pHTTPSession, UINT32 nNewSize);
+static    UINT32                  HTTPIntrnSetURL               (P_HTTP_SESSION pHTTPSession, CHAR *pUrl,UINT32 nUrlLength);
+    UINT32                  HTTPIntrnConnectionClose      (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnConnectionOpen       (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnGetRemoteHeaders     (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnGetRemoteChunkLength (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnSend                 (P_HTTP_SESSION pHTTPSession, CHAR *pData,UINT32 *nLength);
+static    UINT32                  HTTPIntrnRecv                 (P_HTTP_SESSION pHTTPSession, CHAR *pData,UINT32 *nLength,BOOL PeekOnly);
+#if TLS_CONFIG_HTTP_CLIENT_AUTH
+static    UINT32                  HTTPIntrnParseAuthHeader      (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnAuthHandler          (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnAuthSendDigest       (P_HTTP_SESSION pHTTPSession);
+#if TLS_CONFIG_HTTP_CLIENT_AUTH_BASIC
+static    UINT32                  HTTPIntrnAuthSendBasic        (P_HTTP_SESSION pHTTPSession);
+#endif //TLS_CONFIG_HTTP_CLIENT_AUTH_BASIC
+#if TLS_CONFIG_HTTP_CLIENT_AUTH_DIGEST
+static    UINT32                  HTTPIntrnAuthenticate         (P_HTTP_SESSION pHTTPSession);
+#endif
+#endif
+static    UINT32                  HTTPIntrnHeadersAdd           (P_HTTP_SESSION pHTTPSession, CHAR *pHeaderName, UINT32 nNameLength, CHAR *pHeaderData, UINT32 nDataLength);
+static    UINT32                  HTTPIntrnHeadersRemove        (P_HTTP_SESSION pHTTPSession, CHAR *pHeaderName);
+static    UINT32                  HTTPIntrnHeadersReceive       (P_HTTP_SESSION pHTTPSession, UINT32 nTimeout);
+static    UINT32                  HTTPIntrnHeadersSend          (P_HTTP_SESSION pHTTPSession, HTTP_VERB HttpVerb);
+static    UINT32                  HTTPIntrnHeadersParse         (P_HTTP_SESSION pHTTPSession);
+static    UINT32                  HTTPIntrnHeadersFind          (P_HTTP_SESSION pHTTPSession, CHAR *pHeaderName, HTTP_PARAM *pParam,BOOL IncommingHeaders,UINT32 nOffset);
+static    UINT32                  HTTPIntrnSessionReset         (P_HTTP_SESSION pHTTPSession, BOOL EntireSession);
+static    UINT32                  HTTPIntrnSessionGetUpTime     (VOID);
+static    BOOL                    HTTPIntrnSessionEvalTimeout   (P_HTTP_SESSION pHTTPSession);
+#endif
+
 
 #if TLS_CONFIG_HTTP_CLIENT
 ///////////////////////////////////////////////////////////////////////////////
@@ -1643,7 +1674,7 @@ UINT32 HTTPIntrnConnectionClose (P_HTTP_SESSION pHTTPSession)
             }
 #endif //TLS_CONFIG_HTTP_CLIENT_SECURE
             // Gracefully close it
-            shutdown(pHTTPSession->HttpConnection.HttpSocket,0x01);
+            //shutdown(pHTTPSession->HttpConnection.HttpSocket,(int)0x01);
             closesocket(pHTTPSession->HttpConnection.HttpSocket);
             // And invalidate the socket
             pHTTPSession->HttpConnection.HttpSocket = HTTP_INVALID_SOCKET;

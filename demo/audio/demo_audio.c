@@ -80,7 +80,7 @@ VOID demo_audRecStart(VOID)
 VOID demo_audRecStopTimer(VOID)
 {
     // ∂® ±5√Î÷”Õ£÷π¬º“Ù
-    g_demo_timer1 = iot_os_create_timer(demo_time_handle, NULL);
+    g_demo_timer1 = iot_os_create_timer((PTIMER_EXPFUNC)demo_time_handle, NULL);
     iot_os_start_timer(g_demo_timer1, DEMO_TIMER_TIMEOUT);
 }
 

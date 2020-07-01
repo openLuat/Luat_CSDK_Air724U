@@ -1,4 +1,5 @@
 #include "iot_camera.h"
+#include "iot_fs.h"
 
 /**摄像头初始化
 *@param		cameraParam:		初始化参数

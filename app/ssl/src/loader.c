@@ -53,6 +53,9 @@ static int ssl_obj_PEM_load(SSL_CTX *ssl_ctx, int obj_type,
                         SSLObjLoader *ssl_obj, const char *password);
 #endif
 
+EXP_FUNC int STDCALL do_obj(SSL_CTX *ssl_ctx, int obj_type,
+                    SSLObjLoader *ssl_obj, const char *password);
+
 /*
  * Load a file into memory that is in binary DER (or ascii PEM) format.
  */

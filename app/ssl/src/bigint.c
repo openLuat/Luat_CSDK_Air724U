@@ -682,8 +682,8 @@ void bi_print(const char *label, bigint *x)
     {
         for (j = COMP_NUM_NIBBLES-1; j >= 0; j--)
         {
-            comp mask = 0x0f << (j*4);
-            comp num = (x->comps[i] & mask) >> (j*4);
+            //comp mask = 0x0f << (j*4);
+            //comp num = (x->comps[i] & mask) >> (j*4);
             //putc((num <= 9) ? (num + '0') : (num + 'A' - 10), stdout);
         }
     }  

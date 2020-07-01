@@ -145,6 +145,33 @@ UINT32 iot_fs_file_size(
                     char* pszFileNameUniLe
                 );
 
+/**打开查找，并且获取文件夹下文件名
+*@param		dirName:	路径
+*@param     findResult: 对应路径下的第一个文件
+*@return	fileInfo: 	查找返回的句柄，返回值小于0表示失败,其余成功
+**/                   
+INT32 iot_fs_find_first(
+     char* dirName,
+     PAMOPENAT_FS_FIND_DATA findResult
+);
+
+/**获取文件夹下文件名
+*@param		iFd:  iot_fs_find_first接口返回值
+*@param     findResult: 对应路径下的文件
+*@return	fileInfo: 	返回小于0表示没有剩余文件，其他值表示还有文件
+**/                   
+INT32 iot_fs_find_next(
+     INT32 iFd, 
+     PAMOPENAT_FS_FIND_DATA findResult
+);
+
+/**关闭查找
+*@param		iFd:  iot_fs_find_first接口返回值
+*@return	fileInfo: 	返回值小于0表示失败,其余成功
+**/           
+INT32 iot_fs_find_close(
+     INT32 iFd
+);
 
 /** @}*/
 

@@ -95,7 +95,7 @@ void demo_timer_init(void)
 
 int appimg_enter(void *param)
 {    
-    OPENAT_print("[timer] appimg_enter");
+    timer_print("[timer] appimg_enter");
 
     demo_timer_init();
 
@@ -104,6 +104,6 @@ int appimg_enter(void *param)
 
 void appimg_exit(void)
 {
-    OPENAT_print("[timer] appimg_exit");
+    timer_print("[timer] appimg_exit");
 }
 

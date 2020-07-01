@@ -139,6 +139,9 @@ error:
 #endif /* CONFIG_SSL_SKELETON_MODE */
 }
 
+
+extern int x509_verifyEx(const CA_CERT_CTX *ca_cert_ctx, const X509_CTX *cert,
+        int *pathLenConstraint);
 int32_t SSL_VerifyCert(SSL *SSLLink)
 {
     int ret;
@@ -146,7 +149,6 @@ int32_t SSL_VerifyCert(SSL *SSLLink)
 
     ret = x509_verifyEx(SSLLink->ssl_ctx->ca_cert_ctx, SSLLink->x509_ctx,
             &pathLenConstraint);
-	printf("wywy %s ret: %d",__func__, ret);
     if (ret)        /* modify into an SSL error type */
     {
         ret = SSL_X509_ERROR(ret);

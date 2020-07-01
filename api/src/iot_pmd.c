@@ -26,7 +26,7 @@ VOID iot_pmd_get_batteryStatus(
                     T_AMOPENAT_BAT_STATUS* batStatus    
                      )
 {
-    //IVTBL(get_batteryStatus)(batStatus);    
+    IVTBL(get_batteryStatus)(batStatus);    
 }
 
 /**获取充电器状态
@@ -36,7 +36,7 @@ VOID iot_pmd_get_chargerStatus(
                     T_AMOPENAT_CHARGER_STATUS* chrStatus
                      )
 {
-    //IVTBL(get_chargerStatus)(chrStatus); 
+    IVTBL(get_chargerStatus)(chrStatus); 
 }
 
 /**查询充电器HW状态接口
@@ -46,8 +46,7 @@ E_AMOPENAT_CHR_HW_STATUS iot_pmd_get_chargerHwStatus(
                     VOID
                     )
 {
-    //return IVTBL(get_chargerHwStatus)();
-    return OPENAT_PM_CHR_HW_STATUS_UNKNOWN;
+    return IVTBL(get_chargerHwStatus)();
 }
 
 /**查询充电器HW状态接口
@@ -60,8 +59,7 @@ E_AMOPENAT_CHR_HW_STATUS iot_pmd_get_chargerHwStatus(
 **/
 int iot_pmd_get_chg_param(BOOL *battStatus, u16 *battVolt, u8 *battLevel, BOOL *chargerStatus, u8 *chargeState)
 {
-    //return IVTBL(get_chg_param)(battStatus, battVolt, battLevel, chargerStatus, chargeState);
-    return -1;
+    return IVTBL(get_chg_param)(battStatus, battVolt, battLevel, chargerStatus, chargeState);
 }
 
 /**正常开机

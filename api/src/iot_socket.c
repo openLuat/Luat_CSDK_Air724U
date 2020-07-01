@@ -1,6 +1,9 @@
 #include "iot_socket.h"
 #include "errno.h"
 
+extern UINT32 CFW_TcpipGetLastError(void);
+
+
 /**创建socket
 *@param		domain:		仅支持AF_INET (IPV4 网络协议)
 @param		type:		支持SOCK_STREAM/SOCK_DGRAM，分别表示TCP、UDP连接
@@ -227,7 +230,7 @@ int select(int maxfdp1,
 **/                                       
 int socket_errno(int socketfd)
 {
-    return CFW_TcpipGetLastError();
+    return (int)CFW_TcpipGetLastError();
 }
 
 /******************************
@@ -243,6 +246,7 @@ int socket_errno(int socketfd)
 int setNetifDns(CHAR *dns1, CHAR *dns2)
 {
 	//return IVTBL(setNetifDns)(dns1, dns2);
+	return -1;
 }
 
 /******************************
@@ -258,6 +262,7 @@ int setNetifDns(CHAR *dns1, CHAR *dns2)
 int getNetifDns(CHAR *dns1, CHAR *dns2)
 {
 	//return IVTBL(getNetifDns)(dns1, dns2);
+	return -1;
 }
 
 

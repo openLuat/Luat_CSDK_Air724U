@@ -22,7 +22,7 @@ typedef struct AtCmdEntityQueueTag
 
 
 int initstatus = FALSE;
-BOOL  simpresent = FALSE;
+extern BOOL  simpresent;
 gsmloc_cellinfo GSMLOC_CELL = {0};
 extern E_OPENAT_NETWORK_STATE network_state;
 static HANDLE g_netstatustimer;
@@ -30,10 +30,8 @@ static PAT_MESSAGE g_resp_cb = NULL;
 
 
 static AtCmdEntityQueue s_atCmdEntityQueue={0};
-static UrcEntityQueue s_urcEntityQueue={1};
-static AtCmdRsp AtCmdCbDefault(u8* pRspStr);   
+static AtCmdRsp AtCmdCbDefault(char* pRspStr);   
 static BOOL AtCmdDelayExe(u16 delay);
-static VOID global_urc_handler(u8* pUrcStr, u16 len);
 static BOOL iot_vat_queue_head_out(VOID);
 static BOOL iot_vat_queue_tail_out(VOID);
 static BOOL iot_vat_queue_fun_out(VOID);
@@ -48,18 +46,18 @@ extern VOID networkStatusChange(VOID);
 extern VOID network_check_status(VOID);
 
 
-static AtCmdRsp AtVatCmdCbDefault(u8* pRspStr)
+static AtCmdRsp AtVatCmdCbDefault(char* pRspStr)
 {
     iot_debug_print("[envelope] AtVatCmdCbDefault");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"OK","ERROR","+CME ERROR"};
+    char *rspStrTable[ ] = {"OK","ERROR","+CME ERROR"};
     s16  rspType = -1;
     u8  i = 0;
     if(g_resp_cb)
     {
-        g_resp_cb(pRspStr, strlen(pRspStr));
+        g_resp_cb((UINT8 *)pRspStr, (UINT16)strlen(pRspStr));
     }
-    u8  *p = pRspStr + 2;
+    char  *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -81,14 +79,14 @@ static AtCmdRsp AtVatCmdCbDefault(u8* pRspStr)
     return rspValue;
 }
 
-static AtCmdRsp AtCmdCbDefault(u8* pRspStr)
+static AtCmdRsp AtCmdCbDefault(char* pRspStr)
 {
 	iot_debug_print("[vat] AtCmdCbDefault");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"OK","ERROR"};
+    char *rspStrTable[ ] = {"OK","ERROR"};
     s16  rspType = -1;
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char  *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -238,7 +236,6 @@ static BOOL iot_vat_queue_is_empty(VOID)
 
 static BOOL iot_vat_queue_fun_set(u8 funCount)
 {
-    u8 i = 0;
     u8 first =  MAX(s_atCmdEntityQueue.current,s_atCmdEntityQueue.funFirst);
     u8 freeCount = 0;
 	#if 0
@@ -282,7 +279,7 @@ static BOOL iot_vat_queue_append(AtCmdEntity atCmdEntity)
         return FALSE;                           /* the queue is full */
     }
     else{
-        u8* pAtCmd = NULL; 
+        char* pAtCmd = NULL; 
 
         pAtCmd = iot_os_malloc(atCmdEntity.cmdLen+1);
 		pAtCmd[atCmdEntity.cmdLen] = 0;
@@ -338,11 +335,17 @@ static VOID iot_timer_handle(void *pParameter)
 static VOID iot_vat_netstatus(UINT8 *pData)
 {
 	int i;
-	int cid = 0;
 	int netstatusType = -1;
-	u8  *p = pData + 2;
-	UINT8 *netStatus[] = {"*CGEV: ACT,",
-						"*CGEV: DEACT,"};
+	char *p = NULL;
+	if((pData[0] == '\r') && (pData[1] == '\n'))
+	{
+		p = (char *)(pData + 2);
+	}
+	else
+	{
+		p = (char *)pData;
+	}
+	char *netStatus[] = {"*CGEV: ACT,",	"*CGEV: DEACT,"};
 	for (i = 0; i < sizeof(netStatus) / sizeof(netStatus[0]); i++)
     {
         if (!strncmp(netStatus[i], p, strlen(netStatus[i])))
@@ -356,12 +359,43 @@ static VOID iot_vat_netstatus(UINT8 *pData)
             }
 			else if(netstatusType == 0)
 			{
-				iot_os_stop_timer(g_netstatustimer);
+				if(g_netstatustimer)
+				{
+					iot_os_stop_timer(g_netstatustimer);
+					iot_os_delete_timer(g_netstatustimer);
+				}
 				network_check_status();
 				break;
 			}
         }
     }
+}
+
+static VOID iot_vat_getsimststus(UINT8 *pData)
+{
+	char *p = NULL;
+	if((pData[0] == '\r') && (pData[1] == '\n'))
+	{
+		p = (char *)(pData + 2);
+	}
+	else
+	{
+		p = (char *)pData;
+	}
+	if(!strncmp("+CPIN: READY", (char*)p, strlen("+CPIN: READY")))
+	{
+		if(g_netstatustimer)
+		{
+			iot_os_stop_timer(g_netstatustimer);
+			iot_os_delete_timer(g_netstatustimer);
+		}
+		network_check_status();
+		simpresent = 1;
+	}
+	else if(!strncmp("+CPIN: SIM REMOVED", (char*)p, strlen("+CPIN: SIM REMOVED")))
+	{
+		simpresent = 0;
+	}
 }
 
 static int iot_vat_atoi(char* str_p)
@@ -382,24 +416,24 @@ static int iot_vat_atoi(char* str_p)
 static VOID GetCellInfo(UINT8 *pData)
 {
 	int cut = 0;
-	u8* p = pData;
-	u8 buf[50][15] = {0};
+	char* p = (char *)pData;
+	char buf[50][15] = {0};
 	/*LTE cellinfo*/
-	if(!strncmp(pData, "\r\n+EEMLTESVC:", strlen("\r\n+EEMLTESVC:")))	
+	if(!strncmp((char *)pData, "\r\n+EEMLTESVC:", strlen("\r\n+EEMLTESVC:")))	
 	{
 		p = p + strlen("\r\n+EEMLTESVC:");
-		u8* b = strtok(p, ",");
+		char* b = strtok(p, ",");
 		while(b != NULL)
 		{
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
 		}
-		GSMLOC_CELL.Cellinfo[0].Mcc = iot_vat_atoi(buf[0]);
-		GSMLOC_CELL.Cellinfo[0].Mnc = iot_vat_atoi(buf[2]);
-		GSMLOC_CELL.Cellinfo[0].Lac= iot_vat_atoi(buf[3]);
-		GSMLOC_CELL.Cellinfo[0].CellId = iot_vat_atoi(buf[9]);
-		GSMLOC_CELL.Cellinfo[0].rssi = iot_vat_atoi(buf[14])/3;
+		GSMLOC_CELL.Cellinfo[0].Mcc = (u16)iot_vat_atoi(buf[0]);
+		GSMLOC_CELL.Cellinfo[0].Mnc = (u16)iot_vat_atoi(buf[2]);
+		GSMLOC_CELL.Cellinfo[0].Lac= (u32)iot_vat_atoi(buf[3]);
+		GSMLOC_CELL.Cellinfo[0].CellId = (u32)iot_vat_atoi(buf[9]);
+		GSMLOC_CELL.Cellinfo[0].rssi = (u16)iot_vat_atoi(buf[14])/3;
 		iot_debug_print("[vat] mcc: %d,  mnc: %d,  lac: %d,  ci: %d,  rssi: %d,",
 			GSMLOC_CELL.Cellinfo[0].Mcc,
 			GSMLOC_CELL.Cellinfo[0].Mnc,
@@ -408,31 +442,31 @@ static VOID GetCellInfo(UINT8 *pData)
 			GSMLOC_CELL.Cellinfo[0].rssi);
 	}
 	/*UMT cellinfo*/
-	if(!strncmp(pData, "\r\n+EEMUMTSSVC:", strlen("\r\n+EEMUMTSSVC:")))	
+	if(!strncmp((char *)pData, "\r\n+EEMUMTSSVC:", strlen("\r\n+EEMUMTSSVC:")))	
 	{
 		UINT16 cellMeasureFlag;
 		UINT16 cellParamFlag;
 		UINT16 offset = 3;
 		p = p + strlen("\r\n+EEMUMTSSVC:");
-		u8* b = strtok(p, ",");
+		char* b = strtok(p, ",");
 		while(b != NULL)
 		{
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
 		}
-		cellMeasureFlag = iot_vat_atoi(buf[1]);
-		cellParamFlag = iot_vat_atoi(buf[2]);
+		cellMeasureFlag = (UINT16)iot_vat_atoi(buf[1]);
+		cellParamFlag = (UINT16)iot_vat_atoi(buf[2]);
 		if(cellMeasureFlag != 0)
 		{
 			offset = offset + 2;
-			GSMLOC_CELL.Cellinfo[0].rssi = iot_vat_atoi(buf[offset])/3;
+			GSMLOC_CELL.Cellinfo[0].rssi = (u16)iot_vat_atoi(buf[offset])/3;
 			offset = offset + 4;
 		}
 		else
 		{
 			offset = offset + 2;
-			GSMLOC_CELL.Cellinfo[0].rssi = iot_vat_atoi(buf[offset])/3;
+			GSMLOC_CELL.Cellinfo[0].rssi = (u16)iot_vat_atoi(buf[offset])/3;
 			offset = offset + 2;
 		}
 		if(cellParamFlag != 0)
@@ -443,10 +477,10 @@ static VOID GetCellInfo(UINT8 *pData)
 				offset+1, buf[offset+1],
 				offset+2, buf[offset+2],
 				offset+3, buf[offset+3]);
-			GSMLOC_CELL.Cellinfo[0].Mcc = iot_vat_atoi(buf[offset]);
-			GSMLOC_CELL.Cellinfo[0].Mnc = iot_vat_atoi(buf[offset+1]);
-			GSMLOC_CELL.Cellinfo[0].Lac= iot_vat_atoi(buf[offset+2]);
-			GSMLOC_CELL.Cellinfo[0].CellId = iot_vat_atoi(buf[offset+3]);
+			GSMLOC_CELL.Cellinfo[0].Mcc = (u16)iot_vat_atoi(buf[offset]);
+			GSMLOC_CELL.Cellinfo[0].Mnc = (u16)iot_vat_atoi(buf[offset+1]);
+			GSMLOC_CELL.Cellinfo[0].Lac= (u32)iot_vat_atoi(buf[offset+2]);
+			GSMLOC_CELL.Cellinfo[0].CellId = (u32)iot_vat_atoi(buf[offset+3]);
 		}
 		iot_debug_print("[vat] mcc: %d,  mnc: %d,  lac: %d,  ci: %d,  rssi: %d,",
 			GSMLOC_CELL.Cellinfo[0].Mcc,
@@ -456,20 +490,20 @@ static VOID GetCellInfo(UINT8 *pData)
 			GSMLOC_CELL.Cellinfo[0].rssi);
 	}
 	/*GSM curCellInfo*/
-	if(!strncmp(pData, "\r\n+EEMGINFOSVC:", strlen("\r\n+EEMGINFOSVC:")))	
+	if(!strncmp((char *)pData, "\r\n+EEMGINFOSVC:", strlen("\r\n+EEMGINFOSVC:")))	
 	{
 		p = p + strlen("\r\n+EEMGINFOSVC:");
-		u8* b = strtok(p, ",");
+		char* b = strtok(p, ",");
 		while(b != NULL)
 		{
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
 		}
-		GSMLOC_CELL.Cellinfo[0].Mcc = iot_vat_atoi(buf[0]);
-		GSMLOC_CELL.Cellinfo[0].Mnc = iot_vat_atoi(buf[1]);
-		GSMLOC_CELL.Cellinfo[0].Lac= iot_vat_atoi(buf[2]);
-		GSMLOC_CELL.Cellinfo[0].CellId = iot_vat_atoi(buf[3]);
+		GSMLOC_CELL.Cellinfo[0].Mcc = (u16)iot_vat_atoi(buf[0]);
+		GSMLOC_CELL.Cellinfo[0].Mnc = (u16)iot_vat_atoi(buf[1]);
+		GSMLOC_CELL.Cellinfo[0].Lac= (u32)iot_vat_atoi(buf[2]);
+		GSMLOC_CELL.Cellinfo[0].CellId = (u32)iot_vat_atoi(buf[3]);
 		if(iot_vat_atoi(buf[9]) > 31)
 		{
 			GSMLOC_CELL.Cellinfo[0].rssi = 31;
@@ -490,23 +524,23 @@ static VOID GetCellInfo(UINT8 *pData)
 			GSMLOC_CELL.Cellinfo[0].rssi);
 	}
 	/*GSM nbrCellInfo*/
-	if(!strncmp(pData, "\r\n+EEMGINFONC:", strlen("\r\n+EEMGINFONC:")))	
+	if(!strncmp((char *)pData, "\r\n+EEMGINFONC:", strlen("\r\n+EEMGINFONC:")))	
 	{
 		p = p + strlen("\r\n+EEMGINFONC:");
-		u8* b = strtok(p, ',');
+		char* b = (char*)strtok(p, (const char *)',');
 		u8 id = 0;
 		while(b != NULL)
 		{
 			strcpy(buf[cut], b);
 			cut++;
-			b = strtok(NULL, ',');
+			b = (char*)strtok(NULL, (const char *)',');
 		}
 		id = iot_vat_atoi(buf[0]);
-		GSMLOC_CELL.Cellinfo[id+1].Mcc = iot_vat_atoi(buf[1]);
-		GSMLOC_CELL.Cellinfo[id+1].Mnc = iot_vat_atoi(buf[2]);
-		GSMLOC_CELL.Cellinfo[id+1].Lac= iot_vat_atoi(buf[3]);
-		GSMLOC_CELL.Cellinfo[id+1].CellId = iot_vat_atoi(buf[5]);
-		GSMLOC_CELL.Cellinfo[id+1].rssi = iot_vat_atoi(buf[6]);
+		GSMLOC_CELL.Cellinfo[id+1].Mcc = (u16)iot_vat_atoi(buf[1]);
+		GSMLOC_CELL.Cellinfo[id+1].Mnc = (u16)iot_vat_atoi(buf[2]);
+		GSMLOC_CELL.Cellinfo[id+1].Lac= (u32)iot_vat_atoi(buf[3]);
+		GSMLOC_CELL.Cellinfo[id+1].CellId = (u32)iot_vat_atoi(buf[5]);
+		GSMLOC_CELL.Cellinfo[id+1].rssi = (u16)iot_vat_atoi(buf[6]);
 		iot_debug_print("[vat] mcc: %d,  mnc: %d,  lac: %d,  ci: %d,  rssi: %d,",
 			GSMLOC_CELL.Cellinfo[id+1].Mcc,
 			GSMLOC_CELL.Cellinfo[id+1].Mnc,
@@ -518,7 +552,7 @@ static VOID GetCellInfo(UINT8 *pData)
 
 static UINT8 iot_vat_ResPerc(UINT8 *pData)
 {
-	UINT8  *p = pData + 2;
+	char  *p = (char *)(pData + 2);
 	if(!strncmp(p, "^CINIT:", strlen("^CINIT:")))	
 		return 1;
 	if(!strncmp(p, "^CARDMODE:", strlen("^CARDMODE:")))	
@@ -538,11 +572,7 @@ static VOID iot_vat_ATCmdIndHandle(UINT8 *pData, UINT16 length)
     if (length > 0) 
 	{
 		iot_vat_netstatus(pData);
-		if(!strncmp(pData, "\r\n+CPIN: READY\r\n", length))	
-		{
-			iot_os_stop_timer(g_netstatustimer);
-			network_check_status();
-		}
+		iot_vat_getsimststus(pData);
 		GetCellInfo(pData);
 		iot_debug_print("[vat] pData : %s , %d", pData, length);
 		if(iot_vat_ResPerc(pData))
@@ -552,7 +582,7 @@ static VOID iot_vat_ATCmdIndHandle(UINT8 *pData, UINT16 length)
 
 	    if (s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].p_atCmdCallBack)
 		{
-	        atCmdRsp = s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].p_atCmdCallBack(pData);
+	        atCmdRsp = s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].p_atCmdCallBack((char*)pData);
 
 	        iot_debug_print("[vat]INFO: callback return %d,%d",s_atCmdEntityQueue.current,atCmdRsp);
 	        switch ( atCmdRsp )
@@ -599,17 +629,17 @@ static VOID iot_vat_ATCmdIndHandle(UINT8 *pData, UINT16 length)
 
 static VOID iot_vat_SendCMD(VOID)
 {
-	u8* pCmd = s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].p_atCmdStr;
+	char* pCmd = s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].p_atCmdStr;
 	u16 len = s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current].cmdLen;
 	if(pCmd){
 		u16 lenAct = 0;
 		iot_debug_print("[vat]DEBUG:at cmd is:%d,%s,%d",s_atCmdEntityQueue.current,pCmd,len);
-		if (!strncmp(AT_CMD_DELAY, pCmd, strlen(AT_CMD_DELAY))) {  /* delay some seconds to run next cmd */
+		if (!strncmp((char*)AT_CMD_DELAY, pCmd, strlen((char*)AT_CMD_DELAY))) {  /* delay some seconds to run next cmd */
 			uint32 delay = 0;
 			int i = 0;
-			for(i = 0; i < (len - strlen(AT_CMD_DELAY)); i++)
+			for(i = 0; i < (len - strlen((char*)AT_CMD_DELAY)); i++)
 			{
-				if(pCmd[strlen(AT_CMD_DELAY)+i]>='0' && pCmd[strlen(AT_CMD_DELAY)+i] <= '9')
+				if(pCmd[strlen((char*)AT_CMD_DELAY)+i]>='0' && pCmd[strlen((char*)AT_CMD_DELAY)+i] <= '9')
 				{
 					delay = delay*10 + STR_TO_INT(pCmd[strlen(AT_CMD_DELAY)+i]);
 				}else
@@ -621,7 +651,7 @@ static VOID iot_vat_SendCMD(VOID)
 			AtCmdDelayExe(delay);
 			return;
 		}
-		lenAct = OPENAT_send_at_command(pCmd,len);
+		lenAct = OPENAT_send_at_command((UINT8 *)pCmd,(UINT16)len);
 		if(!lenAct)
 			iot_debug_print("[vat]ERROR: send at cmd error!");
 		else{
@@ -681,7 +711,7 @@ BOOL iot_vat_send_cmd(UINT8* cmdStr, UINT16 cmdLen)
 {
     BOOL result = FALSE;
     AtCmdEntity atCmdInit[]={
-    	{cmdStr,cmdLen,AtVatCmdCbDefault},
+    	{(char *)cmdStr,cmdLen,AtVatCmdCbDefault},
     };
     result = iot_vat_queue_fun_append(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
     iot_vat_SendCMD();

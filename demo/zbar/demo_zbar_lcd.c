@@ -124,7 +124,7 @@ void lcdLedSet(BOOL isOn)
 		T_AMOPENAT_GPIO_CFG cfg = {0};
 
 		cfg.mode = OPENAT_GPIO_OUTPUT;
-		iot_gpio_config(LCD_LED, &cfg);
+		iot_gpio_open(LCD_LED, &cfg);
 		init = TRUE;	
 	}
 

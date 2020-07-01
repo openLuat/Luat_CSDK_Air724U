@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "string.h"
+#include "iot_os.h"
+#include "iot_debug.h"
 
 #ifndef ULONG
 #define ULONG						unsigned long

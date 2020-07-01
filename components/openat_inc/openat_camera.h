@@ -18,6 +18,9 @@ BOOL OPENAT_CameraPreviewOpen(T_AMOPENAT_CAM_PREVIEW_PARAM *previewParam);
 BOOL OPENAT_CameraPreviewClose(void);
 BOOL OPENAT_CameraCapture(T_AMOPENAT_CAM_CAPTURE_PARAM *captureParam);
 BOOL OPENAT_CameraSavePhoto(INT32 iFd);
+/*+\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
+BOOL OPENAT_CameraLcdUpdateEnable(BOOL lcdUpdateEnable);
+/*-\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
 
 /*+\NEW\Jack.li\2013.2.9\增加摄像头视频录制接口 */
 BOOL OPENAT_CameraVideoRecordStart(INT32 iFd);

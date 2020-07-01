@@ -22,6 +22,38 @@ BOOL iot_pmd_init(
             );
 
 
+/**获取电池状态
+*@param		batStatus:		电池状态
+**/
+VOID iot_pmd_get_batteryStatus(
+                    T_AMOPENAT_BAT_STATUS* batStatus    
+                     );
+
+/**获取充电器状态
+*@param		chrStatus:		充电器状态
+**/
+VOID iot_pmd_get_chargerStatus(
+                    T_AMOPENAT_CHARGER_STATUS* chrStatus
+                     );
+
+/**查询充电器HW状态接口
+*@return	E_AMOPENAT_CHR_HW_STATUS: 充电器HW状态接口
+**/
+E_AMOPENAT_CHR_HW_STATUS iot_pmd_get_chargerHwStatus(
+                    VOID
+                    );
+
+/**查询充电器HW状态接口
+*@param		battStatus:		    电池状态
+*@param		battVolt:		    电压值
+*@param		battLevel:		    电压等级
+*@param		chargerStatus:		充电器状态
+*@param		chargeState:		充电状态
+*@return	int:  返回0成功其余失败
+**/
+int iot_pmd_get_chg_param(BOOL *battStatus, u16 *battVolt, u8 *battLevel, BOOL *chargerStatus, u8 *chargeState);
+
+
 /**正常开机
 *@param		simStartUpMode:		开启SIM卡方式
 *@param		nwStartupMode:		开启协议栈方式

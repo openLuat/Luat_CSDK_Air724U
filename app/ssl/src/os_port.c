@@ -155,7 +155,7 @@ uint64_t __be64_to_cpu(uint64_t x)
 
 int gettimeofday(struct openat_timeval *__p, void *__tz)
 {
-	time(&__p->tv_sec);
+	time((time_t *)&__p->tv_sec);
 	__p->tv_usec = 0;
 	return __p->tv_sec;
 }

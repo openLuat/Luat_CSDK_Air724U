@@ -102,7 +102,7 @@ uint32_t MQTT_EncodeMsg(MQTT_HeadStruct *Head, uint8_t *Payload, uint32_t Payloa
 		}
 		else if (Head->String)
 		{
-			if (!MQTT_AddUFT8String(TxBuf, Head->String))
+			if (!MQTT_AddUFT8String(TxBuf, (const int8_t *)Head->String))
 			{
 				DBG_ERROR("!");
 				return 0;
@@ -400,7 +400,7 @@ uint32_t MQTT_SubscribeMsg(Buffer_Struct *TxBuf, Buffer_Struct *PayloadBuf, uint
 	PayloadBuf->Pos = 0;
 	for(i = 0; i < TopicNum; i++)
 	{
-		if (!MQTT_AddUFT8String(PayloadBuf, Topic[i].Char))
+		if (!MQTT_AddUFT8String(PayloadBuf, (const int8_t *)Topic[i].Char))
 		{
 			DBG_ERROR("!");
 			return 0;
@@ -426,7 +426,7 @@ uint32_t MQTT_UnSubscribeMsg(Buffer_Struct *TxBuf, Buffer_Struct *PayloadBuf, ui
 	PayloadBuf->Pos = 0;
 	for(i = 0; i < TopicNum; i++)
 	{
-		if (!MQTT_AddUFT8String(PayloadBuf, Topic[i].Char))
+		if (!MQTT_AddUFT8String(PayloadBuf, (const int8_t *)Topic[i].Char))
 		{
 			DBG_ERROR("!");
 			return 0;

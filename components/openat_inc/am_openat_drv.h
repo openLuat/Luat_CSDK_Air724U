@@ -1441,6 +1441,9 @@ typedef struct
 	E_AMOPENAT_RECORD_TYPE type;
 	E_AMOPENAT_AUD_FORMAT format;
 	AUD_STREAM_RECORD_CALLBACK_T stream_record_cb;
+	/*+\bug2241\zhuwangbin\2020.6.20\流录音可配置回调长度阀值*/
+	int thresholdLength; //录音数据达到一定的长度就上报
+	/*-\bug2241\zhuwangbin\2020.6.20\流录音可配置回调长度阀值*/
 }E_AMOPENAT_RECORD_PARAM;
 
 typedef enum

@@ -120,9 +120,9 @@ extern "C" {
     typedef struct _HTTP_CONNECTION
     {
 
-        fd_set              FDRead;             // socket read event
-        fd_set              FDWrite;            // socket write event 
-        fd_set              FDError;            // socket error event
+        openat_fd_set              FDRead;             // socket read event
+        openat_fd_set              FDWrite;            // socket write event 
+        openat_fd_set              FDError;            // socket error event
         INT32               HttpSocket;         // The underling socket
         UINT32              HttpStartTime;      // Time stamp for the session
         UINT32              HttpClientPort;     // For client side binding
@@ -286,7 +286,8 @@ extern "C" {
     // Last updated : 01/09/2005
     //
     ///////////////////////////////////////////////////////////////////////////////
-
+#if 0
+#if TLS_CONFIG_HTTP_CLIENT
 static    UINT32                  HTTPIntrnResizeBuffer         (P_HTTP_SESSION pHTTPSession, UINT32 nNewSize);
 static    UINT32                  HTTPIntrnSetURL               (P_HTTP_SESSION pHTTPSession, CHAR *pUrl,UINT32 nUrlLength);
     UINT32                  HTTPIntrnConnectionClose      (P_HTTP_SESSION pHTTPSession);
@@ -296,10 +297,16 @@ static    UINT32                  HTTPIntrnGetRemoteChunkLength (P_HTTP_SESSION 
 static    UINT32                  HTTPIntrnSend                 (P_HTTP_SESSION pHTTPSession, CHAR *pData,UINT32 *nLength);
 static    UINT32                  HTTPIntrnRecv                 (P_HTTP_SESSION pHTTPSession, CHAR *pData,UINT32 *nLength,BOOL PeekOnly);
 static    UINT32                  HTTPIntrnParseAuthHeader      (P_HTTP_SESSION pHTTPSession);
+#if TLS_CONFIG_HTTP_CLIENT_AUTH
 static    UINT32                  HTTPIntrnAuthHandler          (P_HTTP_SESSION pHTTPSession);
 static    UINT32                  HTTPIntrnAuthSendDigest       (P_HTTP_SESSION pHTTPSession);
+#if TLS_CONFIG_HTTP_CLIENT_AUTH_BASIC
 static    UINT32                  HTTPIntrnAuthSendBasic        (P_HTTP_SESSION pHTTPSession);
+#endif //TLS_CONFIG_HTTP_CLIENT_AUTH_BASIC
+#if TLS_CONFIG_HTTP_CLIENT_AUTH_DIGEST
 static    UINT32                  HTTPIntrnAuthenticate         (P_HTTP_SESSION pHTTPSession);
+#endif
+#endif
 static    UINT32                  HTTPIntrnHeadersAdd           (P_HTTP_SESSION pHTTPSession, CHAR *pHeaderName, UINT32 nNameLength, CHAR *pHeaderData, UINT32 nDataLength);
 static    UINT32                  HTTPIntrnHeadersRemove        (P_HTTP_SESSION pHTTPSession, CHAR *pHeaderName);
 static    UINT32                  HTTPIntrnHeadersReceive       (P_HTTP_SESSION pHTTPSession, UINT32 nTimeout);
@@ -309,7 +316,8 @@ static    UINT32                  HTTPIntrnHeadersFind          (P_HTTP_SESSION 
 static    UINT32                  HTTPIntrnSessionReset         (P_HTTP_SESSION pHTTPSession, BOOL EntireSession);
 static    UINT32                  HTTPIntrnSessionGetUpTime     (VOID);
 static    BOOL                    HTTPIntrnSessionEvalTimeout   (P_HTTP_SESSION pHTTPSession);
-
+#endif
+#endif
 #ifdef __cplusplus 
 }
 #endif

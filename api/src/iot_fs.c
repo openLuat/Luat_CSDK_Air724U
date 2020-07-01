@@ -118,6 +118,7 @@ INT32 iot_fs_change_size(
                 )
 {
     //return IVTBL(change_size)(iFd, uSize);
+    return 0;
 }
 
 /**切换当前工作目录
@@ -191,4 +192,54 @@ UINT32 iot_fs_file_size(
                 )
 {
     return IVTBL(get_file_size)(pszFileNameUniLe);
+}
+
+/**打开查找，并且获取文件夹下文件名
+*@param		dirName:	路径
+*@param     findResult: 对应路径下的第一个文件
+*@return	fileInfo: 	查找返回的句柄，返回值小于0表示失败,其余成功
+**/                   
+INT32 iot_fs_find_first(
+     char* dirName,
+     PAMOPENAT_FS_FIND_DATA findResult
+)
+{
+    INT32 ret = IVTBL(find_first_file)(dirName, findResult);
+
+	return (ret == 1) ? 0 : -1; 
+}
+
+/**获取文件夹下文件名
+*@param		iFd:  iot_fs_find_first接口返回值
+*@param     findResult: 对应路径下的文件
+*@return	fileInfo: 	返回小于0表示没有剩余文件，其他值表示还有文件
+**/                   
+INT32 iot_fs_find_next(
+     INT32 iFd, 
+     PAMOPENAT_FS_FIND_DATA findResult
+)
+{
+	if (iFd != 0)
+	{
+		return -1;
+	}
+
+	INT32 ret = IVTBL(find_next_file)(1, findResult);
+
+	return (ret == 1) ? 0 : -1;
+}
+
+/**关闭查找
+*@param		iFd:  iot_fs_find_first接口返回值
+*@return	fileInfo: 	返回值小于0表示失败,其余成功
+**/           
+INT32 iot_fs_find_close(
+     INT32 iFd
+)
+{
+	if (iFd != 0)
+	{
+		return -1;
+	}
+    return IVTBL(find_close)(1);
 }
