@@ -25,6 +25,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "am_openat.h"
 #include "iot_socket.h"
 #include "iot_fs.h"
@@ -479,7 +480,7 @@ GLOBALDEF int FtpConnect(const char *host, netbuf **nControl)
 	pnum = "21";
     else
 	*pnum++ = '\0';
-    if (isdigit(*pnum))
+    if (isdigit((unsigned char)*pnum))
 	    sin.sin_port = htons(atoi(pnum));
     else
     {

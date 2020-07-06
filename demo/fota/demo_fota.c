@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "iot_sys.h"
 #include "iot_os.h"
@@ -6,8 +8,6 @@
 #include "iot_network.h"
 #include "iot_fs.h"
 #include "iot_vat.h"
-#include <sys/stdio.h>
-#include <stdlib.h>
 #include "httpclient.h"
 #include "am_openat_httpclient.h"
 
@@ -79,7 +79,7 @@ int demo_ota_httpdownload(void)
 	CHAR readBuff[512];
 	UINT32 readSize = 0;
 	UINT32 readTotalLen = 0;
-	CHAR token[32];
+	CHAR token[32] = {0};
 	UINT32 tokenSize=32;
 	UINT32 nRetCode;
 	int rv = 1;
@@ -136,9 +136,9 @@ int demo_ota_httpdownload(void)
 		iot_debug_print("[ota] HTTPClientFindFirstHeader %d,%s", tokenSize, token);
 	}
 	
-	if(token)
+	if(strlen(token) > 0)
 	{
-		sscanf(token, "%*s %ld", &fsz);
+		sscanf(token, "%*s %d", &fsz);
 		iot_debug_print("[ota]GetSize fsz: %d",fsz);
 	}
 	else
@@ -221,9 +221,6 @@ static void demo_ota_task(PVOID pParameter)
     DEMO_OTA_MESSAGE*    msg;
     iot_debug_print("[ota] wait network ready....");
     BOOL sock = FALSE;
-    UINT32 appsize;
-    int resp,rv=1;
-    unsigned int sz;
 
     while(1)
     {
@@ -284,15 +281,15 @@ static void demo_otaworkIndCallBack(E_OPENAT_NETWORK_STATE state)
     iot_os_free(msgptr);
 }
 
-static AtCmdRsp demo_ota_getimei(u8* pRspStr)
+static AtCmdRsp demo_ota_getimei(char *pRspStr)
 {
 	iot_debug_print("[ota]demo_ota_getimei");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+WIMEI: ", "OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","+WIMEI: ", "OK"};
     s16  rspType = -1;
-    u8 imei[16] = {0};
+    char imei[16] = {0};
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -324,15 +321,15 @@ static AtCmdRsp demo_ota_getimei(u8* pRspStr)
     }
     return rspValue;
 }
-static AtCmdRsp demo_ota_getversion(u8* pRspStr)
+static AtCmdRsp demo_ota_getversion(char *pRspStr)
 {
 	iot_debug_print("[ota]demo_ota_getversion");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"ERROR","CSDK", "OK"};
+    char *rspStrTable[ ] = {"ERROR","CSDK", "OK"};
     s16  rspType = -1;
-    u8 version[6] = {0};
+    char version[6] = {0};
     u8  i = 0, cout = 0, num = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -386,14 +383,12 @@ static AtCmdRsp demo_ota_getversion(u8* pRspStr)
 
 static VOID demo_ota_getinfo(VOID)
 {
-	BOOL result = FALSE;
 	AtCmdEntity atCmdInit[]={
 		{AT_CMD_DELAY"2000",10,NULL},
 		{"AT+VER"AT_CMD_END, 8, demo_ota_getversion},
 		{"AT+WIMEI?"AT_CMD_END,11,demo_ota_getimei},
 	};
-	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-    return result;
+	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 }
 
 int appimg_enter(void *param)

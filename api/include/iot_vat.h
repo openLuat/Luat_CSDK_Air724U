@@ -13,8 +13,7 @@
 #define AT_CMD_CR  '\x0d'
 #define AT_CMD_LF  '\x0a'
 #define STR_TO_INT(x) 	(x-'0') 					/*数字的char转换为int*/
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 
 typedef enum
 {

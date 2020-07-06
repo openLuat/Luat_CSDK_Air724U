@@ -117,7 +117,7 @@ int32_t SSL_LoadKey(SSL_CTX *SSLCtrl, int32_t Type, const uint8_t *Data, int32_t
     if (strstr((char *)ssl_obj->buf, "-----BEGIN") != NULL)
     {
 #ifdef CONFIG_SSL_HAS_PEM
-    	ret = new_pem_obj(SSLCtrl, (Type == SSL_OBJ_X509_CACERT), (char *)ssl_obj->buf, ssl_obj->len, Password);
+    	ret = new_pem_obj(SSLCtrl, (Type == SSL_OBJ_X509_CACERT), (char *)ssl_obj->buf, ssl_obj->len, (const char *)Password);
 #else
 #ifdef CONFIG_SSL_FULL_MODE
         printf("%s", unsupported_str);
@@ -126,7 +126,7 @@ int32_t SSL_LoadKey(SSL_CTX *SSLCtrl, int32_t Type, const uint8_t *Data, int32_t
 #endif
     }
     else
-        ret = do_obj(SSLCtrl, Type, ssl_obj, Password);
+        ret = do_obj(SSLCtrl, Type, ssl_obj, (const char *)Password);
 
 error:
     ssl_obj_free(ssl_obj);

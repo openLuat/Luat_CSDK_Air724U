@@ -41,7 +41,7 @@ VOID iot_lcd_update_color_screen(
 				T_AMOPENAT_LCD_RECT_T* rect,        /* 需要刷新的区域 */
 				UINT16 *pDisplayBuffer    )
 {
-    return IVTBL(update_color_lcd_screen)(                       
+    IVTBL(update_color_lcd_screen)(                       
                             rect,      
                             pDisplayBuffer       
                                    );

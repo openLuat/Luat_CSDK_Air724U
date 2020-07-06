@@ -40,11 +40,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include <stdio.h>
 #include "os_int.h"
 #include "tls_config.h"
 #include "iot_os.h"
 #include "string.h"
+#include <stdio.h>
+#include <time.h>
 #include "stdarg.h"
 #include "iot_socket.h"
 #include "iot_debug.h"
@@ -273,7 +275,7 @@ void exit_now(const char *format, ...);
 #    define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1)
 #   endif
 
-struct tm
+/*struct tm
 {
   int	tm_sec;
   int	tm_min;
@@ -284,9 +286,9 @@ struct tm
   int	tm_wday;
   int	tm_yday;
   int	tm_isdst;
-};
+};*/
 
-typedef uint32_t time_t;
+//typedef uint32_t time_t;
 enum
 {
 	false = 0,

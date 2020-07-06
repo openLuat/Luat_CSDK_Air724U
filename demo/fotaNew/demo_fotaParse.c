@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "iot_sys.h"
 #include "iot_os.h"
@@ -6,8 +8,6 @@
 #include "iot_network.h"
 #include "iot_fs.h"
 #include "iot_vat.h"
-#include <sys/stdio.h>
-#include <stdlib.h>
 #include "demo_fotaParse.h"
 
 

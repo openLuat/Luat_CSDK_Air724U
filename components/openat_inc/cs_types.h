@@ -207,7 +207,7 @@ typedef unsigned short              WCHAR;
 
 #ifndef _ZBAR_H_
 #ifndef ushort
-#define ushort						unsigned short
+//#define ushort						unsigned short
 #endif
 #endif
 
@@ -221,7 +221,7 @@ typedef unsigned short              WCHAR;
 
 #ifndef _ZBAR_H_
 #ifndef ulong
-#define ulong						unsigned long
+//#define ulong						unsigned long
 #endif
 #endif
 

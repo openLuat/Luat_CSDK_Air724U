@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "string.h"
 #include "iot_os.h"
 #include "iot_debug.h"
@@ -29,15 +30,15 @@ static HANDLE g_s_http_task;
 static u8 WIFILOC_IMEI[16] = {0};
 extern gsmloc_cellinfo GSMLOC_CELL;
 
-static AtCmdRsp AtCmdCb_wimei(u8* pRspStr)
+static AtCmdRsp AtCmdCb_wimei(char *pRspStr)
 {
 	iot_debug_print("[wifiloc]AtCmdCb_wimei");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+WIMEI:","OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","+WIMEI:","OK"};
     s16  rspType = -1;
-    u8* imei = WIFILOC_IMEI;
+    char *imei = (char *)WIFILOC_IMEI;
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -70,15 +71,14 @@ static AtCmdRsp AtCmdCb_wimei(u8* pRspStr)
     return rspValue;
 }
 static u8 state = 0xf;
-static AtCmdRsp AtCmdCb_EEMGINFO(u8* pRspStr)
+static AtCmdRsp AtCmdCb_EEMGINFO(char *pRspStr)
 {
 	iot_debug_print("[wifiloc]AtCmdCb_EEMGINFO");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+EEMGINFO: ", "OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","+EEMGINFO: ", "OK"};
     s16  rspType = -1;
-	u8 type = 0xf;
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -122,15 +122,13 @@ static AtCmdRsp AtCmdCb_EEMGINFO(u8* pRspStr)
 
 static VOID wifiloc_SendATCmd(VOID)
 {
-	BOOL result = FALSE;
 	AtCmdEntity atCmdInit[]={
 		{"AT+WIMEI?"AT_CMD_END,11,AtCmdCb_wimei},
 		{"AT+EEMOPT=1"AT_CMD_END,13,NULL},
 		{AT_CMD_DELAY"1000",10,NULL},
 		{"AT+EEMGINFO?"AT_CMD_END,14,AtCmdCb_EEMGINFO},
 	};
-	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-    return result;
+	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 }
 
 static void get_wifilocinfo(CHAR* http_url)
@@ -142,7 +140,7 @@ static void get_wifilocinfo(CHAR* http_url)
 		iot_debug_print("[wifiloc]get GSMLOC_CELL");
 		iot_os_sleep(2000);
 	}
-	p += sprintf(p,"http://bs.openluat.com/cps_all?cell=%03x,%d,%d,%d,%d&macs=",
+	p += sprintf(p,"http://bs.openluat.com/cps_all?cell=%03x,%d,%ld,%ld,%d&macs=",
 		GSMLOC_CELL.Cellinfo[0].Mcc,
 		GSMLOC_CELL.Cellinfo[0].Mnc,
 		GSMLOC_CELL.Cellinfo[0].Lac,

@@ -1,7 +1,23 @@
 #include "iot_socket.h"
 #include "errno.h"
-
 extern UINT32 CFW_TcpipGetLastError(void);
+int lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen);
+int lwip_bind(int s, const struct sockaddr *name, socklen_t namelen);
+int lwip_getsockopt (int s, int level, int optname, void *optval, socklen_t *optlen);
+int lwip_setsockopt (int s, int level, int optname, const void *optval, socklen_t optlen);
+ int lwip_close(int s);
+int lwip_connect(int s, const struct sockaddr *name, socklen_t namelen);
+int lwip_listen(int s, int backlog);
+ssize_t lwip_recv(int s, void *mem, size_t len, int flags);
+ssize_t lwip_recvfrom(int s, void *mem, size_t len, int flags,
+      struct sockaddr *from, socklen_t *fromlen);
+ssize_t lwip_send(int s, const void *dataptr, size_t size, int flags);
+ssize_t lwip_sendto(int s, const void *dataptr, size_t size, int flags,
+    const struct sockaddr *to, socklen_t tolen);
+int lwip_socket(int domain, int type, int protocol);
+int lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
+                struct timeval *timeout);
+struct hostent *lwip_gethostbyname(const char *name);
 
 
 /**´´½¨socket

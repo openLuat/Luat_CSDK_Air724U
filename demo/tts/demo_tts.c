@@ -9,7 +9,8 @@
  * warranty that such application will be suitable for the specified use
  * without further testing or modification.
  */
-
+#include <stdio.h>
+#include <ctype.h>
 #include "iot_os.h"
 #include "iot_debug.h"
 #include "iot_tts.h"

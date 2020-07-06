@@ -1,6 +1,7 @@
 /*
  * 通过连接101.132.154.251 测试双向认证的SSL握手过程，及数据加密收发，该服务器随时会关闭，自己测试时必须是使用自己的服务器
  */
+#include <stdio.h>
 #include "string.h"
 #include "iot_os.h"
 #include "iot_debug.h"
@@ -8,7 +9,6 @@
 #include "iot_socket.h"
 #include "iot_fs.h"
 #include "iot_flash.h"
-#include "iot_types.h"
 #include "iot_pmd.h"
 #include "ssllib.h"
 
@@ -350,12 +350,12 @@ static void SSL_Task(PVOID pParameter)
 		Quit = 0;
 	}
 #ifdef TEST_URL
-	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, SymantecClass3SecureServerCA_G4, strlen(SymantecClass3SecureServerCA_G4), NULL);
+	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, (uint8_t *)SymantecClass3SecureServerCA_G4, strlen(SymantecClass3SecureServerCA_G4), NULL);
 #else
-	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, RootCert, strlen(RootCert), NULL);
+	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CACERT, (uint8_t *)RootCert, strlen(RootCert), NULL);
 	//如果是双向认证的，需要加载客户端的证书和私钥
-	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CERT, ClientCert, strlen(ClientCert), NULL);
-	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_RSA_KEY, ClientRSAKey, strlen(ClientRSAKey), NULL);
+	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_X509_CERT, (uint8_t *)ClientCert, strlen(ClientCert), NULL);
+	Ret = SSL_LoadKey(SSLCtrl, SSL_OBJ_RSA_KEY, (uint8_t *)ClientRSAKey, strlen(ClientRSAKey), NULL);
 #endif
 	while (!Quit)
 	{
@@ -455,7 +455,7 @@ static void SSL_Task(PVOID pParameter)
 				case SSL_MSG_USER_MSG_TIMER:
 					ToFlag = 0;
 					DBG_INFO("HTTP GET");
-					Ret = SSL_Write(SSLLink, TEST_DATA, strlen(TEST_DATA));
+					Ret = SSL_Write(SSLLink, (uint8_t *)TEST_DATA, strlen(TEST_DATA));
 					if (Ret < 0)
 					{
 						DBG_ERROR("ssl send error %d", Ret);
@@ -552,7 +552,7 @@ int appimg_enter(void *param)
                         "demo_socket_SSL");
 	NWState = OPENAT_NETWORK_DISCONNECT;
 	hTimer = iot_os_create_timer(SSL_TimerHandle, NULL);
-	SSL_RegSocketCallback(SSL_SocketTx, SSL_SocketRx);
+	SSL_RegSocketCallback((SocketAPI)SSL_SocketTx, (SocketAPI)SSL_SocketRx);
 	iot_pmd_exit_deepsleep();
 
     return 0;

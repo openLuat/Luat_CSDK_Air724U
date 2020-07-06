@@ -55,7 +55,6 @@ typedef INT64 int64_t;
 #ifdef CONFIG_PLATFORM_SOLARIS
 #include <inttypes.h>
 #else
-#include "iot_types.h"
 #include "iot_os.h"
 #endif /* Not Solaris */
 

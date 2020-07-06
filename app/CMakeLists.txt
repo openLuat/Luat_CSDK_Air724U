@@ -18,4 +18,5 @@ add_subdirectory_if_exist(ssl)
 add_subdirectory_if_exist(ftp)
 add_subdirectory_if_exist(http)
 add_subdirectory_if_exist(mqtt)
+add_subdirectory_if_exist(littlevgl)
 

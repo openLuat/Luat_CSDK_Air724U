@@ -388,7 +388,7 @@ static int asn1_get_utc_time(const uint8_t *buf, int *offset, time_t *t)
 int asn1_version(const uint8_t *cert, int *offset, int *val)
 {
     (*offset) += 2;        /* get past explicit tag */
-    return asn1_get_int(cert, offset, val);
+    return asn1_get_int(cert, offset, (int32_t *)val);
 }
 
 /**

@@ -1,5 +1,6 @@
 #include "iot_flash.h"
 #include "string.h"
+#include <stdio.h>
 #include "iot_debug.h"
 #include "iot_vat.h"
 #include "iot_network.h"
@@ -192,7 +193,7 @@ static AtCmdRsp AtCmdCb_cgact_read(char* pRspStr)
 }
 
 
-static char pAtApn[80] = {0};
+static char pAtApn[128] = {0};
 static BOOL network_connect(T_OPENAT_NETWORK_CONNECT* connectParam)
 {
 	BOOL result = FALSE;
@@ -201,11 +202,11 @@ static BOOL network_connect(T_OPENAT_NETWORK_CONNECT* connectParam)
 	memset(pAtApn, 0, 80);
 	if(strlen(connectParam->apn))
 	{
-		sprintf(pAtApn,"AT+CGDCONT=6,IP,\"%s\"%s",connectParam->apn,AT_CMD_END);
+		sprintf(pAtApn,"AT+CGDCONT=6,IP,%s\r\n",connectParam->apn);
 	}
 	else
 	{
-		sprintf(pAtApn,"AT+CGDCONT=6,IP,\"cmnet\"%s",AT_CMD_END);
+		sprintf(pAtApn,"AT+CGDCONT=6,IP,\"cmnet\"\r\n");
 	}
 	AtCmdEntity atCmdInit[]={
 		{AT_CMD_DELAY"1000",10,NULL},

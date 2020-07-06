@@ -12,7 +12,7 @@ static UINT32 s_demo_flash_begain_addr, s_demo_flash_end_addr;
 VOID demo_flash_read(VOID)
 {
     UINT8 read_buff[64];
-    INT32 read_len;
+    UINT32 read_len;
     E_AMOPENAT_MEMD_ERR errCode;
     
     errCode = iot_flash_read(DEMO_FLASH_BEGIN_ADDR, sizeof(read_buff), &read_len, read_buff);
@@ -26,7 +26,7 @@ VOID demo_flash_read(VOID)
 VOID demo_flash_write(VOID)
 {
     UINT8 write_buff[64] = {0};
-    INT32 write_len ;
+    UINT32 write_len ;
     E_AMOPENAT_MEMD_ERR errCode;
     
     memcpy(write_buff, "flash hello world", strlen("flash hello world"));

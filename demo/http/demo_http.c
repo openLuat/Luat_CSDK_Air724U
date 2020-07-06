@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "string.h"
 #include "iot_os.h"
 #include "iot_debug.h"

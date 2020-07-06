@@ -317,7 +317,7 @@ unsigned long HTTPWrapperGetHostByName(char *name,unsigned long *address)
 
     if(iHostType > 0)
     {
-        HostEntry = (struct HTTP_HOSTNET* )gethostbyname(name); 
+        HostEntry = (HTTP_HOSTNET* )gethostbyname(name); 
         if(HostEntry)
         {   
             *(address) = *((unsigned long*)HostEntry->h_addr_list[0]);

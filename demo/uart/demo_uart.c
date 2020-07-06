@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "string.h"
 #include "iot_debug.h"
 #include "iot_uart.h"
@@ -55,7 +56,7 @@ void uart_recv_handle(T_AMOPENAT_UART_MESSAGE* evt)
 		{
 		    case OPENAT_DRV_EVT_UART_RX_DATA_IND:
 
-		        recv_len = iot_uart_read(UART_PORT2, recv_buff, dataLen , UART_RECV_TIMEOUT);
+		        recv_len = iot_uart_read(UART_PORT2, (UINT8*)recv_buff, dataLen , UART_RECV_TIMEOUT);
 		        iot_debug_print("uart_recv_handle_1:recv_len %d", recv_len);
 				uart_msg_send(uart_task_handle, UART_RECV_MSG, recv_buff, recv_len);
 		        break;
@@ -74,8 +75,8 @@ VOID uart_write(VOID)
     char write_buff[] = "uart hello world";
     int32 write_len;
   
-    write_len = iot_uart_write(UART_PORT2, write_buff, strlen(write_buff));
-    write_len = iot_uart_write(UART_USB, write_buff, strlen(write_buff));
+    write_len = iot_uart_write(UART_PORT2, (UINT8*)write_buff, strlen(write_buff));
+    write_len = iot_uart_write(UART_USB, (UINT8*)write_buff, strlen(write_buff));
     iot_debug_print("[uart] uart_write_1 len %d, buff %s", write_len, write_buff);
 }
 
@@ -95,12 +96,12 @@ VOID uart_open(VOID)
 
     // 配置uart1 使用中断方式读数据
     err = iot_uart_open(UART_PORT2, &uartCfg);
-	iot_debug_print("[uart] uart_open_2");
+	iot_debug_print("[uart] uart_open_2 err: %d", err);
 
 	uartCfg.txDoneReport = FALSE;
 	uartCfg.uartMsgHande = NULL;
 	err = iot_uart_open(UART_USB, &uartCfg);
-	iot_debug_print("[uart] uart_open_usb");
+	iot_debug_print("[uart] uart_open_usb err: %d", err);
 }
 
 VOID uart_close(VOID)
@@ -153,7 +154,7 @@ static VOID usb_task_main(PVOID param)
 	UINT32 len = 0;
 	while (1)
 	{
-		len = iot_uart_read(UART_USB, recv_buff, 32, UART_RECV_TIMEOUT);
+		len = iot_uart_read(UART_USB, (UINT8 *)recv_buff, 32, UART_RECV_TIMEOUT);
 		if (len == 0)
 		{
 			iot_os_sleep(10);

@@ -118,7 +118,7 @@ typedef enum E_AMOPENAT_FILE_ATTR_TAG
 //--------------------------------------------------------------------------------------------------
 typedef struct T_AMOPENAT_FS_FIND_DATA_TAG
 {
-    UINT32  st_mode;     // Mode of file 
+    UINT32  st_mode;     // Mode of file  (1: file 0: dir  )
     UINT32  st_size;       // For regular files, the file size in bytes
     UINT32  atime;    // Time of last access to the file
     UINT32  mtime;   // Time of last data modification

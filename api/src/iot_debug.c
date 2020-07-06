@@ -1,7 +1,7 @@
 #include "iot_debug.h"
 #include "am_openat.h"
 #include "string.h"
-#include <sys/stdio.h>
+#include <stdio.h>
 
 
 extern BOOL g_s_traceflag;

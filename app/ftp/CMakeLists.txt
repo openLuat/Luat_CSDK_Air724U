@@ -17,6 +17,7 @@
 
 #设置包含头文�?
 target_include_directories(${target} PUBLIC ../../api/include)
+target_include_directories(${target} PUBLIC ../components/newlib/include)
 target_include_directories(${target} PUBLIC inc)
 
 target_sources(${target} PUBLIC

@@ -16,6 +16,7 @@
 #include "iot_debug.h"
 #include "iot_network.h"
 #include "iot_socket.h"
+#include "iot_pmd.h"
 #include "mqttlib.h"
 
 typedef struct {
@@ -53,11 +54,11 @@ enum
 const MQTT_SubscribeStruct DemoSub[2] =
 {
 		{
-				.Char = "air202/gprs/tx",
+				.Char = (uint8_t*)"air202/gprs/tx",
 				.Qos = MQTT_SUBSCRIBE_QOS2,
 		},
 		{
-				.Char = "air202/ctrl",
+				.Char = (uint8_t*)"air202/ctrl",
 				.Qos = MQTT_SUBSCRIBE_QOS2,
 		}
 };
@@ -362,8 +363,6 @@ static int32_t MQTT_Unsubscribe(int32_t Socketfd)
 static int32_t MQTT_Heart(int32_t Socketfd)
 {
 	uint32_t TxLen;
-	int32_t RxLen;
-	MQTT_HeadStruct Rxhead;
 	TxBuffer.Pos = 0;
 	TxLen = MQTT_SingleMsg(&TxBuffer, MQTT_CMD_PINGREQ);
 	if (MQTT_TCPTx(Socketfd, TxLen, MQTT_TCP_TO) < 0)
@@ -531,7 +530,7 @@ static void MQTT_Task(PVOID pParameter)
 	uint8_t ReConnCnt, Error, Quit;
 	int32_t RxLen = 0;
 	int32_t Socketfd = -1;
-	int32_t TopicSN, Result;
+	int32_t Result;
 
 	MQTT_HeadStruct Rxhead;
 	uint8_t *Payload = NULL;
@@ -608,8 +607,8 @@ static void MQTT_Task(PVOID pParameter)
 		}
 
 		DBG_INFO("MQTT PUBLISH hello Start");
-		strcpy(PayloadBuffer.Data, "hello, this is air202 mqtt demo!");
-		PayloadBuffer.Pos = strlen(PayloadBuffer.Data);
+		strcpy((char *)PayloadBuffer.Data, "hello, this is air202 mqtt demo!");
+		PayloadBuffer.Pos = strlen((char *)PayloadBuffer.Data);
 		TxBuffer.Pos = 0;
 		gPackID++;
 		MQTT_PublishMsg(&TxBuffer, MQTT_PUBLISH_DEFAULT_QOS, gPackID,
@@ -642,7 +641,7 @@ static void MQTT_Task(PVOID pParameter)
 				{
 					DummyLen = 0xffffffff;
 					memset(Topic, 0, sizeof(Topic));
-					Rxhead.Data = Topic;
+					Rxhead.Data = (uint8_t *)Topic;
 					Payload = MQTT_DecodeMsg(&Rxhead, MQTT_HEAD_LEN_MAX, &PayloadLen, MQTTAnalyzeBuf + DealLen, RxLen - DealLen, &DummyLen);
 					//DBG_INFO("%d %d %d", DummyLen, DealLen, RxLen - DealLen);
 					if ((uint32_t)Payload != INVALID_HANDLE_VALUE)
@@ -650,7 +649,7 @@ static void MQTT_Task(PVOID pParameter)
 						Rxhead.Data[Rxhead.DataLen] = 0;
 						if (Payload && PayloadLen)
 						{
-							memcpy(PayloadBuffer.Data, Payload, PayloadLen);
+							memcpy((char *)PayloadBuffer.Data, Payload, PayloadLen);
 							PayloadBuffer.Pos = PayloadLen;
 						}
 						if (MQTT_MessageAnalyze(&Rxhead, Socketfd, &QuitFlag) < 0)
@@ -663,8 +662,8 @@ static void MQTT_Task(PVOID pParameter)
 						if (QuitFlag)
 						{
 							DBG_INFO("MQTT PUBLISH goodbyte");
-							strcpy(PayloadBuffer.Data, "goodbyte");
-							PayloadBuffer.Pos = strlen(PayloadBuffer.Data);
+							strcpy((char *)PayloadBuffer.Data, "goodbyte");
+							PayloadBuffer.Pos = strlen((char *)PayloadBuffer.Data);
 							TxBuffer.Pos = 0;
 							MQTT_PublishMsg(&TxBuffer, 0, gPackID,
 												DemoPublishTopicGPRS, PayloadBuffer.Data, PayloadBuffer.Pos);
@@ -782,7 +781,7 @@ int appimg_enter(void *param)
                         OPENAT_OS_CREATE_DEFAULT,
                         "demo_socket_mqtt");
 	NWState = OPENAT_NETWORK_DISCONNECT;
-	hTimer = iot_os_create_timer(MQTT_TimerHandle, NULL);
+	hTimer = iot_os_create_timer((PTIMER_EXPFUNC)MQTT_TimerHandle, NULL);
 	iot_pmd_exit_deepsleep();
 
     return 0;

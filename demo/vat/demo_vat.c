@@ -4,15 +4,14 @@
 
 
 extern int CsqValue;
-static AtCmdRsp AtCmdCb_csq(u8* pRspStr)
+static AtCmdRsp AtCmdCb_csq(char *pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_csq");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+CSQ: ", "OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","+CSQ: ", "OK"};
     s16  rspType = -1;
-	u8 zero = '0';
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -60,15 +59,15 @@ static AtCmdRsp AtCmdCb_csq(u8* pRspStr)
 }
 
 
-static AtCmdRsp AtCmdCb_wimei(u8* pRspStr)
+static AtCmdRsp AtCmdCb_wimei(char *pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_wimei");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","+WIMEI:", "OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","+WIMEI:", "OK"};
     s16  rspType = -1;
-    u8 imei[16] = {0};
+    char imei[16] = {0};
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -100,15 +99,15 @@ static AtCmdRsp AtCmdCb_wimei(u8* pRspStr)
     return rspValue;
 }
 
-static AtCmdRsp AtCmdCb_iccid(u8* pRspStr)
+static AtCmdRsp AtCmdCb_iccid(char *pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_iccid");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"ERROR","+ICCID:"};
+    char *rspStrTable[ ] = {"ERROR","+ICCID:"};
     s16  rspType = -1;
-    u8 iccid[20] = {0};
+    char iccid[20] = {0};
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -140,15 +139,15 @@ static AtCmdRsp AtCmdCb_iccid(u8* pRspStr)
     return rspValue;
 }
 
-static AtCmdRsp AtCmdCb_cimi(u8* pRspStr)
+static AtCmdRsp AtCmdCb_cimi(char *pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_cimi");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    u8 *rspStrTable[ ] = {"+CME ERROR","460", "OK"};
+    char *rspStrTable[ ] = {"+CME ERROR","460", "OK"};
     s16  rspType = -1;
-    u8 imsi[20] = {0};
+    char imsi[20] = {0};
     u8  i = 0;
-    u8  *p = pRspStr + 2;
+    char *p = pRspStr + 2;
     for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
     {
         if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
@@ -184,7 +183,6 @@ static AtCmdRsp AtCmdCb_cimi(u8* pRspStr)
 
 VOID luat_ATCmdSend(VOID)
 {
-	BOOL result = FALSE;
 	AtCmdEntity atCmdInit[]={
 		{"AT"AT_CMD_END,4,NULL},
 		{AT_CMD_DELAY"2000",10,NULL},
@@ -193,8 +191,7 @@ VOID luat_ATCmdSend(VOID)
 		{"AT+ICCID"AT_CMD_END,10,AtCmdCb_iccid},
 		{"AT+CIMI"AT_CMD_END,9,AtCmdCb_cimi},
 	};
-	result = iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
-    return result;
+	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 }
 
 int appimg_enter(void *param)

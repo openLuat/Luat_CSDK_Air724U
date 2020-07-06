@@ -20,6 +20,9 @@ typedef struct AtCmdEntityQueueTag
 
 }AtCmdEntityQueue;
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 
 int initstatus = FALSE;
 extern BOOL  simpresent;

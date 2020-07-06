@@ -2,22 +2,20 @@
 #define __IOT_SOCKET_H__
 
 #include "am_openat.h"
+#include <sys/_timeval.h>
 
 #define OPENAT_INADDR_NONE (0xFFFFFFFF)
 
 #define INVALID_SOCKET  (0xFFFFFFFFL)
 #define SOCKET_ERROR    (0xFFFFFFFFL)
 
-#define	MSG_OOB		    0x1     /* process out-of-band data */
-#define	MSG_PEEK	    0x2	    /* peek at incoming message */
-#define	MSG_DONTROUTE	0x4		  /* send without using routing tables */
-#define	MSG_EOR		    0x8		  /* data completes record */
-#define	MSG_TRUNC	    0x10	  /* data discarded before delivery */
-#define	MSG_CTRUNC	  0x20	  /* control data lost before delivery */
-#define	MSG_WAITALL	  0x40  	/* wait for full request or error */
-#define	MSG_DONTWAIT	0x80  	/* this message should be nonblocking */
-#define	MSG_EOF		    0x100		/* data completes connection */
-#define MSG_COMPAT    0x8000	/* used in sendit() */
+/* Flags we can use with send and recv. */
+#define MSG_PEEK       0x01    /* Peeks at an incoming message */
+#define MSG_WAITALL    0x02    /* Unimplemented: Requests that the function block until the full amount of data requested can be returned */
+#define MSG_OOB        0x04    /* Unimplemented: Requests out-of-band data. The significance and semantics of out-of-band data are protocol-specific */
+#define MSG_DONTWAIT   0x08    /* Nonblocking i/o for this operation only */
+#define MSG_MORE       0x10    /* Sender will send more */
+#define MSG_NOSIGNAL   0x20    /* Uninmplemented: Requests not to send the SIGPIPE signal if an attempt to send is made on a stream-oriented socket that is no longer connected. */
 
 
 struct openat_sockaddr
@@ -61,39 +59,6 @@ struct openat_hostent {
 
 typedef uint32 openat_socklen_t;
 
-#define sockaddr_in openat_sockaddr_in 
-#define hostent 	openat_hostent
-#define sockaddr 	openat_sockaddr
-#define in_addr 	openat_in_address
-
-/* OPENAT_FD_SET used for select */
-#ifndef OPENAT_FD_SET
-#undef  OPENAT_FD_SETSIZE
-#define OPENAT_MEMP_NUM_NETCONN 			8
-#define OPENAT_SOCKET_OFFSET              1
-/* Make FD_SETSIZE match NUM_SOCKETS in socket.c */
-#define OPENAT_FD_SETSIZE    OPENAT_MEMP_NUM_NETCONN
-#define OPENAT_FDSETSAFESET(n, code) do { \
-  if (((n) - OPENAT_SOCKET_OFFSET < OPENAT_MEMP_NUM_NETCONN) && (((int)(n) - OPENAT_SOCKET_OFFSET) >= 0)) { \
-  code; }} while(0)
-#define OPENAT_FDSETSAFEGET(n, code) (((n) - OPENAT_SOCKET_OFFSET < OPENAT_MEMP_NUM_NETCONN) && (((int)(n) - OPENAT_SOCKET_OFFSET) >= 0) ?\
-  (code) : 0)
-#define OPENAT_FD_SET(n, p)  OPENAT_FDSETSAFESET(n, (p)->fd_bits[((n)-OPENAT_SOCKET_OFFSET)/8] |=  (1 << (((n)-OPENAT_SOCKET_OFFSET) & 7)))
-#define OPENAT_FD_CLR(n, p)  OPENAT_FDSETSAFESET(n, (p)->fd_bits[((n)-OPENAT_SOCKET_OFFSET)/8] &= ~(1 << (((n)-OPENAT_SOCKET_OFFSET) & 7)))
-#define OPENAT_FD_ISSET(n,p) OPENAT_FDSETSAFEGET(n, (p)->fd_bits[((n)-OPENAT_SOCKET_OFFSET)/8] &   (1 << (((n)-OPENAT_SOCKET_OFFSET) & 7)))
-#define OPENAT_FD_ZERO(p)    memset((void*)(p), 0, sizeof(*(p)))
-
-typedef struct openat_fd_set
-{
-  unsigned char fd_bits [(OPENAT_FD_SETSIZE+7)/8];
-} openat_fd_set;
-
-#elif OPENAT_SOCKET_OFFSET
-#error "OPENAT_SOCKET_OFFSET does not work with external OPENAT_FD_SET!"
-#elif OPENAT_FD_SETSIZE < OPENAT_MEMP_NUM_NETCONN
-#error "external OPENAT_FD_SETSIZE too small for number of sockets"
-#endif /* OPENAT_FD_SET */
-
 #ifndef FD_SET
 #undef  FD_SETSIZE
 #define MEMP_NUM_NETCONN 			8
@@ -105,14 +70,14 @@ typedef struct openat_fd_set
   code; }} while(0)
 #define FDSETSAFEGET(n, code) (((n) - LWIP_SOCKET_OFFSET < MEMP_NUM_NETCONN) && (((int)(n) - LWIP_SOCKET_OFFSET) >= 0) ?\
   (code) : 0)
-#define FD_SET(n, p)  FDSETSAFESET(n, (p)->fd_bits[((n)-LWIP_SOCKET_OFFSET)/8] |=  (1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
-#define FD_CLR(n, p)  FDSETSAFESET(n, (p)->fd_bits[((n)-LWIP_SOCKET_OFFSET)/8] &= ~(1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
-#define FD_ISSET(n,p) FDSETSAFEGET(n, (p)->fd_bits[((n)-LWIP_SOCKET_OFFSET)/8] &   (1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
+#define FD_SET(n, p)  FDSETSAFESET(n, (p)->fds_bits[((n)-LWIP_SOCKET_OFFSET)/8] |=  (1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
+#define FD_CLR(n, p)  FDSETSAFESET(n, (p)->fds_bits[((n)-LWIP_SOCKET_OFFSET)/8] &= ~(1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
+#define FD_ISSET(n,p) FDSETSAFEGET(n, (p)->fds_bits[((n)-LWIP_SOCKET_OFFSET)/8] &   (1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
 #define FD_ZERO(p)    memset((void*)(p), 0, sizeof(*(p)))
 
 typedef struct fd_set
 {
-  unsigned char fd_bits [(FD_SETSIZE+7)/8];
+  unsigned char fds_bits [(FD_SETSIZE+7)/8];
 } fd_set;
 
 #elif LWIP_SOCKET_OFFSET
@@ -120,16 +85,25 @@ typedef struct fd_set
 #elif FD_SETSIZE < MEMP_NUM_NETCONN
 #error "external FD_SETSIZE too small for number of sockets"
 #endif /* FD_SET */
-
-
-struct openat_timeval 
+#if 0
+struct timeval 
 { 
-	int tv_sec; 
+	long long tv_sec; 
 	int tv_usec;
 };
+#endif
 
-#define timeval	openat_timeval
-
+#define sockaddr_in 			openat_sockaddr_in 
+#define hostent 				openat_hostent
+#define sockaddr 				openat_sockaddr
+#define in_addr 				openat_in_address
+#define socklen_t				openat_socklen_t
+#define OPENAT_FD_SET(n, p)  	FD_SET(n, p)
+#define OPENAT_FD_CLR(n, p)  	FD_CLR(n, p)
+#define OPENAT_FD_ISSET(n,p) 	FD_ISSET(n,p)
+#define OPENAT_FD_ZERO(p)		FD_ZERO(p)
+#define openat_fd_set			fd_set
+#define openat_timeval 			timeval
 #define OPENAT_AF_UNSPEC       0
 #define OPENAT_AF_INET         2
 #define	PF_INET		OPENAT_AF_INET
@@ -496,6 +470,7 @@ int select(int maxfdp1,
                         openat_fd_set *writeset,
                         openat_fd_set *exceptset,
                         struct openat_timeval *timeout);
+
 /**获取socket的错误值
 *@param		socketfd:	调用socket接口返回的socket描述符
 *@return	[EBADF 到 ENO_RECOVERY]

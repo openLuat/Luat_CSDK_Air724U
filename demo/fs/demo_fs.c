@@ -1,4 +1,5 @@
 #include "string.h"
+#include <stdio.h>
 #include "iot_os.h"
 #include "iot_debug.h"
 #include "iot_fs.h"
@@ -65,7 +66,7 @@ VOID demo_fs_read(char* file)
 VOID demo_fs_write(char* file)
 {
     INT32 fd;
-    UINT8 *write_buff = "hello world";
+    char *write_buff = "hello world";
     INT32 write_len;
     
     fd = iot_fs_open_file(file, FS_O_RDWR);
@@ -73,7 +74,7 @@ VOID demo_fs_write(char* file)
     if (fd < 0)
         return;
     
-    write_len = iot_fs_write_file(fd, write_buff, strlen(write_buff));
+    write_len = iot_fs_write_file(fd, (UINT8 *)write_buff, strlen(write_buff));
 
     if (write_len < 0)
         return;
@@ -103,9 +104,7 @@ static void demo_fs_createDir(void)
 	int i,j, fd;
 	char path[64];
 	char dir[16];
-	char subdir[16];
 	char file[16];
-	char subfile[16];
 	
 	for (i=0; i<4; i++)
 	{
@@ -118,7 +117,7 @@ static void demo_fs_createDir(void)
 			sprintf(path, "%s/%s", dir, file);
 
 			fd = iot_fs_create_file(path);
-			iot_fs_write_file(fd, path, strlen(path));
+			iot_fs_write_file(fd, (UINT8 *)path, strlen(path));
 			iot_fs_close_file(fd);
 		}
 
@@ -130,7 +129,7 @@ static void demo_fs_createDir(void)
 			sprintf(path, "%s/%s", dir, file);
 
 			fd = iot_fs_create_file(path);
-			iot_fs_write_file(fd, path, strlen(path));
+			iot_fs_write_file(fd, (UINT8 *)path, strlen(path));
 			iot_fs_close_file(fd);
 		}
 		
@@ -207,7 +206,7 @@ int appimg_enter(void *param)
 
 	/*在当前目录下面创建change_subdir*/
 	ret = iot_fs_create_file("change_subdir_2");
-	iot_fs_write_file(ret, "change_subdir_2", strlen("change_subdir_2"));
+	iot_fs_write_file(ret, (UINT8 *)"change_subdir_2", strlen("change_subdir_2"));
 	iot_fs_close_file(ret);
 	/*LS dir_2/subdir_2*/
 	demo_fs_ls("./");

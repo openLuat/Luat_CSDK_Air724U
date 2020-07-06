@@ -205,8 +205,8 @@ CHAR *HTTPStrCaseStr(const char *pSrc,UINT32 nSrcLength,const char *pFind)
         {
             break;
         }
-        ptr = strchr(pSrc,toupper(*pFind));
-        ptr2 = strchr(pSrc,tolower(*pFind));
+        ptr = strchr(pSrc,toupper((unsigned char)*pFind));
+        ptr2 = strchr(pSrc,tolower((unsigned char)*pFind));
         if (!ptr) 
         {
             ptr = ptr2; 
@@ -383,10 +383,10 @@ UINT32 HTTPStrHToL (CHAR * s)
     n = i = nn = 0;
     do 
     {
-        if ( isalnum(s[i]) ) {
-            s[i] = toupper(s[i]) ;  
+        if ( isalnum((unsigned char)s[i]) ) {
+            s[i] = toupper((unsigned char)s[i]) ;  
             if (s[i] == 'X') nn=n=0; else {
-                digit = (isalpha(s[i]) ? (s[i] - 'A' + 10) : s[i] - '0') ;
+                digit = (isalpha((unsigned char)s[i]) ? (s[i] - 'A' + 10) : s[i] - '0') ;
                 if ( digit > 15 ) digit = 15;
                 n = n * 16 + digit;
                 if (n |= 0) nn++;
