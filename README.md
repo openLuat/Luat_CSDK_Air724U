@@ -1,9 +1,9 @@
-iot_csdk_rda8910语言介绍                        {#mainpage}
+Luat_CSDK_Air724U 介绍
 ============
 
 ## 一、简介
 
->iot_csdk_rda8910是针对使用合宙Air720U(展锐8910芯片)模块而准备的一套C语言的软件开发环境，可以让客户像开发单片机一下，使用合宙的无线通信模块
+>Luat_CSDK_Air724U是针对使用合宙Air724U(展锐8910芯片)模块而准备的一套C语言的软件开发环境，可以让客户像开发单片机一下，使用合宙的无线通信模块
 
 ## 二、软件架构
 ![软件架构](https://images.gitee.com/uploads/images/2020/0707/090924_c101da41_1221708.png "luat_iot_sdk_arch.png")
@@ -40,7 +40,7 @@ void appimg_exit(void)
 > [LuatTools](http://www.openluat.com/Product/file/luatoolsV2-redirect.html)
 	
 ## 五、如何编译
-   >在命令行模式下，进入代码路径。 例如需要编译demo_socket项目，就进入project下，运行demo_socket.bat。 编译成功后将会在目录`hex\Air720_CSDK_demo_socket\`生成两个个pac文件：`Air720_CSDK_demo_socket.pac`和`Air720_CSDK_demo_socket_APP.pac`。其中`Air720_CSDK_demo_socket.pac`包含底层和csdk层固件，`Air720_CSDK_demo_socket_APP.pac`仅包含csdk层固件。
+   >在命令行模式下，进入代码路径。 例如需要编译demo_socket项目，就进入project下，运行demo_socket.bat。 编译成功后将会在目录`hex\Air720U_CSDK_demo_socket\`生成两个个pac文件：`Air720U_CSDK_demo_socket.pac`和`Air720U_CSDK_demo_socket_APP.pac`。其中`Air720U_CSDK_demo_socket.pac`包含底层和csdk层固件，`Air720U_CSDK_demo_socket_APP.pac`仅包含csdk层固件。
    
   
 ## 六、应用可用空间
