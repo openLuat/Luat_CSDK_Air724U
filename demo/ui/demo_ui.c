@@ -89,8 +89,8 @@ extern void lvglKeyboardCreate();
 
 static void lvglTestTheme()
 {
-    lv_theme_t *th = lv_theme_material_init(170, NULL);
-    lv_test_theme_1(th);
+    lv_theme_t *th = lv_theme_zen_init(210, NULL);
+    lv_test_theme_1(th, lvGuiGetKeyPad());
 }
 
 int appimg_enter(void *param)

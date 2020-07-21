@@ -14,8 +14,8 @@ typedef struct {
 
 #define socket_dbg iot_debug_print
 
-#define DEMO_SERVER_TCP_IP "180.97.81.180"
-#define DEMO_SERVER_TCP_PORT 57225
+#define DEMO_SERVER_TCP_IP "121.40.198.143"
+#define DEMO_SERVER_TCP_PORT 12415
 
 #define DEMO_SERVER_UDP_IP "121.40.170.41"
 #define DEMO_SERVER_UDP_PORT 12414                                
@@ -119,6 +119,7 @@ static void demo_socket_tcp_client()
 
             OPENAT_FD_ZERO(&readset);
             OPENAT_FD_SET(socketfd, &readset);
+			iot_debug_print("socket select addr: %08x ", select);
             ret = select(socketfd+1, &readset, NULL, NULL, &tm);
             if(ret > 0)
             {
@@ -323,7 +324,7 @@ static void demo_socket_task(PVOID pParameter)
                 if(!sock)
                 {
 				demo_gethostbyname(); 
-				demo_socket_udp_client();
+				//demo_socket_udp_client();
      			demo_socket_tcp_client();
                 sock = TRUE;
                 }

@@ -205,11 +205,8 @@ typedef unsigned short              WCHAR;
 #define sshort						signed short
 #endif
 
-#ifndef _ZBAR_H_
-#ifndef ushort
-//#define ushort						unsigned short
-#endif
-#endif
+typedef  unsigned short ushort;	
+
 
 #ifndef sbyte
 #define sbyte						signed char
@@ -219,11 +216,8 @@ typedef unsigned short              WCHAR;
 #define ubyte 						unsigned char
 #endif
 
-#ifndef _ZBAR_H_
-#ifndef ulong
-//#define ulong						unsigned long
-#endif
-#endif
+typedef unsigned long ulong	;
+
 
 #ifndef SINT8
 #define SINT8 						signed char

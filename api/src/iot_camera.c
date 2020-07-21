@@ -87,3 +87,14 @@ BOOL iot_camera_capture(char *fileName, T_AMOPENAT_CAM_CAPTURE_PARAM *capturePar
 
 	return TRUE;
 }
+
+/**设置camera寄存器
+*@param  initRegTable_p: cam寄存器表
+*@param  len:   cam寄存器长度
+*@return	TRUE: 	    成功
+*           FALSE:      失败
+**/
+BOOL iot_camera_WriteReg(PAMOPENAT_CAMERA_REG initRegTable_p, int len)
+{
+	return IVTBL(CameraWriteReg)(initRegTable_p, len);
+}

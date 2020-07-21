@@ -907,12 +907,16 @@ class PacConfig():
             return False
 if __name__ == "__main__":
     result = False
-    print("TTS switch:",sys.argv[3])
-    if sys.argv[3] == "ON":
-        core_dir = "core/iot_SDK_720U_TTS"
-    else:
+    
+    if sys.argv[3] == "0":
         core_dir = "core/iot_SDK_720U"
-
+        print("core_dir:",core_dir)
+    elif sys.argv[3] == "1":
+        core_dir = "core/iot_SDK_720U_TTS"
+        print("core_dir:",core_dir)
+    else:
+        raise IOError("not found core_type")
+    
     #检索底层固件
     for i in os.walk(core_dir):
         if i:

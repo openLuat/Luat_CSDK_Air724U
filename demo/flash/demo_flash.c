@@ -62,11 +62,11 @@ VOID demo_flash(VOID)
 VOID demo_flash_init(VOID)
 {
     //iot_flash_getaddr(&s_demo_flash_begain_addr, NULL);
-    s_demo_flash_begain_addr = 0x720000;//0x882f3000;
+    s_demo_flash_begain_addr = 0x320000;//0x60320000;
     s_demo_flash_end_addr = s_demo_flash_begain_addr + 0x10000;
     demo_flash();
 
-    s_demo_flash_begain_addr = 0x730000;
+    s_demo_flash_begain_addr = 0x330000;
     s_demo_flash_end_addr = s_demo_flash_begain_addr + 0x10000;
     demo_flash();
 }

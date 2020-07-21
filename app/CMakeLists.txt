@@ -14,9 +14,25 @@ add_library(${target} STATIC)
 set_target_properties(${target} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${out_hex_dir})
 target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${libgcc_file_name})
 
-add_subdirectory_if_exist(ssl)
-add_subdirectory_if_exist(ftp)
-add_subdirectory_if_exist(http)
-add_subdirectory_if_exist(mqtt)
-add_subdirectory_if_exist(littlevgl)
+#/*+\ADD\chenzhimin\2020.07.9\ */
+# 以下功能在config.cmake中配置是否启用
+if(CONFIG_BUILD_APP_SSL)
+    add_subdirectory_if_exist(ssl)
+endif()
 
+if(CONFIG_BUILD_APP_FTP)
+    add_subdirectory_if_exist(ftp)
+endif()
+
+if(CONFIG_BUILD_APP_HTTP)
+    add_subdirectory_if_exist(http)
+endif()
+
+if(CONFIG_BUILD_APP_MQTT)
+    add_subdirectory_if_exist(mqtt)
+endif()
+
+if(CONFIG_BUILD_APP_LITTLEVGL)
+    add_subdirectory_if_exist(littlevgl)
+endif()
+#/*-\ADD\chenzhimin\2020.07.9\ */

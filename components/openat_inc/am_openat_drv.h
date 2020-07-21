@@ -1114,6 +1114,16 @@ typedef struct
     BOOL isDataChannel;
 }T_AMOPENAT_CAMERA_DATA_PARAM;
 
+/*+\NEW\zhuwangbin\2020.7.11\添加cam spi speed模式配置*/
+typedef enum
+{
+	OPENAT_SPI_SPEED_DEFAULT,
+	OPENAT_SPI_SPEED_SDR, /*单倍速率*/
+	OPENAT_SPI_SPEED_DDR, /*双倍速率*/
+	OPENAT_SPI_SPEED_QDR, /*四倍速率 暂不支持*/
+}OPENAT_SPI_SPEED_MODE_E;
+/*-\NEW\zhuwangbin\2020.7.11\添加cam spi speed模式配置*/
+	
 typedef struct 
 {
   E_OPENAT_DRV_EVT evtId;
@@ -1160,6 +1170,7 @@ typedef struct T_AMOPENAT_CAMERA_PARAM_TAG
     /*+\new\zhuwangbin\2018.9.6\支持camera各行隔列输出使能*/
     BOOL jumpEnable;
     /*-\new\zhuwangbin\2018.9.6\支持camera各行隔列输出使能*/
+	OPENAT_SPI_SPEED_MODE_E spi_speed;
 /*-\NEW\zhuwangbin\2020.4.26\添加openat cam接口*/
 }T_AMOPENAT_CAMERA_PARAM;
 
@@ -1181,6 +1192,10 @@ typedef struct T_AMOPENAT_CAM_PREVIEW_PARAM_TAG
     UINT16      filesizePermit;  //以K为单位
     UINT16      timePermit;
     UINT16      encodeQuality;
+	/*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+	int 		rotation; //反转角度设置 暂时只支持0和90度
+	int 		zoom; //放缩设置, 正数放大负数缩小，最大4倍，0不放缩
+	/*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
 }T_AMOPENAT_CAM_PREVIEW_PARAM;
 
 typedef struct T_AMOPENAT_CAM_CAPTURE_PARAM_TAG

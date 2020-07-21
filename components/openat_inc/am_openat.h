@@ -544,7 +544,8 @@ INT32 OPENAT_ftell(                             /* 文件定位接口 */
 INT32 OPENAT_get_fs_info(                            /* 获取文件系统信息接口 */
                             E_AMOPENAT_FILE_DEVICE_NAME       devName,            /*获取哪块device name的信息*/
                             T_AMOPENAT_FILE_INFO               *fileInfo,                   /*文件系统的信息*/
-                            INT32 isSD                  /*是否获取SD 卡信息*/
+                            INT32 isSD,                  /*是否获取SD 卡信息*/
+							INT32 type
                        );
 
 
@@ -1534,6 +1535,8 @@ int OPENAT_set_band();
 /*+\NEW\wangyuan\2020.05.07\BUG_1126:支持wifi定位功能*/
 void OPENAT_get_wifiinfo(OPENAT_wifiScanRequest* wifi_info);
 /*-\NEW\wangyuan\2020.05.07\BUG_1126:支持wifi定位功能*/
+void OPENAT_get_channel_wifiinfo(OPENAT_wifiScanRequest* wifi_info, uint32 channel);
+
 #ifdef __AM_LUA_TTSPLY_SUPPORT__
 BOOL OPENAT_tts_init(TTS_PLAY_CB fCb);
 BOOL OPENAT_tts_set_param(OPENAT_TTS_PARAM_FLAG flag,u32 value);

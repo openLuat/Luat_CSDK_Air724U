@@ -106,6 +106,8 @@ static const lvGuiKeypadMap_t gLvKeyMap[] =
     {31, LV_KEY_UP},
     {35, LV_KEY_DOWN},
     {25, LV_KEY_ENTER},
+    {26, LV_KEY_PREV},
+    {32, LV_KEY_NEXT},
 };
 
 static lvGuiContext_t gLvGuiCtx;

@@ -40,7 +40,7 @@ extern "C" {
  * Create a test screen with a lot objects and apply the given theme on them
  * @param th pointer to a theme
  */
-void lv_test_theme_1(lv_theme_t *th);
+void lv_test_theme_1(lv_theme_t *th, lv_indev_t *kp_indev);
 
 /**********************
  *      MACROS

@@ -69,3 +69,6 @@ void appimg_exit(void)
 |demo_wifiloc|wifi定位示例|
 |demo_zbar|二维码扫码示例|
 |demo_lvgl|littleVGL UI框架示例|
+
+## 八、官方应用
+> [lua解析器](app/elua/doc.md)

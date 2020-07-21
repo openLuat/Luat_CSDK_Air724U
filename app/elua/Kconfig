@@ -1,0 +1,49 @@
+menu "AM LUA commands"
+
+
+config BUILD_LUA
+    bool "AM LUA Support"
+    default n
+    help
+        AM LUA Support
+        
+config BUILD_LUA_FLOAT
+    bool "AM LUA FLOAT Support"
+    default n
+    help
+        AM LUA FLOAT Support        
+
+config BUILD_LUA_TTS
+    bool "AM LUA TTS Support"
+    default n
+    help
+        AM LUA TTS Support
+        
+config BUILD_LUA_TTS_FLOAT
+    bool "AM LUA TTS FLOAT Support"
+    default n
+    help
+        AM LUA TTS FLOAT Support        
+
+#+zhuwangbin add CONFIG_AM_CAMERA_SUPPORT CONFIG_AM_JPG_SUPPORT CONFIG_AM_QRENCODE_SUPPORT
+config AM_QRENCODE_SUPPORT
+	bool "AM QRENCODE SUPPORT"
+    default y
+    help
+        AM QRENCODE SUPPORT    
+
+
+config AM_CAMERA_SUPPORT
+	bool "AM CAMERA SUPPORT"
+    default y
+    help
+        AM CAMERA SUPPORT
+
+config AM_JPG_SUPPORT
+	bool "AM JPG SUPPORT"
+    default y
+    help
+        AM JPG SUPPORT
+	
+#-zhuwangbin add CONFIG_AM_CAMERA_SUPPORT CONFIG_AM_JPG_SUPPORT CONFIG_AM_QRENCODE_SUPPORT	
+endmenu

@@ -9,6 +9,12 @@
 # warranty that such application will be suitable for the specified use
 # without further testing or modification.
 
+#/*+\ADD\chenzhimin\2020.07.9\ */
+target_include_directories(${target} PUBLIC ../../api/include)
+target_include_directories(${target} PUBLIC ../components/newlib/include)
+target_include_directories(${target} PUBLIC inc)
+#/*-\ADD\chenzhimin\2020.07.9\ */
+
 target_include_directories(${target} PUBLIC ${CMAKE_CURRENT_SRC_DIR} lvgl include
 	lv_example/lv_apps/benchmark 
     lv_example/lv_apps/demo 
@@ -189,6 +195,7 @@ target_sources(${target} PUBLIC
 	lv_example/lv_tests/lv_test_stress/lv_test_stress.c
 	lv_example/lv_tests/lv_test_theme/lv_test_theme_1.c
 	lv_example/lv_tests/lv_test_theme/lv_test_theme_2.c
+	lv_example/lv_tests/lv_test_theme/logo.c
 )
 
 target_sources(${target} PUBLIC

@@ -330,7 +330,7 @@ BOOL iot_audio_rec_start(
                     			E_AMOPENAT_RECORD_PARAM* param,
 								AUD_RECORD_CALLBACK_T cb)
 {
-    return IVTBL(audio_record)(param, cb);
+    return ((IVTBL(audio_record)(param, cb) == 0) ? 1 : 0);
 }
 
 /**Í£Ö¹Â¼Òô
@@ -339,5 +339,5 @@ BOOL iot_audio_rec_start(
 **/
 BOOL iot_audio_rec_stop()
 {
-    return IVTBL(audio_stop_record)();
+    return ((IVTBL(audio_stop_record)() == 0) ? 1 : 0);
 }

@@ -1,5 +1,5 @@
 #include "iot_flash.h"
-
+#include "hal_config.h"
 
 
 /**获取flash可用的地址空间，返回的地址用来传入iot_flash_erase、iot_flash_write、iot_flash_read等接口。
@@ -7,20 +7,21 @@
 *@param		lenout:	返回可用flash长度，单位为字节
 *@return	E_AMOPENAT_MEMD_ERR: 	成功:OPENAT_MEMD_ERR_NO, 其余失败
 *@note      该接口返回的地址是64KB对齐 返回的地址空间根据当前程序大小来确定。
-
 **/
 VOID iot_flash_getaddr(    
                     UINT32* addrout,
                     UINT32* lenout
                )
 {
+    extern char __flash_start;
+    extern char __flash_end;
     if(addrout)
     {
-        *addrout = 0xFFFFFFFF;
+        *addrout = ((UINT32)&__flash_end + 0x10000 - 1) & (~(0x10000 - 1));
     }
     if(lenout)
     {
-        *lenout = 0;
+        *lenout = CONFIG_APPIMG_FLASH_SIZE - ((void *)*addrout - (void *)&__flash_start);
     }
 }
 

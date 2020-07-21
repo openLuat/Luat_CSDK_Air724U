@@ -20,7 +20,7 @@
 /**
  * Whether TTS player is supported
  */
-/* #undef CONFIG_TTS_ENABLE */
+#define CONFIG_TTS_ENABLE
 
 /**
  * Wheth the dummy TTS engine is enabled.

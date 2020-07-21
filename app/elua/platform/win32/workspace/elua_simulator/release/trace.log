@@ -1,0 +1,56 @@
+[2014-10-15 14:16:33]: parse_luadb_data:delupdpack=1,err=0,section=1,wrFile=1
+[2014-10-15 14:16:33]: lua.lasterr:	/lua/main.lua:16: attempt to call field 'color' (a nil value)
+stack traceback:
+	/lua/main.lua:16: in main chunk
+	[C]: ?[2014-10-15 14:16:33]: 
+[2014-10-15 14:16:33]: setupip.status:	nil
+[2014-10-15 14:16:33]: setupip: wait cgatt
+[2014-10-15 14:16:33]: setupip.status:	nil
+[2014-10-15 14:16:33]: setupip: wait cgatt
+[2014-10-15 14:16:33]: config_r	&18262239233&&&TCP&
+[2014-10-15 14:16:33]: open ok
+[2014-10-15 14:16:33]: prtstr=	BabyVer=&BabyNum=18262239233&IMSI=&IMEI=&TranProt=TCP&BabyMesVer=
+[2014-10-15 14:16:33]: nil,	BabyName
+[2014-10-15 14:16:33]: nil,	TagRedFlower
+[2014-10-15 14:16:34]: nil,	TrueRedFlower
+[2014-10-15 14:16:34]: nil,	StepContSum
+[2014-10-15 14:16:34]: nil,	StepCont
+[2014-10-15 14:16:34]: nil,	StepContTime
+[2014-10-15 14:16:34]: nil,	StepState
+[2014-10-15 14:16:34]: nil,	BindSum
+[2014-10-15 14:16:34]: nil,	BindNum
+[2014-10-15 14:16:34]: nil,	addr
+[2014-10-15 14:16:35]: nil,	port
+[2014-10-15 14:16:35]: nil,	WatchArgVer
+[2014-10-15 14:16:35]: nil,	ClasTimeSum
+[2014-10-15 14:16:35]: nil,	ClasTime
+[2014-10-15 14:16:35]: nil,	LocTimeSum
+[2014-10-15 14:16:35]: nil,	LocTime
+[2014-10-15 14:16:35]: nil,	LocArg
+[2014-10-15 14:16:36]: nil,	QQnumSum
+[2014-10-15 14:16:36]: nil,	QQnumName
+[2014-10-15 14:16:36]: nil,	QQnum
+[2014-10-15 14:16:36]: nil,	SOSnumSum
+[2014-10-15 14:16:36]: nil,	SOSnum
+[2014-10-15 14:16:36]: nil,	AlaArg
+[2014-10-15 14:16:36]: nil,	HeartGap
+[2014-10-15 14:16:37]: nil,	ID
+[2014-10-15 14:16:37]: nil,	RINGTYP
+[2014-10-15 14:16:37]: nil,	RINGVOL
+[2014-10-15 14:16:37]: nil,	CALLVOL
+[2014-10-15 14:16:37]: nil,	ACTIVE
+[2014-10-15 14:16:37]: WriteBack
+[2014-10-15 14:16:37]: true
+[2014-10-15 14:16:37]: para_w	&18262239233&&&TCP&
+[2014-10-15 14:16:38]: show lcd
+[2014-10-15 14:16:38]: [platform_pmd_init]: battFullLevel 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: battRechargeLevel 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: poweronLevel 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: poweroffLevel 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: currentFirst 300
+[2014-10-15 14:16:38]: [platform_pmd_init]: battlevelFirst 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: currentSecond 200
+[2014-10-15 14:16:38]: [platform_pmd_init]: battlevelSecond 65535
+[2014-10-15 14:16:38]: [platform_pmd_init]: currentThird 100
+[2014-10-15 14:16:38]: open uart 127 failed No such file or directory
+[2014-10-15 14:16:38]: poweron reason:	0

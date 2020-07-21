@@ -14,6 +14,7 @@
 
 #include "demo_zbar.h"
 
+static HANDLE g_s_zbar_task;
 unsigned char *gScannerBuff = NULL;
 
 /*提取yuv数据中的y*/
@@ -77,15 +78,27 @@ void camera_evevt_callback(T_AMOPENAT_CAMERA_MESSAGE *pMsg)
     }
 }
 
-int appimg_enter(void *param)
-{    
-	iot_debug_print("[zbar] appimg_enter");
-
+static void demo_ota_task(PVOID pParameter)
+{
 	gScannerBuff = iot_os_malloc(CAM_SENSOR_HEIGHT*CAM_SENSOR_WIDTH);
 
 	lcdInit();
 
 	cameraInit(camera_evevt_callback);
+}
+
+
+int appimg_enter(void *param)
+{    
+	iot_debug_print("[zbar] appimg_enter");
+
+
+	g_s_zbar_task = iot_os_create_task(demo_ota_task,
+                        NULL,
+                        10*1024,
+                        5,
+                        OPENAT_OS_CREATE_DEFAULT,
+                        "DEMO_ZBAR");
 	
     return 0;
 }

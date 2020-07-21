@@ -23,11 +23,11 @@ target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${li
 
 #设置包含头文�?
 target_include_directories(${target} PUBLIC include)
-target_include_directories(${target} PUBLIC ../components/include)
-target_include_directories(${target} PUBLIC ../components/newlib/include)
-target_include_directories(${target} PUBLIC ../components/openat_inc)
+target_include_directories(${target} PRIVATE ../components/include)
+target_include_directories(${target} PRIVATE ../components/newlib/include)
+target_include_directories(${target} PRIVATE ../components/openat_inc)
 
-target_sources(${target} PUBLIC
+target_sources(${target} PRIVATE
     src/iot_os.c
 	src/iot_debug.c
 	src/iot_gpio.c

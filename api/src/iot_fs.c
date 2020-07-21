@@ -180,7 +180,7 @@ INT32 iot_fs_get_fs_info(
                         T_AMOPENAT_FILE_INFO               *fileInfo                 
                    )
 {
-    return OPENAT_get_fs_info(devName, fileInfo, 0);
+    return OPENAT_get_fs_info(devName, fileInfo, 0, 0);
 }
 
 /**获取文件大小接口

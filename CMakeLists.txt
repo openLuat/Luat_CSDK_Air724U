@@ -16,26 +16,37 @@ set(BINARY_TOP_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_C_COMPILER_FORCED   1)
 set(CMAKE_CXX_COMPILER_FORCED 1)
 
-if(NOT BUILD_TARGET)
+add_definitions(-D_WINSOCKAPI_)
+
+#DEFINED BUILD_TARGET
+if(DEFINED ENV{BUILD_TARGET})
 	set(BUILD_TARGET $ENV{BUILD_TARGET})
-	#/*+\NEW\zhuwangbin\2020.07.1\add fotaNew */
-	add_definitions(-DCSDK_PRO="${BUILD_TARGET}")
-	#/*-\NEW\zhuwangbin\2020.07.1\add fotaNew */
-	#/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
 	message("BUILD_TARGET: ${BUILD_TARGET}")
-	#/*-\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+else()
+	message(FATAL_ERROR "BUILD_TARGET: UNDEFINED")
 endif()
 
-#/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
+#DEFINED CSDK_PRO
+if(DEFINED ENV{CSDK_PRO})
+	set(CSDK_PRO $ENV{CSDK_PRO})
+	add_definitions(-DCSDK_PRO="${CSDK_PRO}")
+	message("CSDK_PRO: ${CSDK_PRO}")
+else()
+	message(FATAL_ERROR "CSDK_PRO: UNDEFINED")
+endif()
 
-if(NOT CSDK_VER)
+#DEFINED CSDK_VER
+if(DEFINED ENV{CSDK_VER})
 	set(CSDK_VER $ENV{CSDK_VER})
-	#/*+\NEW\zhuwangbin\2020.07.1\add fotaNew */
 	add_definitions(-DCSDK_VER="${CSDK_VER}")
-	#/*-\NEW\zhuwangbin\2020.07.1\add fotaNew */
 	message("CSDK_VER: ${CSDK_VER} ")
+else()
+	message(FATAL_ERROR "CSDK_VER: UNDEFINED")
 endif()
 
+
+
+#select FOTA_FLAG app or core or all
 if(DEFINED ENV{FOTA_FLAG})
 	set(FOTA_FLAG $ENV{FOTA_FLAG})
 	set(FOTA_TYPE $ENV{FOTA_TYPE})
@@ -50,14 +61,46 @@ if(DEFINED ENV{FOTA_FLAG})
 	
 	message("${FOTA_FLAG}=${FOTA_TYPE}")
 endif()
-#/*-\NEW\zhuwangbin\2020.07.1\add dofta.bin */
 
-if (${BUILD_TARGET} STREQUAL "tts")
-set(TTS_ENABLE ON)
-message("TTS_ENABLE SET  ON")
-else()
-set(TTS_ENABLE OFF)
-message("TTS_ENABLE SET OFF")
+#select core_type  0=iot_SDK_720U 1:iot_SDK_720U_TTS
+if(DEFINED ENV{AM_MODEL})
+	set(AM_MODEL $ENV{AM_MODEL})
+	if ((${AM_MODEL} STREQUAL  "iot_SDK_720U"))
+		message("core/iot_SDK_720U")
+		set(core_type 0)
+		include(${CMAKE_SOURCE_DIR}/core/version.cmake)
+		set(core_name CSDK_RDA8910)
+		set(core_vername CSDK_${CORE_VER}_RDA8910)
+		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U)
+		set(core_stub_o ${core_bin_dir}/lib/core_stub.o)
+		include(${core_bin_dir}/memd/core_config.cmake)
+		include_directories(${core_bin_dir}/memd)
+		
+        
+        if(CONFIG_BUILD_LUA)
+            set(csdk_target Air720U_CSDK_app_${CSDK_PRO})
+        else()
+            set(csdk_target Air720U_CSDK_demo_${CSDK_PRO})
+        endif(CONFIG_BUILD_LUA)
+
+		set(APP_IMG_NAME "8915DM_cat1_CSDK")
+	elseif((${AM_MODEL} STREQUAL  "iot_SDK_720U_TTS"))
+		message("core/iot_SDK_720U_TTS")
+		set(core_type 1)
+		add_definitions(-DTTS_ENABLE)
+		include(${CMAKE_SOURCE_DIR}/core/version.cmake)
+		set(core_name CSDK_RDA8910_TTS)
+		set(core_vername CSDK_${CORE_VER}_RDA8910_TTS)
+		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U_TTS)
+		set(core_stub_o ${core_bin_dir}/lib/core_stub.o)
+		include(${core_bin_dir}/memd/core_config.cmake)
+		include_directories(${core_bin_dir}/memd)
+        set(csdk_target Air720U_CSDK_TTS_demo_${CSDK_PRO})
+		set(APP_IMG_NAME "8915DM_cat1_CSDK_TTS")
+
+	else()
+		message(FATAL_ERROR "AM_MODEL: ${AM_MODEL} != iot_SDK_720U_TTS or iot_SDK_720U")
+	endif()
 endif()
 
 set(out_hex_dir ${CMAKE_CURRENT_BINARY_DIR}/hex)
@@ -66,36 +109,49 @@ set(out_rel_dir ${CMAKE_CURRENT_BINARY_DIR}/rel)
 set(out_inc_dir ${CMAKE_CURRENT_BINARY_DIR}/include)
 set(tools_dir ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 
-if(TTS_ENABLE)
-add_definitions(-DTTS_ENABLE)
-set(core_stub_o ${CMAKE_CURRENT_SOURCE_DIR}/components/lib/core_stub_tts.o)
-else()
-set(core_stub_o ${CMAKE_CURRENT_SOURCE_DIR}/components/lib/core_stub.o)
-endif()
-
 set(flash_ldscript ${SOURCE_TOP_DIR}/ldscripts/app_flashimg.ld)
 set(file_ldscript ${SOURCE_TOP_DIR}/ldscripts/app_fileimg.ld)
 set(cmd_mkappimg dtools mkappimg)
 set(pacgen_py ${tools_dir}/pacgen.py)
-set(pacgen_core_py ${tools_dir}/combine_core.py)
 
-if(TTS_ENABLE)
-set(core_name CSDK_V776_RDA8910_TTS)
-else()
-set(core_name CSDK_V776_RDA8910)
-endif()
+#/*+\DEL\chenzhimin\2020.07.8\ */
+# set(pacgen_core_py ${tools_dir}/combine_core.py)
+#/*-\DEL\chenzhimin\2020.07.8\ */
 
-if(TTS_ENABLE)
-include(cmake/core_config_tts.cmake)
-else()
-include(cmake/core_config.cmake)
-endif()
+
 include(cmake/toolchain-gcc.cmake)
+
+#/*+\NEW\chenzhimin\2020.07.8\ */
+include(cmake/partinfo.cmake)
+include(cmake/extension.cmake)
+include(config.cmake)
+
+math(EXPR CONFIG_BOOT_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_BOOT_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+math(EXPR CONFIG_APP_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_APP_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+math(EXPR CONFIG_FS_MODEM_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_FS_MODEM_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+math(EXPR CONFIG_FS_SYS_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_FS_SYS_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+set(CONFIG_NVBIN_FIXED_SIZE 0x20000)
+#/*-\NEW\chenzhimin\2020.07.8\ */
+
+
 set(BUILD_SHARED_LIBS OFF)
 
 project(core C CXX ASM)
 
-include_directories(components/include components/newlib/include components/openat_inc)
+
+#/*+\NEW\chenzhimin\2020.07.8\ add elua*/
+if(CONFIG_BUILD_LUA)
+    include_directories(components/kernel_inc)
+    add_definitions(-DAM_LUA_SUPPORT)
+    math(EXPR CONFIG_LUA_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_LUA_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    math(EXPR CONFIG_APPIMG_FLASH_SIZE "${CONFIG_LUA_FLASH_OFFSET}-${CONFIG_APPIMG_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    add_subdirectory_if_exist(app/elua)
+endif(CONFIG_BUILD_LUA)
+#/*-\NEW\chenzhimin\2020.07.8\ add elua*/
+
+include_directories(components/include components/openat_inc)
+
+include_directories(components/newlib/include)
 
 function(cpp_only target file)
     add_library(${target} OBJECT ${file})
@@ -119,19 +175,51 @@ function(add_appimg target ldscript)
     )
 endfunction()
 
-configure_file(${SOURCE_TOP_DIR}/components/lib/fdl1.img ${out_hex_dir}/fdl1.img COPYONLY)
-configure_file(${SOURCE_TOP_DIR}/components/lib/fdl2.img ${out_hex_dir}/fdl2.img COPYONLY)
+#/*+\DEL\chenzhimin\2020.07.8\*/
+# configure_file(${SOURCE_TOP_DIR}/components/lib/fdl1.img ${out_hex_dir}/fdl1.img COPYONLY)
+# configure_file(${SOURCE_TOP_DIR}/components/lib/fdl2.img ${out_hex_dir}/fdl2.img COPYONLY)
+#/*-\DEL\chenzhimin\2020.07.8\*/
+
+#/*+\ADD\chenzhimin\2020.07.8\*/
+configure_file(${SOURCE_TOP_DIR}/components/lib/lua.img ${out_hex_dir}/lua.img COPYONLY)
+#/*-\ADD\chenzhimin\2020.07.8\*/
+
+#/*+\ADD\chenzhimin\2020.07.8\ add dtools*/
+set(dtoolspath ${SOURCE_TOP_DIR}/tools/win32/dtools.exe)
+execute_process(
+    COMMAND ${dtoolspath} pacdump ${core_bin_dir}/${core_name}.pac ${out_hex_dir}/oldpac
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    WORKING_DIRECTORY ${SOURCE_TOP_DIR}
+)
+#/*-\ADD\chenzhimin\2020.07.8\ add dtools*/
+
+#/*+\DEL\chenzhimin\2020.07.8\*/
+# macro(pac_init_fdl cmd pac_config)
+#     set(${cmd}
+#         cfg-init --pname UIX8910_MODEM --palias "APPIMG"
+#             --pversion "8910 MODULE" --version "BP_R1.0.0"
+#             --flashtype 1 ${pac_config}
+#         cfg-host-fdl -a ${CONFIG_FDL1_IMAGE_START} -s ${CONFIG_FDL1_IMAGE_SIZE}
+#             -p ${out_hex_dir}/fdl1.img ${pac_config}
+#         cfg-fdl2 -a ${CONFIG_FDL2_IMAGE_START} -s ${CONFIG_FDL2_IMAGE_SIZE}
+#             -p ${out_hex_dir}/fdl2.img ${pac_config}
+#     )
+# endmacro()
+#/*-\DEL\chenzhimin\2020.07.8\*/
+
+#/*+\ADD\chenzhimin\2020.07.8\*/
 macro(pac_init_fdl cmd pac_config)
     set(${cmd}
         cfg-init --pname UIX8910_MODEM --palias "APPIMG"
             --pversion "8910 MODULE" --version "BP_R1.0.0"
             --flashtype 1 ${pac_config}
         cfg-host-fdl -a ${CONFIG_FDL1_IMAGE_START} -s ${CONFIG_FDL1_IMAGE_SIZE}
-            -p ${out_hex_dir}/fdl1.img ${pac_config}
+            -p ${out_hex_dir}/oldpac/fdl1.sign.img ${pac_config}
         cfg-fdl2 -a ${CONFIG_FDL2_IMAGE_START} -s ${CONFIG_FDL2_IMAGE_SIZE}
-            -p ${out_hex_dir}/fdl2.img ${pac_config}
+            -p ${out_hex_dir}/oldpac/fdl2.sign.img ${pac_config}
     )
 endmacro()
+#/*-\ADD\chenzhimin\2020.07.8\*/
 
 if(CONFIG_APPIMG_LOAD_FLASH)
     set(target appimg_flash_delete)
@@ -177,21 +265,23 @@ if(CONFIG_APPIMG_LOAD_FILE)
     )
     add_custom_target(${target}_pacgen ALL DEPENDS ${pac_file})
 endif()
-add_subdirectory_if_exist(api)
-add_subdirectory_if_exist(app)
-if(TTS_ENABLE)
-set(target Air720U_CSDK_TTS_demo_${BUILD_TARGET})
-else()
-set(target Air720U_CSDK_demo_${BUILD_TARGET})
-endif()
 
+
+add_subdirectory_if_exist(api)
+#/*+\ADD\chenzhimin\2020.07.9\*/
+if( CONFIG_BUILD_APP_SSL OR 
+    CONFIG_BUILD_APP_FTP OR
+    CONFIG_BUILD_APP_HTTP OR
+    CONFIG_BUILD_APP_LITTLEVGL OR
+    CONFIG_BUILD_APP_MQTT)
+add_subdirectory_if_exist(app)
+endif()
+#/*-\ADD\chenzhimin\2020.07.9\*/
+
+set(target ${csdk_target})
 set(hex_bin_dir ${CMAKE_SOURCE_DIR}/hex/${target})
 set(hex_map_dir ${CMAKE_SOURCE_DIR}/hex/${target}_map)
-if(TTS_ENABLE)
-set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U_TTS)
-else()
-set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U)
-endif()
+
 set(core_map_dir ${core_bin_dir}_map)
 set(hex_app_file ${hex_bin_dir}/${target}_APP.pac)
 if(CONFIG_APPIMG_LOAD_FILE)
@@ -206,23 +296,84 @@ set(hex_map_file ${hex_map_dir}/${core_name}.map)
 set(hex_elf_file ${hex_map_dir}/${core_name}.elf)
 
 if(CONFIG_APPIMG_LOAD_FLASH)
-	add_subdirectory_if_exist(demo/${BUILD_TARGET})
-	target_link_libraries(${target} PRIVATE api)
-	target_link_libraries(${target} PRIVATE app)
-	target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${libgcc_file_name})
-    set(pac_config ${out_hex_dir}/${target}.json)
+    
+    if(CONFIG_BUILD_LUA)
+        add_subdirectory_if_exist(app/elua/user)
+    else()
+        add_subdirectory_if_exist(demo/${BUILD_TARGET})
+    endif(CONFIG_BUILD_LUA)    
+    
+    target_link_libraries(${target} PRIVATE api)
+    #/*+\ADD\chenzhimin\2020.07.9\*/
+    if( CONFIG_BUILD_APP_SSL OR 
+    CONFIG_BUILD_APP_FTP OR
+    CONFIG_BUILD_APP_HTTP OR
+    CONFIG_BUILD_APP_LITTLEVGL OR
+    CONFIG_BUILD_APP_MQTT)
+        target_link_libraries(${target} PRIVATE app)
+    endif()
+    #/*-\ADD\chenzhimin\2020.07.9\*/
+
+    target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${libgcc_file_name})
+    #/*+\DEL\chenzhimin\2020.07.8\*/
+    # set(pac_config ${out_hex_dir}/${target}.json)
+    #/*-\DEL\chenzhimin\2020.07.8\*/ 
+
+    #/*+\ADD\chenzhimin\2020.07.8\*/
+    set(pac_config ${out_hex_dir}/${target}_APP.json)
+    set(pac_all_config ${out_hex_dir}/${target}.json)
+    #/*-\ADD\chenzhimin\2020.07.8\*/
+
     set(pac_file ${out_hex_dir}/${target}_APP.pac)
 	set(pac_file_with_core ${out_hex_dir}/${target}.pac)
     pac_init_fdl(init_fdl ${pac_config})
+    #/*+\ADD\chenzhimin\2020.07.8\*/
+    pac_init_fdl(init_all_fdl ${pac_all_config})
+    if(CONFIG_BUILD_LUA)
+        set(pac_app_8910
+                cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
+                    -p ${out_hex_dir}/${target}.img ${pac_config}
+                cfg-image -i LUA -a ${CONFIG_LUA_FLASH_ADDRESS} -s ${CONFIG_LUA_FLASH_SIZE}
+                    -p ${out_hex_dir}/lua.img ${pac_config}
+        )
+        set(pac_all_8910
+                cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
+                    -p ${out_hex_dir}/${target}.img ${pac_all_config}
+                cfg-image -i LUA -a ${CONFIG_LUA_FLASH_ADDRESS} -s ${CONFIG_LUA_FLASH_SIZE}
+                    -p ${out_hex_dir}/lua.img ${pac_all_config}
+        )
+    else()
+         set(pac_app_8910
+                cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
+                    -p ${out_hex_dir}/${target}.img ${pac_config}
+        )   
+        set(pac_all_8910
+                cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
+                    -p ${out_hex_dir}/${target}.img ${pac_all_config}
+        )   
+    endif(CONFIG_BUILD_LUA)
     execute_process(
-        COMMAND python3 ${pacgen_py} ${init_fdl}
-            cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
-                -p ${out_hex_dir}/${target}.img ${pac_config}
+        COMMAND python3 ${pacgen_py}
+            ${init_fdl}
+            ${pac_app_8910}
             dep-gen --base ${SOURCE_TOP_DIR} ${pac_config}
         OUTPUT_VARIABLE pac_dep
         OUTPUT_STRIP_TRAILING_WHITESPACE
         WORKING_DIRECTORY ${SOURCE_TOP_DIR}
-    )
+    )       
+    #/*-\ADD\chenzhimin\2020.07.8\*/
+
+    #/*+\DEL\chenzhimin\2020.07.8\*/
+    # execute_process(
+    #     COMMAND python3 ${pacgen_py} ${init_fdl}
+    #         cfg-image -i APPIMG -a ${CONFIG_APPIMG_FLASH_ADDRESS} -s ${CONFIG_APPIMG_FLASH_SIZE}
+    #             -p ${out_hex_dir}/${target}.img ${pac_config}
+    #         dep-gen --base ${SOURCE_TOP_DIR} ${pac_config}
+    #     OUTPUT_VARIABLE pac_dep
+    #     OUTPUT_STRIP_TRAILING_WHITESPACE
+    #     WORKING_DIRECTORY ${SOURCE_TOP_DIR}
+    # )
+    #/*-\DEL\chenzhimin\2020.07.8\*/
 
     add_custom_command(OUTPUT ${pac_file}
         COMMAND python3 ${pacgen_py} pac-gen ${pac_config} ${pac_file}
@@ -230,26 +381,68 @@ if(CONFIG_APPIMG_LOAD_FLASH)
         WORKING_DIRECTORY ${SOURCE_TOP_DIR}
     )
 	message(!!!!!!!!!!!!!!!!!!!!!!${pac_file_with_core})
-	
-	##+ zhuwangbin 2020-6-30 add sffs.img
-	if (EXISTS ${out_hex_dir}/sffs.img)
-		add_custom_command(OUTPUT ${pac_file_with_core}
-			COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} ${out_hex_dir}/sffs.img
-			DEPENDS ${pacgen_core_py} ${pac_dep}
-			WORKING_DIRECTORY ${SOURCE_TOP_DIR})
-	else()
-		add_custom_command(OUTPUT ${pac_file_with_core}
-			COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} NULL
-			DEPENDS ${pacgen_core_py} ${pac_dep}
-			WORKING_DIRECTORY ${SOURCE_TOP_DIR})
-	endif()
-	##- zhuwangbin 2020-6-30 add sffs.img
-	
+    
+    #/*+\DEL\chenzhimin\2020.07.8\*/
+	# ##+ zhuwangbin 2020-6-30 add sffs.img
+	# if (EXISTS ${out_hex_dir}/sffs.img)
+	# 	add_custom_command(OUTPUT ${pac_file_with_core}
+	# 		COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} ${out_hex_dir}/sffs.img
+	# 		DEPENDS ${pacgen_core_py} ${pac_dep}
+	# 		WORKING_DIRECTORY ${SOURCE_TOP_DIR})
+	# else()
+	# 	add_custom_command(OUTPUT ${pac_file_with_core}
+	# 		COMMAND python3 ${pacgen_core_py} ${out_hex_dir}/${target}.img ${pac_file_with_core} ${TTS_ENABLE} NULL
+	# 		DEPENDS ${pacgen_core_py} ${pac_dep}
+	# 		WORKING_DIRECTORY ${SOURCE_TOP_DIR})
+	# endif()
+	# ##- zhuwangbin 2020-6-30 add sffs.img
+    #/*-\DEL\chenzhimin\2020.07.8\*/
+  
+    #/*+\ADD\chenzhimin\2020.07.8\*/
+    pac_nvitem_8910(nvitem_all_8910 ${pac_all_config})
+    set(pac_other_8910
+            cfg-phase-check ${pac_all_config}
+            cfg-image -i BOOTLOADER -a ${CONFIG_BOOT_FLASH_ADDRESS} -s ${CONFIG_BOOT_FLASH_SIZE}
+                -p ${out_hex_dir}/oldpac/boot.sign.img ${pac_all_config}
+            cfg-image -i AP -a ${CONFIG_APP_FLASH_ADDRESS} -s ${CONFIG_APP_FLASH_SIZE}
+                -p ${out_hex_dir}/oldpac/${APP_IMG_NAME}.sign.img ${pac_all_config}
+            cfg-image -i PS -a ${CONFIG_FS_MODEM_FLASH_ADDRESS} -s ${CONFIG_FS_MODEM_FLASH_SIZE}
+                -p ${out_hex_dir}/oldpac/cat1_64X128_UIS8915DM_BB_RF_SingleSim.img ${pac_all_config}
+            ${pac_all_8910}
+            cfg-image -i SFFS -a ${CONFIG_FS_SYS_FLASH_ADDRESS} -s ${CONFIG_FS_SYS_FLASH_SIZE}
+                -p ${out_hex_dir}/oldpac/sffs.img ${pac_all_config}
+            cfg-erase-flash -i FLASH -a 0xFE000001 -s 0 ${pac_all_config}
+            cfg-nv -s ${CONFIG_NVBIN_FIXED_SIZE} 
+                -p ${out_hex_dir}/oldpac/cat1_64X128_UIS8915DM_BB_RF_SingleSim_nvitem.bin ${pac_all_config}
+        )
+    execute_process(
+        COMMAND python3 ${pacgen_py}
+            ${init_all_fdl}
+            ${nvitem_all_8910}
+            ${pac_other_8910}
+            dep-gen --base ${SOURCE_TOP_DIR} ${pac_all_config}
+        OUTPUT_VARIABLE pac_dep
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${SOURCE_TOP_DIR}
+    )
+    add_custom_command(OUTPUT ${pac_file_with_core}
+        COMMAND python3 ${pacgen_py} pac-gen ${pac_all_config} ${pac_file_with_core}
+        DEPENDS ${pacgen_py} ${pac_all_config} ${pac_dep}
+        WORKING_DIRECTORY ${SOURCE_TOP_DIR}
+    )
+    #/*-\ADD\chenzhimin\2020.07.8\*/
+
 	add_custom_target(${target}_pacgen ALL DEPENDS ${pac_file} ${pac_file_with_core})
 endif()
 
 if(CONFIG_APPIMG_LOAD_FILE)
-    add_subdirectory_if_exist(demo/${BUILD_TARGET})
+    
+    if(CONFIG_BUILD_LUA)
+        add_subdirectory_if_exist(app/elua/user)
+    else()
+        add_subdirectory_if_exist(demo/${BUILD_TARGET})
+    endif(CONFIG_BUILD_LUA)    
+
     target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${libgcc_file_name})
     set(pac_config ${out_hex_dir}/${target}.json)
     set(pac_file ${out_hex_dir}/${target}_APP.pac)
@@ -292,7 +485,7 @@ add_custom_command(OUTPUT ${hex_app_file} ${hex_app_with_core_file} ${hex_delete
 	
 #/*+\NEW\zhuwangbin\2020.07.1\add dofta.bin */
 if(DEFINED ENV{FOTA_TYPE})
-		set(hex_fota_file ${BUILD_TARGET}_${CSDK_VER}_${core_name}.dfota.bin)
+		set(hex_fota_file ${CSDK_PRO}_${CSDK_VER}_${core_vername}.dfota.bin)
 		
 		if (${FOTA_TYPE} STREQUAL  "all")
 			add_custom_command(OUTPUT ${hex_fota_file}

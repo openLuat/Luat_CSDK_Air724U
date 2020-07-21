@@ -103,7 +103,7 @@ static AtCmdRsp AtCmdCb_iccid(char *pRspStr)
 {
 	iot_debug_print("[vat]AtCmdCb_iccid");
     AtCmdRsp  rspValue = AT_RSP_WAIT;
-    char *rspStrTable[ ] = {"ERROR","+ICCID:"};
+    char *rspStrTable[ ] = {"ERROR","+ICCID:","OK"};
     s16  rspType = -1;
     char iccid[20] = {0};
     u8  i = 0;
@@ -184,7 +184,6 @@ static AtCmdRsp AtCmdCb_cimi(char *pRspStr)
 VOID luat_ATCmdSend(VOID)
 {
 	AtCmdEntity atCmdInit[]={
-		{"AT"AT_CMD_END,4,NULL},
 		{AT_CMD_DELAY"2000",10,NULL},
 		{"AT+CSQ"AT_CMD_END,8,AtCmdCb_csq},
 		{"AT+WIMEI?"AT_CMD_END,11,AtCmdCb_wimei},

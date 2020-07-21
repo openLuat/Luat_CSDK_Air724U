@@ -1,0 +1,254 @@
+#include <stdio.h>
+#include <windows.h>
+#include "win_msg.h"
+#include "platform_conf.h"
+#include "platform.h"
+#include "platform_rtos.h"
+#include "cycle_queue.h"
+
+#define COM_RX_BUF_SIZE (1024)
+
+typedef struct ComDevTag
+{
+    int id;
+    const char *name;
+    HANDLE hCom;
+    DWORD dwThreadId;
+    CycleQueue txq;
+    CycleQueue rxq;
+}ComDev;
+
+static ComDev comDev[] = 
+{
+    {0, "COM2", INVALID_HANDLE_VALUE},
+    {1, "COM3", INVALID_HANDLE_VALUE},
+    {2, "COM2", INVALID_HANDLE_VALUE},
+    {3, "COM4", INVALID_HANDLE_VALUE},
+    {PLATFORM_UART_ID_ATC, "COM1", INVALID_HANDLE_VALUE},
+};
+
+static ComDev *_find_com_dev(int id)
+{
+    int i;
+
+    for(i = 0; i < sizeof(comDev)/sizeof(comDev[0]); i++)
+    {
+        if(id == comDev[i].id)
+        {
+            return &comDev[i];
+        }
+    }
+
+    return NULL;
+}
+
+void send_uart_message(int uart_id)
+{
+    MSG msg;
+    
+    PlatformMessage *pMsg = malloc(sizeof(PlatformMessage));
+    
+    pMsg->id = RTOS_MSG_UART_RX_DATA;
+    pMsg->data.uart_id = uart_id;
+    
+    msg.message = SIMU_RTOS_MSG_ID;
+    msg.wParam = (WPARAM)pMsg;
+    SendToLuaShellMessage(&msg);
+}
+
+void simulate_uart_thread(LPVOID lparam)
+{
+    ComDev *dev = (ComDev *)lparam;
+    DWORD dwCommEvent;
+    uint8 buffer[100];
+    DWORD dwCount;
+    BOOL rx_indicate = FALSE;
+    DWORD dwErrorFlags;
+    COMSTAT ComStat;
+
+    while(1)
+    {
+        WaitCommEvent(dev->hCom, &dwCommEvent, NULL);
+
+        ClearCommError(dev->hCom, &dwErrorFlags, &ComStat);
+
+        if(dev->rxq.empty)
+            rx_indicate = TRUE;
+        else
+            rx_indicate = FALSE;
+
+        if(ReadFile(dev->hCom, buffer, ComStat.cbInQue, &dwCount, NULL))
+        {
+            QueueInsert(&dev->rxq, buffer, dwCount);
+            
+            if(rx_indicate)
+                send_uart_message(dev->id);
+        }
+    }
+}
+
+u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int stopbits, u32 mode )
+{      
+    ComDev *dev = _find_com_dev(id);
+    COMMTIMEOUTS TimeOuts;
+    DCB dcb;
+
+    if(id == platform_get_console_port())
+    {
+        return baud;
+    }
+
+    if(dev == NULL || dev->name == NULL)
+    {
+        printf("unknwon uart id %d\n", id);
+        goto setup_failed;
+    }
+
+    dev->hCom = CreateFile(dev->name,//"COMx"
+        GENERIC_READ|GENERIC_WRITE, //允许读和写
+        0, //独占方式
+        NULL,
+        OPEN_EXISTING, //打开而不是创建
+        0, //同步方式
+		NULL);
+
+    if(dev->hCom == INVALID_HANDLE_VALUE)
+    {
+        printf("open uart failed %s\n", strerror(GetLastError()));
+        goto setup_failed;
+    }
+
+    memset(&dev->rxq, 0, sizeof(dev->rxq));
+    dev->rxq.buf = malloc(COM_RX_BUF_SIZE);
+    dev->rxq.size = COM_RX_BUF_SIZE;
+    QueueClean(&dev->rxq);
+
+    SetCommMask(dev->hCom, EV_RXCHAR);
+
+    SetupComm(dev->hCom, 1024, 1024); //输入缓冲区和输出缓冲区的大小都是1024
+    
+#if 1
+    //设定读超时
+    TimeOuts.ReadIntervalTimeout = MAXWORD;
+    TimeOuts.ReadTotalTimeoutMultiplier = 0;
+    TimeOuts.ReadTotalTimeoutConstant = 0;
+    //在读一次输入缓冲区的内容后读操作就立即返回，
+    //而不管是否读入了要求的字符。
+    
+    //设定写超时
+    TimeOuts.WriteTotalTimeoutMultiplier = 10;
+    TimeOuts.WriteTotalTimeoutConstant = 100;
+    SetCommTimeouts(dev->hCom, &TimeOuts); //设置超时
+#endif
+    
+    GetCommState(dev->hCom, &dcb);
+    if(baud == 0)
+    {
+        dcb.BaudRate = 115200; //波特率
+        dcb.ByteSize = 8; //数据位
+        dcb.Parity = NOPARITY; //奇偶校验位
+        dcb.StopBits = ONESTOPBIT; //停止位
+        dcb.fDtrControl = DTR_CONTROL_ENABLE;
+        dcb.fRtsControl = RTS_CONTROL_ENABLE;
+    }
+    else
+    {
+        dcb.BaudRate = baud; //波特率
+        dcb.ByteSize = databits; //数据位
+        dcb.Parity = NOPARITY; //奇偶校验位
+        dcb.StopBits = ONESTOPBIT; //停止位
+    }
+    SetCommState(dev->hCom, &dcb);
+    
+    PurgeComm(dev->hCom, PURGE_TXABORT|PURGE_TXCLEAR|PURGE_RXABORT|PURGE_RXCLEAR);
+    
+    CreateThread(NULL , 
+        1*1024, 
+        (LPTHREAD_START_ROUTINE)simulate_uart_thread,
+        (LPVOID)dev,
+        0,
+        &dev->dwThreadId);
+
+    return baud;
+    
+setup_failed:
+    return 0;
+}
+
+u32 platform_uart_close( unsigned id )
+{
+    return PLATFORM_OK;
+}
+
+u32 platform_s_uart_send( unsigned id, u8 data )
+{
+    ComDev *dev = _find_com_dev(id);
+    DWORD dwWritten = 0;
+    DWORD dwErrorFlags;
+    COMSTAT ComStat;
+
+    if(id == platform_get_console_port())
+    {
+        printf("%c", data);
+        return 1;
+    }
+
+    if(dev->hCom != INVALID_HANDLE_VALUE)
+    {
+        return 0;
+    }
+
+    ClearCommError(dev->hCom, &dwErrorFlags, &ComStat);
+
+    WriteFile(dev->hCom, &data, 1, &dwWritten, NULL);
+    return dwWritten;
+}
+
+u32 platform_s_uart_send_buff( unsigned id, const u8 *buff, u16 len )
+{
+    ComDev *dev = _find_com_dev(id);
+    DWORD dwWritten = 0;
+    DWORD dwErrorFlags;
+    COMSTAT ComStat;
+    
+    if(id == platform_get_console_port())
+    {
+        printf("%s", buff);
+        return len;
+    }
+
+    if(dev->hCom == INVALID_HANDLE_VALUE)
+    {
+        return 0;
+    }
+    
+    ClearCommError(dev->hCom, &dwErrorFlags, &ComStat);
+    WriteFile(dev->hCom, buff, len, &dwWritten, NULL);
+
+    return dwWritten;
+}
+
+int platform_s_uart_recv( unsigned id, s32 timeout )
+{
+    ComDev *dev = _find_com_dev(id);
+    char chRead;
+
+    if(dev->hCom == INVALID_HANDLE_VALUE)
+    {
+        return -1;
+    }
+
+    if(1 == QueueDelete(&dev->rxq, &chRead, 1))
+    {
+        return chRead;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int platform_s_uart_set_flow_control( unsigned id, int type )
+{
+    return PLATFORM_ERR;
+}

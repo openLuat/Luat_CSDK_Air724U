@@ -1,0 +1,6 @@
+if(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${flash_ldscript} elua_main.c)
+elseif(CONFIG_APPIMG_LOAD_FILE)
+add_appimg(${target} ${file_ldscript} elua_main.c)
+endif()
+target_link_libraries(${target} PRIVATE lua_openat)

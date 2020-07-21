@@ -1,0 +1,453 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: elua_simulator - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45A.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\lua\include" /I "..\..\..\..\lib\lzma\include" /I "..\..\..\..\lib\zlib\include" /I "..\..\..\..\lib\zlib\zlib_pal\include" /I "..\..\..\..\lib\lpng\include" /I "..\..\..\..\lib\lpng\lpng_pal\include" /I "..\..\..\..\lib\iconv\include" /I "..\..\..\..\lib\iconv\src" /I "..\..\..\..\lua\src\\" /I "..\..\..\..\modules\include" /I "..\..\..\include" /I "..\..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "AM_LUA_SUPPORT" /D "LUA_USE_COOLSAND_SXR" /D "LUA_IO_LIB" /D "LUA_DEBUG_LIB" /D "LUA_FILE_LOAD_SUPPORT" /D "LUA_TTY_SUPPORT" /D LUA_SCRIPT_SIZE=384*1024 /D "USE_DL_PREFIX" /D "USE_DLMALLOC_AS_LUA_ALLOCF" /D "USE_DLMALLOC" /D "AM_LZMA_SUPPORT" /D "AM_LPNG_SUPPORT" /D "LUA_DISP_SUPPORT_HZ" /D "LUA_ICONV_LIB" /D "LUA_OS_LIB" /D LUA_OPTIMIZE_MEMORY=0 /D fopen=elua_fopen /D getenv=lualibc_getenv /D "LUA_SAVE_LAST_ERROR" /D DEFAULT_GRANULARITY=512*1024 /D __FUNCTION__=\"func\" /D "LUA_ZLIB_LIB" /D printf=elua_printf /D fprintf=elua_fprintf /D vfprintf=elua_vfprintf /D fwrite=elua_fwrite /D fputs=elua_fputs /Fp"Debug/elua_simulator.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lapi.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lauxlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lbaselib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lcode.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ldblib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ldebug.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ldo.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ldump.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lfunc.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lgc.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\linit.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\liolib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\llex.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lmathlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lmem.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\loadlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lobject.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lopcodes.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\loslib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lparser.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lstate.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lstring.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lstrlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ltable.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ltablib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\ltm.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lua.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lundump.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lvm.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\lzio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lua\src\print.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\adc.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\audio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\bit.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\bitarray.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\cpu.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\disp.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\i2c.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\lpack.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\luaiconv.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\lzlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\pio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\pmd.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\rtos.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\uart.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\modules\src\watchdog.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\cycle_queue.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\daemon.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\event.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\list.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\main.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_audio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_gps.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_lcd.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_pmd.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_rtos.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_uart.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\platform_watchdog.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\sim_gpio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\sim_key.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\thread_daemon.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\win_trace.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\buf.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\common.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\common_tmr.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\common_uart.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\dlmalloc.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\elua_int.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\preload.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\shell\src\shell.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lzma\src\7zFile.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lzma\src\7zStream.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lzma\src\LzFind.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lzma\src\LzmaDec.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lzma\src\LzmaLib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\iconv\src\gb2312_to_ucs2.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\iconv\src\iconv.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\iconv\src\ucs2_to_gb2312.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\iconv\src\utf8_to_ucs2.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\adler32.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\compress.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\crc32.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\deflate.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\zlib_pal\src\example.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\gzclose.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\gzlib.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\gzread.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\gzwrite.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\infback.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\inffast.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\inflate.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\inftrees.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\trees.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\uncompr.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\zlib\src\zutil.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\png.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngerror.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngget.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngmem.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngpread.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngread.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngrio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngrtran.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngrutil.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngset.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngtrans.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngwio.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngwtran.c"
+"E:\zhy\LUA\openATLua_2\cust_src\elua\lib\lpng\src\pngwutil.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45A.tmp" 
+Creating temporary file "C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45B.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\lua\include" /I "..\..\..\..\lib\lzma\include" /I "..\..\..\..\lib\zlib\include" /I "..\..\..\..\lib\zlib\zlib_pal\include" /I "..\..\..\..\lib\lpng\include" /I "..\..\..\..\lib\lpng\lpng_pal\include" /I "..\..\..\..\lib\iconv\include" /I "..\..\..\..\lib\iconv\src" /I "..\..\..\..\lua\src\\" /I "..\..\..\..\modules\include" /I "..\..\..\include" /I "..\..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "AM_LUA_SUPPORT" /D "LUA_USE_COOLSAND_SXR" /D "LUA_IO_LIB" /D "LUA_DEBUG_LIB" /D "LUA_FILE_LOAD_SUPPORT" /D "LUA_TTY_SUPPORT" /D LUA_SCRIPT_SIZE=384*1024 /D "USE_DL_PREFIX" /D "USE_DLMALLOC_AS_LUA_ALLOCF" /D "USE_DLMALLOC" /D "AM_LZMA_SUPPORT" /D "AM_LPNG_SUPPORT" /D "LUA_DISP_SUPPORT_HZ" /D "LUA_ICONV_LIB" /D "LUA_OS_LIB" /D LUA_OPTIMIZE_MEMORY=0 /D getenv=lualibc_getenv /D "LUA_SAVE_LAST_ERROR" /D DEFAULT_GRANULARITY=512*1024 /D __FUNCTION__=\"func\" /D "LUA_ZLIB_LIB" /D printf=elua_printf /D fprintf=elua_fprintf /D vfprintf=elua_vfprintf /D fwrite=elua_fwrite /D fputs=elua_fputs /Fp"Debug/elua_simulator.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\win32\src\elua_libc.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45B.tmp" 
+Creating temporary file "C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45C.tmp" with contents
+[
+/nologo /Zp8 /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\lua\include" /I "..\..\..\..\lib\lzma\include" /I "..\..\..\..\lib\zlib\include" /I "..\..\..\..\lib\zlib\zlib_pal\include" /I "..\..\..\..\lib\lpng\include" /I "..\..\..\..\lib\lpng\lpng_pal\include" /I "..\..\..\..\lib\iconv\include" /I "..\..\..\..\lib\iconv\src" /I "..\..\..\..\lua\src\\" /I "..\..\..\..\modules\include" /I "..\..\..\include" /I "..\..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "AM_LUA_SUPPORT" /D "LUA_USE_COOLSAND_SXR" /D "LUA_IO_LIB" /D "LUA_DEBUG_LIB" /D "LUA_FILE_LOAD_SUPPORT" /D "LUA_TTY_SUPPORT" /D LUA_SCRIPT_SIZE=384*1024 /D "USE_DL_PREFIX" /D "USE_DLMALLOC_AS_LUA_ALLOCF" /D "USE_DLMALLOC" /D "AM_LZMA_SUPPORT" /D "AM_LPNG_SUPPORT" /D "LUA_DISP_SUPPORT_HZ" /D "LUA_ICONV_LIB" /D "LUA_OS_LIB" /D LUA_OPTIMIZE_MEMORY=0 /D fopen=elua_fopen /D getenv=lualibc_getenv /D "LUA_SAVE_LAST_ERROR" /D DEFAULT_GRANULARITY=512*1024 /D __FUNCTION__=\"func\" /D "LUA_ZLIB_LIB" /D printf=elua_printf /D fprintf=elua_fprintf /D vfprintf=elua_vfprintf /D fwrite=elua_fwrite /D fputs=elua_fputs /Fp"Debug/elua_simulator.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\zhy\LUA\openATLua_2\cust_src\elua\platform\src\common_disp.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45C.tmp" 
+Creating temporary file "C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45D.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ws2_32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/core.pdb" /debug /machine:I386 /out:"release/core.exe" /pdbtype:sept 
+.\Debug\lapi.obj
+.\Debug\lauxlib.obj
+.\Debug\lbaselib.obj
+.\Debug\lcode.obj
+.\Debug\ldblib.obj
+.\Debug\ldebug.obj
+.\Debug\ldo.obj
+.\Debug\ldump.obj
+.\Debug\lfunc.obj
+.\Debug\lgc.obj
+.\Debug\linit.obj
+.\Debug\liolib.obj
+.\Debug\llex.obj
+.\Debug\lmathlib.obj
+.\Debug\lmem.obj
+.\Debug\loadlib.obj
+.\Debug\lobject.obj
+.\Debug\lopcodes.obj
+.\Debug\loslib.obj
+.\Debug\lparser.obj
+.\Debug\lstate.obj
+.\Debug\lstring.obj
+.\Debug\lstrlib.obj
+.\Debug\ltable.obj
+.\Debug\ltablib.obj
+.\Debug\ltm.obj
+.\Debug\lua.obj
+.\Debug\lundump.obj
+.\Debug\lvm.obj
+.\Debug\lzio.obj
+.\Debug\print.obj
+.\Debug\adc.obj
+.\Debug\audio.obj
+.\Debug\bit.obj
+.\Debug\bitarray.obj
+.\Debug\cpu.obj
+.\Debug\disp.obj
+.\Debug\i2c.obj
+.\Debug\lpack.obj
+.\Debug\luaiconv.obj
+.\Debug\lzlib.obj
+.\Debug\pio.obj
+.\Debug\pmd.obj
+.\Debug\rtos.obj
+.\Debug\uart.obj
+.\Debug\watchdog.obj
+.\Debug\cycle_queue.obj
+.\Debug\daemon.obj
+.\Debug\elua_libc.obj
+.\Debug\event.obj
+.\Debug\list.obj
+.\Debug\main.obj
+.\Debug\platform.obj
+.\Debug\platform_audio.obj
+.\Debug\platform_gps.obj
+.\Debug\platform_lcd.obj
+.\Debug\platform_pmd.obj
+.\Debug\platform_rtos.obj
+.\Debug\platform_uart.obj
+.\Debug\platform_watchdog.obj
+.\Debug\sim_gpio.obj
+.\Debug\sim_key.obj
+.\Debug\thread_daemon.obj
+.\Debug\win_trace.obj
+.\Debug\buf.obj
+.\Debug\common.obj
+.\Debug\common_disp.obj
+.\Debug\common_tmr.obj
+.\Debug\common_uart.obj
+.\Debug\dlmalloc.obj
+.\Debug\elua_int.obj
+.\Debug\preload.obj
+.\Debug\shell.obj
+.\Debug\7zFile.obj
+.\Debug\7zStream.obj
+.\Debug\LzFind.obj
+.\Debug\LzmaDec.obj
+.\Debug\LzmaLib.obj
+.\Debug\gb2312_to_ucs2.obj
+.\Debug\iconv.obj
+.\Debug\ucs2_to_gb2312.obj
+.\Debug\utf8_to_ucs2.obj
+.\Debug\adler32.obj
+.\Debug\compress.obj
+.\Debug\crc32.obj
+.\Debug\deflate.obj
+.\Debug\example.obj
+.\Debug\gzclose.obj
+.\Debug\gzlib.obj
+.\Debug\gzread.obj
+.\Debug\gzwrite.obj
+.\Debug\infback.obj
+.\Debug\inffast.obj
+.\Debug\inflate.obj
+.\Debug\inftrees.obj
+.\Debug\trees.obj
+.\Debug\uncompr.obj
+.\Debug\zutil.obj
+.\Debug\png.obj
+.\Debug\pngerror.obj
+.\Debug\pngget.obj
+.\Debug\pngmem.obj
+.\Debug\pngpread.obj
+.\Debug\pngread.obj
+.\Debug\pngrio.obj
+.\Debug\pngrtran.obj
+.\Debug\pngrutil.obj
+.\Debug\pngset.obj
+.\Debug\pngtrans.obj
+.\Debug\pngwio.obj
+.\Debug\pngwtran.obj
+.\Debug\pngwutil.obj
+]
+Creating command line "link.exe @C:\DOCUME~1\airm2m\LOCALS~1\Temp\RSP45D.tmp"
+<h3>Output Window</h3>
+Compiling...
+lapi.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+lauxlib.c
+lbaselib.c
+lcode.c
+ldblib.c
+ldebug.c
+ldo.c
+ldump.c
+lfunc.c
+lgc.c
+linit.c
+liolib.c
+llex.c
+lmathlib.c
+lmem.c
+loadlib.c
+lobject.c
+lopcodes.c
+loslib.c
+e:\zhy\lua\openatlua_2\cust_src\elua\lua\src\loslib.c(198) : warning C4244: 'function' : conversion from 'double ' to 'long ', possible loss of data
+lparser.c
+e:\zhy\lua\openatlua_2\cust_src\elua\lua\src\loslib.c(198) : warning C4761: integral size mismatch in argument; conversion supplied
+lstate.c
+lstring.c
+lstrlib.c
+ltable.c
+ltablib.c
+ltm.c
+lua.c
+lundump.c
+lvm.c
+lzio.c
+print.c
+adc.c
+audio.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\audio.c(42) : warning C4244: '=' : conversion from 'long ' to 'unsigned char ', possible loss of data
+bit.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\audio.c(93) : warning C4761: integral size mismatch in argument; conversion supplied
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\audio.c(93) : warning C4761: integral size mismatch in argument; conversion supplied
+bitarray.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\bitarray.c(50) : warning C4244: '=' : conversion from 'long ' to 'unsigned char ', possible loss of data
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\bitarray.c(54) : warning C4244: '=' : conversion from 'long ' to 'unsigned char ', possible loss of data
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\bitarray.c(67) : warning C4244: '=' : conversion from 'long ' to 'unsigned char ', possible loss of data
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\bitarray.c(93) : warning C4244: '=' : conversion from 'long ' to 'unsigned char ', possible loss of data
+cpu.c
+disp.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\disp.c(43) : warning C4013: 'memset' undefined; assuming extern returning int
+i2c.c
+lpack.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(134) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(144) : warning C4018: '>=' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(151) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(151) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(152) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(152) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(153) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(154) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(159) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(160) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(161) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(162) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(163) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(164) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(165) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\lpack.c(166) : warning C4018: '>' : signed/unsigned mismatch
+luaiconv.c
+lzlib.c
+pio.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\pio.c(303) : warning C4018: '!=' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\pio.c(312) : warning C4018: '!=' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\pio.c(317) : warning C4018: '!=' : signed/unsigned mismatch
+pmd.c
+rtos.c
+uart.c
+watchdog.c
+e:\zhy\lua\openatlua_2\cust_src\elua\modules\src\uart.c(93) : warning C4761: integral size mismatch in argument; conversion supplied
+cycle_queue.c
+daemon.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\util.h(12) : warning C4244: '=' : conversion from 'unsigned short ' to 'unsigned char ', possible loss of data
+event.c
+list.c
+main.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(49) : warning C4013: 'daemon_close' undefined; assuming extern returning int
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(55) : warning C4028: formal parameter 1 different from declaration
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(55) : warning C4028: formal parameter 2 different from declaration
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(55) : warning C4024: 'add_event' : different types for formal and actual parameter 3
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(146) : warning C4028: formal parameter 1 different from declaration
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(146) : warning C4133: 'function' : incompatible types - from 'unsigned char (__stdcall *)(unsigned int )' to 'int (__stdcall *)(unsigned long )'
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(146) : warning C4024: 'SetConsoleCtrlHandler' : different types for formal and actual parameter 1
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(201) : warning C4013: 'platform_uart_init' undefined; assuming extern returning int
+platform.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\main.c(97) : warning C4716: 'lua_shell_entry' : must return a value
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform.c(94) : warning C4013: '_assert' undefined; assuming extern returning int
+platform_audio.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+platform_gps.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+platform_lcd.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+platform_pmd.c
+platform_rtos.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform_rtos.c(168) : warning C4013: 'keypad_init' undefined; assuming extern returning int
+platform_uart.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\type.h(66) : warning C4142: benign redefinition of type
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform_uart.c(379) : warning C4090: 'function' : different 'const' qualifiers
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform_uart.c(379) : warning C4024: 'QueueInsert' : different types for formal and actual parameter 2
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform_uart.c(428) : warning C4018: '<' : signed/unsigned mismatch
+platform_watchdog.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\platform_uart.c(459) : warning C4716: 'platform_uart_init' : must return a value
+sim_gpio.c
+sim_key.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\sim_gpio.c(60) : warning C4761: integral size mismatch in argument; conversion supplied
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\src\sim_gpio.c(60) : warning C4761: integral size mismatch in argument; conversion supplied
+thread_daemon.c
+win_trace.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+buf.c
+common.c
+common_tmr.c
+common_uart.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_uart.c(75) : warning C4018: '>=' : signed/unsigned mismatch
+dlmalloc.c
+elua_int.c
+preload.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+shell.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+7zFile.c
+7zStream.c
+LzFind.c
+LzmaDec.c
+LzmaLib.c
+gb2312_to_ucs2.c
+iconv.c
+ucs2_to_gb2312.c
+utf8_to_ucs2.c
+adler32.c
+compress.c
+crc32.c
+deflate.c
+example.c
+gzclose.c
+gzlib.c
+gzread.c
+gzwrite.c
+infback.c
+inffast.c
+inflate.c
+inftrees.c
+trees.c
+uncompr.c
+zutil.c
+png.c
+pngerror.c
+pngget.c
+pngmem.c
+pngpread.c
+pngread.c
+pngrio.c
+pngrtran.c
+pngrutil.c
+pngset.c
+pngtrans.c
+pngwio.c
+pngwtran.c
+pngwutil.c
+Compiling...
+elua_libc.c
+Compiling...
+common_disp.c
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\win32\include\assert.h(19) : warning C4005: '__FUNCTION__' : macro redefinition
+        unknown(0) : see previous definition of '__FUNCTION__'
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_disp.c(592) : warning C4018: '>=' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_disp.c(624) : warning C4018: '>=' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_disp.c(750) : warning C4018: '>' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_disp.c(756) : warning C4018: '<' : signed/unsigned mismatch
+e:\zhy\lua\openatlua_2\cust_src\elua\platform\src\common_disp.c(761) : warning C4018: '<=' : signed/unsigned mismatch
+Linking...
+
+
+
+<h3>Results</h3>
+core.exe - 0 error(s), 69 warning(s)
+</pre>
+</body>
+</html>

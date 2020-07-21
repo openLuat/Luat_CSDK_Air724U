@@ -52,7 +52,15 @@ BOOL iot_camera_preview_close(void);
 *           FALSE:      Ê§°Ü
 **/
 BOOL iot_camera_capture(char *fileName, T_AMOPENAT_CAM_CAPTURE_PARAM *captureParam);
-   
+
+/**ÉèÖÃcamera¼Ä´æÆ÷
+*@param  initRegTable_p: cam¼Ä´æÆ÷±í
+*@param  len:   cam¼Ä´æÆ÷³¤¶È
+*@return	TRUE: 	    ³É¹¦
+*           FALSE:      Ê§°Ü
+**/
+BOOL iot_camera_WriteReg(PAMOPENAT_CAMERA_REG initRegTable_p, int len);
+
 /** @}*/
 /** @}*/
 

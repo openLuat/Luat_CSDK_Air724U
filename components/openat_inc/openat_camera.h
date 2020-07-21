@@ -29,5 +29,9 @@ BOOL OPENAT_CameraVideoRecordResume(void);
 BOOL OPENAT_CameraVideoRecordStop(void);
 /*-\NEW\Jack.li\2013.2.9\增加摄像头视频录制接口 */
 
+/*+\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+BOOL OPENAT_CameraWriteReg(PAMOPENAT_CAMERA_REG initRegTable_p, int len);
+/*+\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+
 #endif /* OPENAT_CAMERA_H */
 
