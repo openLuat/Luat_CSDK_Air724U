@@ -48,12 +48,4 @@ BOOL iot_tts_set_param(
 	return OPENAT_tts_set_param(flag,value);
 }
 
-/**获取tts配置参数
-*@return	tts配置参数结构体
-**/
-TTS_PARAM_STRUCT *iot_tts_get_param()
-{
-	//return OPENAT_tts_get_param();
-	return NULL;
-}
 

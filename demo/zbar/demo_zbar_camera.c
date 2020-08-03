@@ -712,6 +712,8 @@ static AMOPENAT_CAMERA_REG cameraInitReg[]  =
 #endif
 
 
+#ifdef ZBAR_WRITEREG
+
 static AMOPENAT_CAMERA_REG cameraMirrorEnReg[] =
 {
 	{0x17, 0x15}
@@ -738,7 +740,7 @@ static void camera_writeReg(void)
 		iot_camera_WriteReg(cameraMirrorDisReg, sizeof(cameraMirrorDisReg)/sizeof(AMOPENAT_CAMERA_REG));
 #endif
 }
-
+#endif
 
 BOOL cameraInit(PCAMERA_MESSAGE cb)
 {
@@ -778,20 +780,42 @@ BOOL cameraInit(PCAMERA_MESSAGE cb)
 
 	previewParam.startX = 0;
 	previewParam.startY = 0;
+	
+	/*++/测试写lcd放缩显示和反转显示功能，需要可以打开宏*/
+#ifdef ZBAR_ZOOM_ROTATION
+	/*放缩显示4倍*/
+	previewParam.zoom = -2;
+	/* 反转90度*/
+	previewParam.rotation = 90;
+
+	/*显示的区域也需要按照2倍放缩，反转90读，切换宽高*/
+	previewParam.endX = CAM_SENSOR_HEIGHT/2;
+	previewParam.endY = CAM_SENSOR_WIDTH/2;
+#else
+	previewParam.zoom = 0;
+	previewParam.rotation = 0;
 	previewParam.endX = CAM_DISP_WIDTH;
 	previewParam.endY = CAM_DISP_HEIGHT;
+#endif
+	/*--/测试写lcd放缩显示和反转显示功能，需要可以打开宏*/
+	
 	ret = iot_camera_preview_open(&previewParam);
 	if (!ret)
 		return FALSE;
 
 	iot_debug_print("zwb camera_writeReg test");
 
+	/*++/测试写camera寄存器接口,设置CAM镜像功能,需要时可以打开宏*/
+#ifdef ZBAR_WRITEREG
 	while(1)
 	{	
 		iot_os_sleep(3000);
+		
 		camera_writeReg();
 		iot_os_sleep(3000);
 	}
+#endif
+	/*--/测试写camera寄存器接口,设置CAM镜像功能,需要时可以打开宏*/
 	return TRUE;
 }
 

@@ -68,7 +68,7 @@ if(DEFINED ENV{AM_MODEL})
 	if ((${AM_MODEL} STREQUAL  "iot_SDK_720U"))
 		message("core/iot_SDK_720U")
 		set(core_type 0)
-		include(${CMAKE_SOURCE_DIR}/core/version.cmake)
+		include(${CMAKE_SOURCE_DIR}/core/${AM_MODEL}/memd/version.cmake)
 		set(core_name CSDK_RDA8910)
 		set(core_vername CSDK_${CORE_VER}_RDA8910)
 		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U)
@@ -88,7 +88,7 @@ if(DEFINED ENV{AM_MODEL})
 		message("core/iot_SDK_720U_TTS")
 		set(core_type 1)
 		add_definitions(-DTTS_ENABLE)
-		include(${CMAKE_SOURCE_DIR}/core/version.cmake)
+		include(${CMAKE_SOURCE_DIR}/core/${AM_MODEL}/memd/version.cmake)
 		set(core_name CSDK_RDA8910_TTS)
 		set(core_vername CSDK_${CORE_VER}_RDA8910_TTS)
 		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U_TTS)
@@ -113,7 +113,7 @@ set(flash_ldscript ${SOURCE_TOP_DIR}/ldscripts/app_flashimg.ld)
 set(file_ldscript ${SOURCE_TOP_DIR}/ldscripts/app_fileimg.ld)
 set(cmd_mkappimg dtools mkappimg)
 set(pacgen_py ${tools_dir}/pacgen.py)
-
+set(gdbComGen_py ${tools_dir}/gdbComGen.py)
 #/*+\DEL\chenzhimin\2020.07.8\ */
 # set(pacgen_core_py ${tools_dir}/combine_core.py)
 #/*-\DEL\chenzhimin\2020.07.8\ */
@@ -270,11 +270,13 @@ endif()
 add_subdirectory_if_exist(api)
 #/*+\ADD\chenzhimin\2020.07.9\*/
 if( CONFIG_BUILD_APP_SSL OR 
-    CONFIG_BUILD_APP_FTP OR
-    CONFIG_BUILD_APP_HTTP OR
-    CONFIG_BUILD_APP_LITTLEVGL OR
-    CONFIG_BUILD_APP_MQTT)
-add_subdirectory_if_exist(app)
+CONFIG_BUILD_APP_FTP OR
+CONFIG_BUILD_APP_HTTP OR
+CONFIG_BUILD_APP_LITTLEVGL OR
+CONFIG_BUILD_APP_MQTT OR
+CONFIG_BUILD_APP_OLED_SSD1306 OR
+CONFIG_BUILD_APP_OneWire)
+    add_subdirectory_if_exist(app)
 endif()
 #/*-\ADD\chenzhimin\2020.07.9\*/
 
@@ -309,7 +311,9 @@ if(CONFIG_APPIMG_LOAD_FLASH)
     CONFIG_BUILD_APP_FTP OR
     CONFIG_BUILD_APP_HTTP OR
     CONFIG_BUILD_APP_LITTLEVGL OR
-    CONFIG_BUILD_APP_MQTT)
+    CONFIG_BUILD_APP_MQTT OR
+    CONFIG_BUILD_APP_OLED_SSD1306 OR
+    CONFIG_BUILD_APP_OneWire)
         target_link_libraries(${target} PRIVATE app)
     endif()
     #/*-\ADD\chenzhimin\2020.07.9\*/
@@ -479,7 +483,10 @@ add_custom_command(OUTPUT ${hex_app_file} ${hex_app_with_core_file} ${hex_delete
 	COMMAND ${CMAKE_COMMAND} -E copy ${pac_file_with_core} ${hex_app_with_core_file}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${hex_map_dir}
 	COMMAND ${CMAKE_COMMAND} -E copy ${core_map_dir}/${core_name}.map ${hex_map_file}
-	COMMAND ${CMAKE_COMMAND} -E copy ${core_map_dir}/${core_name}.elf ${hex_elf_file}
+    COMMAND ${CMAKE_COMMAND} -E copy ${core_map_dir}/${core_name}.elf ${hex_elf_file}
+    COMMAND ${CMAKE_COMMAND} -E copy ${out_hex_dir}/${target}.elf ${hex_map_dir}/app.elf
+    COMMAND ${CMAKE_COMMAND} -E copy ${out_hex_dir}/${target}.map ${hex_map_dir}/app.map
+    COMMAND python3 ${gdbComGen_py} ${CMAKE_SOURCE_DIR} /hex/${target}_map/app.elf
 	DEPENDS ${pac_file} ${pac_file_with_core} 
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 	

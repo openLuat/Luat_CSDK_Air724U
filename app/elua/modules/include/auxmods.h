@@ -144,6 +144,10 @@ LUALIB_API int ( luaopen_hrsensorcore )( lua_State * L );
 #define AUXLIB_TTSPLYCORE     "ttsply"
 LUALIB_API int ( luaopen_ttsplycore )( lua_State * L );
 
+#define AUXLIB_OneWire    "OneWire"
+LUALIB_API int ( luaopen_OneWire )( lua_State * L );
+
+
 /*+\NEW\zhutianhua\2018.3.7 14:8\Ö§³ÖPBC¿â*/
 #if defined(AM_PBC_SUPPORT)
 #define AUXLIB_PBC     "protobuf.c"

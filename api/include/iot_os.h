@@ -125,6 +125,28 @@ BOOL iot_os_send_message(
 BOOL iot_os_available_message(                   
 						HANDLE hTask       
 						 );
+
+/**发送高优先级线程消息
+*@note      添加到消息队列头部
+*@param		hTask:		线程句柄
+*@param		pMessage:	存储消息指针
+*@return	TURE: 		成功
+*			FALSE  : 	失败
+**/
+BOOL iot_os_send_high_priority_message(          
+                        HANDLE hTask,          
+                        PVOID pMessage         
+                                  );
+
+/**检测消息队列中是否有消息
+*@param		hTask:		线程句柄
+*@return	TURE: 		成功
+*			FALSE  : 	失败
+**/
+BOOL iot_os_available_message(                     
+                        HANDLE hTask           
+                         );
+
 /** @}*/ 
 
 /**
@@ -251,12 +273,6 @@ HANDLE iot_os_enter_critical_section(
 VOID iot_os_exit_critical_section(             
                         HANDLE hSection        
                              );
-/** @}*/ 
-
-/**
- * @defgroup 临界资源接口函数类型 临界资源接口函数
- * @{
- */
  
 /**创建信号量接口
 *@param		nInitCount:		信号量数量

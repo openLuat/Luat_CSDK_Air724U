@@ -35,4 +35,13 @@ endif()
 if(CONFIG_BUILD_APP_LITTLEVGL)
     add_subdirectory_if_exist(littlevgl)
 endif()
+
+if(CONFIG_BUILD_APP_OLED_SSD1306)
+    add_subdirectory_if_exist(oled_ssd1306)
+endif()
+
+if(CONFIG_BUILD_APP_OneWire)
+    add_subdirectory_if_exist(OneWire)
+endif()
+
 #/*-\ADD\chenzhimin\2020.07.9\ */

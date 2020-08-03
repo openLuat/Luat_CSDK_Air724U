@@ -160,4 +160,12 @@
  */
 #define CONFIG_KERNEL_MEM_RECORD_COUNT 1024
 
+/**
+ * whether to enable watchdog
+ *
+ * By default, watchdog will be enabled when \p BUILD_RELEASE_TYPE is
+ * "release".
+ */
+#define CONFIG_WDT_ENABLE
+
 #endif

@@ -1563,3 +1563,7 @@ OPENAT_SPKPA_TYPE_T OPENAT_getpa(void);
 BOOL OPENAT_fs_mount_sdcard(void);
 BOOL OPENAT_fs_umount_sdcard(void);
 /*-\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
+/*+\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/
+VOID OPENAT_SetFaultMode(E_OPENAT_FAULT_MODE mode);
+/*-\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/
+

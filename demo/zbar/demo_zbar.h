@@ -18,7 +18,8 @@
 
 //#define AM_CAM_BF20A6
 //#define VGA_SUPPORT
-
+//#define ZBAR_WRITEREG
+//#define ZBAR_ZOOM_ROTATION
 #ifdef VGA_SUPPORT
 #define CAM_SENSOR_WIDTH (640)
 #define CAM_SENSOR_HEIGHT (480)

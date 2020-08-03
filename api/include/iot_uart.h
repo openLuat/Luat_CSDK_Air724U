@@ -61,18 +61,6 @@ UINT32 iot_uart_write(
                         UINT32 bufLen                       
                     );
 
-/**uart接收中断使能
-*@param		port:		UART 编号
-*@param		enable:		是否使能
-*@return	TRUE: 	    成功
-*           FALSE:      失败
-**/
-BOOL iot_uart_enable_rx_int(
-                        E_AMOPENAT_UART_PORT port,       
-                        BOOL enable                      
-                            );
-
-
 /** @}*/
 /** @}*/
 #endif

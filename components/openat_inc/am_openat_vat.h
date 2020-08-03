@@ -19,8 +19,10 @@ typedef VOID (*PAT_MESSAGE)(UINT8 *pData, UINT16 length);
 typedef BOOL (*PAT_POC_MESSAGE)(char *pData, int length);
 /*-\NEW\zhuwangbin\2020.4.22\添加LUA_POC项目， 通过虚拟通道兼容POC的控制*/
 
-
-BOOL OPENAT_vat_init(PAT_MESSAGE resp_cb);
+/*+\NEW\lijiaodi\2020.7.25\修改lua task还没跑起来的时候就已经注册上网，会有很多主动上报丢掉的问题*/
+void OPENAT_vat_set_cb(PAT_MESSAGE resp_cb);
+BOOL OPENAT_vat_init(void);
+/*-\NEW\lijiaodi\2020.7.25\修改lua task还没跑起来的时候就已经注册上网，会有很多主动上报丢掉的问题*/
 BOOL OPENAT_vat_send_at( const char* pAtCommand, unsigned nLength );
 
 int vat_test_enter(void *param);

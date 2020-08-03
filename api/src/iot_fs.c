@@ -107,20 +107,6 @@ INT32 iot_fs_delete_file(
     return OPENAT_delete_file(pszFileNameUniLe);
 }
 
-/**改变文件大小
-*@param		iFd:	文件句柄
-*@param		uSize:	设置大小
-*@return	INT32: 	返回值小于0表示失败,其余成功
-**/
-INT32 iot_fs_change_size(
-                    INT32 iFd,
-                    UINT32 uSize
-                )
-{
-    //return IVTBL(change_size)(iFd, uSize);
-    return 0;
-}
-
 /**切换当前工作目录
 *@param		pszDirNameUniLe:	目录路径
 *@return	INT32: 	返回值小于0表示失败,其余成功

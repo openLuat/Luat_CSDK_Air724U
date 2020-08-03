@@ -1,0 +1,15 @@
+if(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${flash_ldscript} demo_StaticLibrary.c)
+elseif(CONFIG_APPIMG_LOAD_FILE)
+add_appimg(${target} ${file_ldscript} demo_StaticLibrary.c)
+endif()
+
+set(HelloLibGen OFF)
+
+if(HelloLibGen)
+    add_subdirectory(HelloWorld)
+else()
+    add_definitions(-DHelloBuild)
+    include_directories(./HelloWorld/inc)
+    target_link_libraries(${target} PRIVATE ${PROJECT_SOURCE_DIR}/demo/${BUILD_TARGET}/HelloWorld/lib/libHelloWorld.a)
+endif()

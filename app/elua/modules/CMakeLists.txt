@@ -17,6 +17,9 @@ target_include_directories(${target} PRIVATE ../platform/openat/include)
 target_include_directories(${target} PRIVATE ../platform/include)
 target_include_directories(${target} PRIVATE ../modules/include)
 
+target_include_directories(${target} PRIVATE ../lib/OneWire)
+target_include_directories(${target} PRIVATE ../lib/OneWire/ds18b20)
+target_include_directories(${target} PRIVATE ../lib/OneWire/dht11)
 # target_include_targets(${target} PRIVATE kernel openat)
 # target_link_libraries(${target} PRIVATE kernel openat 
 # lua_openat lua_crypto lua_iconv lua_json lua_lzma lua_pbc lua_zlib lua_lua 
@@ -31,7 +34,7 @@ target_include_directories(${target} PRIVATE  ${PROJECT_SOURCE_DIR}/components/o
 
 target_link_libraries(${target} PRIVATE  
 lua_openat lua_crypto lua_iconv lua_json lua_lzma lua_pbc lua_zlib lua_lua 
-lua_newlib lua_libc lua_platform lua_qr_encode
+lua_newlib lua_libc lua_platform lua_qr_encode lua_OneWire
 )
 
 set(moudles_src
@@ -60,6 +63,7 @@ src/ttsply.c
 src/watchdog.c       
 src/spi.c
 src/wifi.c
+src/luaOneWire.c
 )
 
 

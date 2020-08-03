@@ -7,6 +7,7 @@
 
 #define fs_print iot_debug_print
 #define DEMO_FS_FILE_PATH "demo_file"
+#define DEMO_FS_FILE_PATH_SDCARD "/sdcard0/demo_file"
 
 VOID demo_fs_delete(char* file)
 {
@@ -97,6 +98,20 @@ VOID demo_fs_init(VOID)
     {
         demo_fs_read(DEMO_FS_FILE_PATH); // 读文件
     }
+	
+	
+	/*SDcard目录*/
+	//文件不存, 创建成功, 写数据读数据
+    if (demo_fs_create(DEMO_FS_FILE_PATH_SDCARD))  
+    {
+        demo_fs_write(DEMO_FS_FILE_PATH_SDCARD); // 写文件
+        demo_fs_read(DEMO_FS_FILE_PATH_SDCARD); // 读文件
+    }
+    //文件存在直接读,
+    else
+    {
+        demo_fs_read(DEMO_FS_FILE_PATH_SDCARD); // 读文件
+    }
 }
 
 static void demo_fs_createDir(void)
@@ -177,6 +192,7 @@ int appimg_enter(void *param)
 
 	/*显示预置文件sffs_file.txt*/
 	demo_fs_ls("/");
+	demo_fs_ls("/sdcard0");
 
 	/*显示预置文件sffs_dir/sub_sffs_file.txt*/
 	demo_fs_ls("/sffs_dir");
@@ -188,6 +204,8 @@ int appimg_enter(void *param)
 
 	/*LS根目录*/
 	demo_fs_ls("/");
+	/*LS SDcard目录*/
+	demo_fs_ls("/sdcard0");
 	/*LS dir_1*/
 	demo_fs_ls("dir_1");
 	/*DEL dir_1*/

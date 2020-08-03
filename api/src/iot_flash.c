@@ -15,13 +15,14 @@ VOID iot_flash_getaddr(
 {
     extern char __flash_start;
     extern char __flash_end;
+    UINT32 aligned = ((UINT32)&__flash_end + 0x10000 - 1) & (~(0x10000 - 1));
     if(addrout)
     {
-        *addrout = ((UINT32)&__flash_end + 0x10000 - 1) & (~(0x10000 - 1));
+        *addrout = aligned - CONFIG_NOR_PHY_ADDRESS;
     }
     if(lenout)
     {
-        *lenout = CONFIG_APPIMG_FLASH_SIZE - ((void *)*addrout - (void *)&__flash_start);
+        *lenout = CONFIG_APPIMG_FLASH_SIZE - (aligned - (UINT32)&__flash_start);
     }
 }
 

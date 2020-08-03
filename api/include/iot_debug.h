@@ -26,6 +26,13 @@ VOID iot_debug_assert(
                         UINT32 line                     
               );
 
+/**设置软件异常时，设备模式
+*@param		mode:	OPENAT_FAULT_RESET 重启模式
+                    OPENAT_FAULT_HANG  调试模式
+**/
+
+VOID iot_debug_set_fault_mode(E_OPENAT_FAULT_MODE mode);
+
 /** @}*/
 
 #endif

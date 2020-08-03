@@ -1343,7 +1343,6 @@ bool osiTimerSetEvent(osiTimer_t *timer, osiThread_t *thread, uint32_t timerid);
  * \param timer     the timer to be deleted
  */
 void osiTimerDelete(osiTimer_t *timer);
-void *osiTimerGetCbx(osiTimer_t *timer);
 /**
  * \brief change timer relaxed timeout for running timer
  *

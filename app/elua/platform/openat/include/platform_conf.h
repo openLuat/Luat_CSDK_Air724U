@@ -157,7 +157,8 @@
     _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map) \
     _ROM( AUXLIB_TCPIPSOCK, luaopen_tcpipsock, tcpipsock_map) \
     _ROM( AUXLIB_WATCHDOG, luaopen_watchdog, watchdog_map ) \
-    _ROM( AUXLIB_FACTORY, luaopen_factorycore, factorycore_map)
+    _ROM( AUXLIB_FACTORY, luaopen_factorycore, factorycore_map) \
+    _ROM( AUXLIB_OneWire, luaopen_OneWire, OneWire_map) 
  
     // Interrupt queue size
 #define PLATFORM_INT_QUEUE_LOG_SIZE 5

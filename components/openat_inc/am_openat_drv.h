@@ -1406,7 +1406,9 @@ typedef void (*AUD_RECORD_CALLBACK_T)(E_AMOPENAT_RECORD_ERROR result);
 typedef void (*MUSIC_PLAY_CALLBACK_T)(const char *file_name, int ret);
 /*-\NEW\shenyuanyuan\2019.12.11\添加MP3播放AT+PLAY，AT+STOP ，AT+SOUNDLVL指令*/
 /*+\new\wj\2020.4.26\实现录音接口*/
-typedef void (*AUD_STREAM_RECORD_CALLBACK_T)(int ret,int len);
+/*+\BUG\wangyuan\2020.07.31\BUG_2736:CSDK 大唐对讲机需求 支持流录音*/
+typedef void (*AUD_STREAM_RECORD_CALLBACK_T)(int ret, char *data, int len);
+/*-\BUG\wangyuan\2020.07.31\BUG_2736:CSDK 大唐对讲机需求 支持流录音*/
 /*-\new\wj\2020.4.26\实现录音接口*/
 /*+\NewReq WM-702\maliang\2013.3.15\播放音频文件的接口增加一个参数，用来表示文件类型*/
 typedef enum E_AMOPENAT_AUD_FORMAT_TAG
@@ -1608,6 +1610,15 @@ typedef enum
 	OPENAT_PWM_INVALID_PARAM
 }E_AMOPENAT_PWM_PORT;
 /*-\NEW\RUFEI\2015.9.8\Add pwm function */
+/*+\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/
+typedef enum openatFaultModeE
+{
+	/*!< 异常重启，默认状态*/
+	OPENAT_FAULT_RESET,
+	/*!< 异常调试模式*/
+	OPENAT_FAULT_HANG
+}E_OPENAT_FAULT_MODE;
+/*-\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/
 
 typedef struct
 {

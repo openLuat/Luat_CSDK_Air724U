@@ -50,12 +50,6 @@ BOOL iot_tts_set_param(
 		);
 
 
-/**获取tts配置参数
-*@return	tts配置参数结构体
-**/
-TTS_PARAM_STRUCT *iot_tts_get_param();
-
-
 /** @}*/
 /** @}*/
 
