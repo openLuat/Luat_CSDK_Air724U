@@ -71,4 +71,4 @@ void appimg_exit(void)
 |demo_lvgl|littleVGL UI框架示例|
 
 ## 八、官方应用
-> [lua解析器](app/elua/doc.md)
+> [lua解析器](app/elua/LUA解析器开源文档.md)

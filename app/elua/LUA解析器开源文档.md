@@ -35,7 +35,7 @@
 
 &emsp;&emsp;Lua语言的架构图如下图所示，大家可以看看软件架构，主要是通过全局状态机完成各个模块的调用，这里不做深入讲解，有兴趣的可以自行阅读[lua源码](http://www.lua.org/)。
 
-![1](/doc/1.jpg)
+![1](doc/1.jpg)
 
 ## 1.4、嵌入式平台的lua实现
 
@@ -64,13 +64,13 @@
 
 
 
-![文件数量](/doc/num.png)
+![文件数量](doc/num.png)
 
 
 
 &emsp;&emsp;现阶段我们的elua开源模块的总目录结构如下图所示。里面仅仅是列出了部分重要的具有代表意义的功能以及文件。从这张图我们也能看出来elua开源项目默认就支持了那些功能。
 
-![elua](/doc/elua.png)
+![elua](doc/elua.png)
 
 
 
@@ -86,7 +86,7 @@
 
 &emsp;&emsp;第一就是大家在使用stm32时用到的方法，对printf函数进行输出重定向。那么这个办法在裸机编程上倒是看不出来什么弊端。大家在使用操作系统编程比如freertos这些就会发现一个问题。如果任务的堆栈空间分配比较小，同时又在任务中使用到了printf打印数据那么就会出现堆栈溢出导致程序崩溃。这是因为printf函数使用时会在栈空间定义一个大缓冲区存储数据，这个缓冲区只是临时定义的，用完就会被析构掉。在使用printf时临时缓冲区会被算到任务堆栈大小中，只要给任务分配到空间小了，那么就会导致程序堆栈空间溢出程序崩溃。按照我以前踩坑的经验，即使你只是点个灯，只要用到了printf函数，如果此时任务的堆栈空间小于2048程序就会崩溃。这样就不太好了是吧，起步2048哪有这么多内存去搞。
 
-![awkward](/doc/awkward.png)
+![awkward](doc/awkward.png)
 
 
 
@@ -97,7 +97,7 @@
 
 &emsp;&emsp;newlib文件夹的结构如下图所示，涉及到的文件数量也是一大把。有兴趣的自己去看。
 
-![newlib](/doc/newlib.png)
+![newlib](doc/newlib.png)
 
 &emsp;&emsp;有的函数需要和硬件平台打交道，不能直接用标准库。比如stdio库中的一些函数，就拿`fopen_ext"`函数来看一下，它里面的实现用到了一些和平台相关的代码。
 
@@ -185,7 +185,7 @@ void* platform_malloc( size_t size )
 
 &emsp;&emsp;各位同学不信的话可以打开我们的`iot_sdk_4g_8910`开发包看下`components`文件夹下是不是也有一个`newlib`文件夹。
 
-![iot_sdk_4g_8910-components-newlib](/doc/iot_sdk_4g_8910-components-newlib.png)
+![iot_sdk_4g_8910-components-newlib](doc/iot_sdk_4g_8910-components-newlib.png)
 
 
 
@@ -201,7 +201,7 @@ void* platform_malloc( size_t size )
 
 &emsp;&emsp;lua解析器位于`elua/lua`文件夹下，其代码结构如下图所示。
 
-![lua解析器](/doc/luaParser.png)
+![lua解析器](doc/luaParser.png)
 
 &emsp;&emsp;lua解析器代码我这里将其分为三个大块，它们分别是虚拟机核心功能部分、源代码解析和预编译部分以及内嵌库部分。
 
@@ -272,7 +272,7 @@ void* platform_malloc( size_t size )
 &emsp;&emsp;那其他的硬件那就更不必说，都是需要人为加进去的，lua解析器自身并不带这些功能。在`elua/modules`文件夹内，我们也集成了一部分常用的硬件驱动。
 
 
-![modules](/doc/modules.png)
+![modules](doc/modules.png)
 
 &emsp;&emsp;上图中只是列出了一部分常用的驱动库，实际的modules文件夹下的的库文件有很多。接下来拿出adc库进行相应的说明，怎么才能把adc的驱动代码注册到lua虚拟机中。让用户能够在lua脚本中进行adc的采集控制。
 
@@ -315,7 +315,7 @@ LUALIB_API int luaopen_adc( lua_State *L )
 
 &emsp;&emsp;那这样写为什么就能被lua脚本调用呢，之间又有什么关系。下面我把这三条脚本换个写法，`open`、`read`、`close`三个函数对应的lua调用脚本是`adc.open()`、`adc.read()`、`adc.close()`，这样看起来是不是有点似曾相识的感觉。但一时半会好像又想不起来在哪见过，给你们五秒钟时间想，给我使劲想！！！
 
-![emmm](/doc/emmm.jpg)
+![emmm](doc/emmm.jpg)
 
 &emsp;&emsp;对，没错！如果各位同学之前使用过我们模块的adc采集功能，我猜各位应该已经想到了在luat脚本的adc例程中，有这么一段。
 
@@ -358,7 +358,7 @@ static int adc_close(lua_State *L) {
 
 &emsp;&emsp;我们还需要按照特定的规则，完成调用函数内部具体的实现方法。来大家注意看了哈，我变。
 
-![tricks](/doc/tricks.jpg)
+![tricks](doc/tricks.jpg)
 
 
 &emsp;&emsp;咳咳，变出来了。
@@ -454,7 +454,7 @@ static int adc_open(lua_State *L) {
 
 &emsp;&emsp;这些算法都是比较常见的，也经常会使用到。我们也在elua代码包中内置了一些纯软算法，具体见下图。
 
-![lib](/doc/lib.png)
+![lib](doc/lib.png)
 
 &emsp;&emsp;上面图片中的命名有的人可能不知道这些库有什么作用，这里做一下简要说明。
 
@@ -473,7 +473,7 @@ static int adc_open(lua_State *L) {
 
 &emsp;&emsp;还是和上节一样，库太多了，这些库里面又有一大堆文件。本来准备选个高大上的库讲讲，就是那个啥----基于双线性对的密码学库。这时候没想到json这么积极，举手要求上台，那我就勉为其难的答应她好了。接下来我们讲讲json，举一反三都一样哈。
 
-![json](/doc/json.jpg)
+![json](doc/json.jpg)
 
 ### 2.4.1、json注册
 
@@ -619,7 +619,7 @@ static int json_decode(lua_State *l)
 
 &emsp;&emsp;给大家20秒扫一眼，看看上面的代码有没有`platform`开头的函数。
 
-![time](/doc/time.jpg)
+![time](doc/time.jpg)
 
 &emsp;&emsp;哎，好像没有是吧！这就说明这个json模块是给elua开源项目特供的，不需要给外界使用。也不需要把它拎到项目外面，再另外做一个抽象层与elua对接。
 
@@ -682,7 +682,7 @@ int platform_adc_read(unsigned id, int *adc, int *volt)
 
 
 
-![溜了溜了](/doc/gogogo.jpg)
+![溜了溜了](doc/gogogo.jpg)
 
 
 
@@ -692,7 +692,7 @@ int platform_adc_read(unsigned id, int *adc, int *volt)
 
 
 
-![pa](/doc/pa.jpg)
+![pa](doc/pa.jpg)
 
 
 
@@ -764,7 +764,7 @@ $$
 
 &emsp;&emsp;有的同学讲这不行哎，我贼能写，这400KB脚本空间太小了不够我用的，赶快给我改大点。
 
-![我不听我不听](/doc/Don't listen.jpg)
+![我不听我不听](doc/Don't listen.jpg)
 
 &emsp;&emsp;emmm，改好了，各位老板们请查收。打开`iot_sdk_4g_8910/config.cmake`文件看一下。有没有看到你想要的东西。
 
@@ -788,7 +788,7 @@ endif()
 
 &emsp;&emsp;`CONFIG_LUA_FLASH_OFFSET`参数就是设置lua脚本的起始地址的，默认是起始地址就是0x2D8000。
 
-![papapa](/doc/papapa.jpg)
+![papapa](doc/papapa.jpg)
 
 &emsp;&emsp;别打了，别打了...0x602D8000是物理地址，实际上每个地址前面都带有60，这个底层已经处理好了，我们只需要填写逻辑地址即可。
 
@@ -800,7 +800,7 @@ endif()
 
 &emsp;&emsp;cmd窗口进入`iot_sdk_4g_8910/project`目录，然后执行`app_elua.bat`。进入编译状态，这需要一点时间。
 
-![编译](/doc/build.png)
+![编译](doc/build.png)
 
 &emsp;&emsp;。。。。。。
 
@@ -808,24 +808,24 @@ endif()
 
 
 
-![编译完成](/doc/buildOK.png)
+![编译完成](doc/buildOK.png)
 
 ## 3.3、下载固件及脚本
 &emsp;&emsp;接下来就和大家使用LUAT版本开发一样了，打开luatools工具。尽量使用高于2.0.68的版本，低版本会出现CSDK日志信息打印不正确的问题。
 
-![luatools](/doc/luatools.png)
+![luatools](doc/luatools.png)
 
 &emsp;&emsp;下载固件和脚本。注意啦，这里选自己编译的固件！！！！在这个地方`~\iot_sdk_4g_8910\hex\Air720U_CSDK_app_elua.pac`，脚本的话就和luat开发脚本一样，通用的没有区别。
 
-![Download script](/doc/Download script.png)
+![Download script](doc/Download script.png)
 
 
 
 &emsp;&emsp;下载结束就是这个样子了。
 
-![luatoolsover](/doc/luatoolsover.png)
+![luatoolsover](doc/luatoolsover.png)
 
-![演示例程](/doc/demo.gif)
+![演示例程](doc/demo.gif)
 
 
 
