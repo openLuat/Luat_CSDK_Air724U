@@ -1,0 +1,7 @@
+if(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${flash_ldscript} demo_ril.c)
+else(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${file_ldscript} demo_ril.c)
+endif()
+target_include_directories(${target} PRIVATE ../components/ril/inc)
+target_link_libraries(${target} PRIVATE ril)

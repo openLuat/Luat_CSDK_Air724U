@@ -3,60 +3,6 @@
 #include "iot_vat.h"
 
 
-extern int CsqValue;
-static AtCmdRsp AtCmdCb_csq(char *pRspStr)
-{
-	iot_debug_print("[vat]AtCmdCb_csq");
-    AtCmdRsp  rspValue = AT_RSP_WAIT;
-    char *rspStrTable[ ] = {"+CME ERROR","+CSQ: ", "OK"};
-    s16  rspType = -1;
-    u8  i = 0;
-    char *p = pRspStr + 2;
-    for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
-    {
-        if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
-        {
-            rspType = i;
-            if (rspType == 1){
-				if(p[strlen(rspStrTable[rspType])+1] == ',')
-				{
-			  		CsqValue = STR_TO_INT(p[strlen(rspStrTable[rspType])]);
-				}else
-				{
-					CsqValue = STR_TO_INT(p[strlen(rspStrTable[rspType])])*10 + STR_TO_INT(p[strlen(rspStrTable[rspType])+1]);
-				}
-            }
-            break;
-        }
-    }
-    switch (rspType)
-    {
-        case 0:  /* ERROR */
-        rspValue = AT_RSP_ERROR;
-        break;
-
-        case 1:  /* +CSQ */
-		rspValue  = AT_RSP_WAIT;
-        break;
-
-		case 2:  /* OK */
-		if(0 == CsqValue)
-		{
-			rspValue  = AT_RSP_STEP - 1;
-		}
-		else
-		{
-			iot_debug_print("[vat]csq: %d",CsqValue);
-			rspValue  = AT_RSP_CONTINUE;
-
-		}
-        break;
-
-        default:
-        break;
-    }
-    return rspValue;
-}
 
 
 static AtCmdRsp AtCmdCb_wimei(char *pRspStr)
@@ -185,7 +131,6 @@ VOID luat_ATCmdSend(VOID)
 {
 	AtCmdEntity atCmdInit[]={
 		{AT_CMD_DELAY"2000",10,NULL},
-		{"AT+CSQ"AT_CMD_END,8,AtCmdCb_csq},
 		{"AT+WIMEI?"AT_CMD_END,11,AtCmdCb_wimei},
 		{"AT+ICCID"AT_CMD_END,10,AtCmdCb_iccid},
 		{"AT+CIMI"AT_CMD_END,9,AtCmdCb_cimi},

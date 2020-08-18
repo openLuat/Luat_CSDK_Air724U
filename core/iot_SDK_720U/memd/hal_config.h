@@ -770,12 +770,12 @@
 /**
  * whether to enter RF calibration mode by gpio
  */
-#define CONFIG_BOARD_ENTER_CALIB_BY_GPIO
+/* #undef CONFIG_BOARD_ENTER_CALIB_BY_GPIO */
 
 /**
  * the gpio for detect entering RF calibration mode
  */
-#define CONFIG_BOARD_ENTER_CALIB_GPIO 13
+/* #undef CONFIG_BOARD_ENTER_CALIB_GPIO */
 
 /**
  * whether to support SIM1 hot plug

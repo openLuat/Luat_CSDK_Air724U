@@ -25,12 +25,8 @@ typedef struct AtCmdEntityQueueTag
 
 
 int initstatus = FALSE;
-extern BOOL  simpresent;
-gsmloc_cellinfo GSMLOC_CELL = {0};
-extern E_OPENAT_NETWORK_STATE network_state;
-static HANDLE g_netstatustimer;
 static PAT_MESSAGE g_resp_cb = NULL;
-
+gsmloc_cellinfo GSMLOC_CELL = {0};
 
 static AtCmdEntityQueue s_atCmdEntityQueue={0};
 static AtCmdRsp AtCmdCbDefault(char* pRspStr);   
@@ -45,9 +41,6 @@ static BOOL iot_vat_queue_append(AtCmdEntity atCmdEntity);
 static BOOL iot_vat_queue_fun_append(AtCmdEntity atCmdEntity[],u8 funCount);
 static VOID iot_vat_SendCMD(VOID);
 static VOID iot_vat_Modeuleinit(VOID);
-extern VOID networkStatusChange(VOID);
-extern VOID network_check_status(VOID);
-
 
 static AtCmdRsp AtVatCmdCbDefault(char* pRspStr)
 {
@@ -329,78 +322,6 @@ static BOOL iot_vat_queue_fun_append(AtCmdEntity atCmdEntity[],u8 funCount)
     return TRUE;
 }
 
-static VOID iot_timer_handle(void *pParameter)
-{
-	//iot_os_stop_timer(g_netstatustimer);
-	network_check_status();
-}
-
-static VOID iot_vat_netstatus(UINT8 *pData)
-{
-	int i;
-	int netstatusType = -1;
-	char *p = NULL;
-	if((pData[0] == '\r') && (pData[1] == '\n'))
-	{
-		p = (char *)(pData + 2);
-	}
-	else
-	{
-		p = (char *)pData;
-	}
-	char *netStatus[] = {"*CGEV: ACT,",	"*CGEV: DEACT,"};
-	for (i = 0; i < sizeof(netStatus) / sizeof(netStatus[0]); i++)
-    {
-        if (!strncmp(netStatus[i], p, strlen(netStatus[i])))
-        {
-            netstatusType = i;
-            if (netstatusType == 1)
-			{
-				network_state = OPENAT_NETWORK_DISCONNECT;	
-				networkStatusChange();
-				break;
-            }
-			else if(netstatusType == 0)
-			{
-				if(g_netstatustimer)
-				{
-					iot_os_stop_timer(g_netstatustimer);
-					iot_os_delete_timer(g_netstatustimer);
-				}
-				network_check_status();
-				break;
-			}
-        }
-    }
-}
-
-static VOID iot_vat_getsimststus(UINT8 *pData)
-{
-	char *p = NULL;
-	if((pData[0] == '\r') && (pData[1] == '\n'))
-	{
-		p = (char *)(pData + 2);
-	}
-	else
-	{
-		p = (char *)pData;
-	}
-	if(!strncmp("+CPIN: READY", (char*)p, strlen("+CPIN: READY")))
-	{
-		if(g_netstatustimer)
-		{
-			iot_os_stop_timer(g_netstatustimer);
-			iot_os_delete_timer(g_netstatustimer);
-		}
-		network_check_status();
-		simpresent = 1;
-	}
-	else if(!strncmp("+CPIN: SIM REMOVED", (char*)p, strlen("+CPIN: SIM REMOVED")))
-	{
-		simpresent = 0;
-	}
-}
-
 static int iot_vat_atoi(char* str_p)
 {
 	int i;
@@ -427,7 +348,8 @@ static VOID GetCellInfo(UINT8 *pData)
 		p = p + strlen("\r\n+EEMLTESVC:");
 		char* b = strtok(p, ",");
 		while(b != NULL)
-		{
+		{
+
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
@@ -453,7 +375,8 @@ static VOID GetCellInfo(UINT8 *pData)
 		p = p + strlen("\r\n+EEMUMTSSVC:");
 		char* b = strtok(p, ",");
 		while(b != NULL)
-		{
+		{
+
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
@@ -472,7 +395,8 @@ static VOID GetCellInfo(UINT8 *pData)
 			GSMLOC_CELL.Cellinfo[0].rssi = (u16)iot_vat_atoi(buf[offset])/3;
 			offset = offset + 2;
 		}
-		if(cellParamFlag != 0)
+		if(cellParamFlag != 0)
+
 		{
 			offset = offset + 3;
 			iot_debug_print("[vat] buf[%d]: %s,  buf[%d]: %s,  buf[%d]: %s,  buf[%d]: %s,",
@@ -498,7 +422,8 @@ static VOID GetCellInfo(UINT8 *pData)
 		p = p + strlen("\r\n+EEMGINFOSVC:");
 		char* b = strtok(p, ",");
 		while(b != NULL)
-		{
+		{
+
 			strcpy(buf[cut], b);
 			cut++;
 			b = strtok(NULL, ",");
@@ -533,7 +458,8 @@ static VOID GetCellInfo(UINT8 *pData)
 		char* b = (char*)strtok(p, (const char *)',');
 		u8 id = 0;
 		while(b != NULL)
-		{
+		{
+
 			strcpy(buf[cut], b);
 			cut++;
 			b = (char*)strtok(NULL, (const char *)',');
@@ -552,34 +478,11 @@ static VOID GetCellInfo(UINT8 *pData)
 			GSMLOC_CELL.Cellinfo[id+1].rssi);
 	}
 }
-
-static UINT8 iot_vat_ResPerc(UINT8 *pData)
-{
-	char  *p = (char *)(pData + 2);
-	if(!strncmp(p, "^CINIT:", strlen("^CINIT:")))	
-		return 1;
-	if(!strncmp(p, "^CARDMODE:", strlen("^CARDMODE:")))	
-		return 1;
-	if(!strncmp(p, "SMS READY", strlen("SMS READY")))	
-		return 1;
-	if(!strncmp(p, "+NITZ:", strlen("+NITZ:")))	
-		return 1;
-	if(!strncmp(p, "*CGEV:", strlen("*CGEV:"))) 
-		return 1;
-	
-	return 0;
-}
-
 static VOID iot_vat_ATCmdIndHandle(UINT8 *pData, UINT16 length)
 {
     if (length > 0) 
 	{
-		iot_vat_netstatus(pData);
-		iot_vat_getsimststus(pData);
-		GetCellInfo(pData);
 		iot_debug_print("[vat] pData : %s , %d", pData, length);
-		if(iot_vat_ResPerc(pData))
-			return;
 		
 	    AtCmdRsp atCmdRsp = AT_RSP_ERROR;
 
@@ -599,7 +502,9 @@ static VOID iot_vat_ATCmdIndHandle(UINT8 *pData, UINT16 length)
 	                iot_vat_queue_head_out();
 	                AtCmdDelayExe(0);
 	                break;
-
+				case AT_RSP_PAUSE:				/*添加暂停执行AT队列命令*/
+					iot_vat_queue_head_out();
+					break;
 	            case AT_RSP_FUN_OVER:	
 	                iot_vat_queue_fun_out();
 	                AtCmdDelayExe(0);
@@ -670,10 +575,9 @@ static VOID iot_vat_Modeuleinit(VOID)
 		return;
 	}
 	initstatus = TRUE;
-	g_netstatustimer = iot_os_create_timer(iot_timer_handle, NULL);
-	iot_os_start_timer(g_netstatustimer, 30*1000);
 	iot_vat_queue_init();
-	OPENAT_init_at(iot_vat_ATCmdIndHandle);	
+	ril_set_cb(iot_vat_ATCmdIndHandle);
+	//OPENAT_init_at(iot_vat_ATCmdIndHandle);	
 }
 
 /**用来批量发送AT命令

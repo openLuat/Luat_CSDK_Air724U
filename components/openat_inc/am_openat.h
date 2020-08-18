@@ -928,6 +928,9 @@ BOOL OPENAT_play_dtmf(                                          /* ²¥·ÅDTMFÒô½Ó¿
 
 BOOL OPENAT_stop_dtmf(VOID);                                          /* Í£Ö¹²¥·ÅDTMFÒô½Ó¿Ú */
 
+
+int OPENAT_streamplay(E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len);
+
                             
 /*+\NewReq WM-584\maliang\2013.2.21\[OpenAt]Ö§³ÖT¿¨²¥·ÅMP3*/
 BOOL OPENAT_play_music(T_AMOPENAT_PLAY_PARAM*  playParam);
@@ -1001,6 +1004,9 @@ BOOL OPENAT_set_speaker_gain(                                   /* ÉèÖÃÑïÉùÆ÷µÄÔ
 BOOL OPENAT_set_sph_vol(								   
 						UINT32 vol);
 /*-\bug\wj\2020.5.6\Ôö¼ÓÍ¨»°ÖĞµ÷½ÚÒôÁ¿½Ó¿Ú*/
+/*+\BUG\wangyuan\2020.08.10\BUG_2801: Ë¼ÌØCSDK Í¨¹ıiot_audio_set_speaker_vol()½Ó¿ÚÉèÖÃÍ¨¹ıÒôÁ¿ÎŞĞ§ AT+CLVL¿ÉÒÔĞŞ¸ÄÍ¨»°ÒôÁ¿*/
+UINT32 OPENAT_get_sph_vol(void);
+/*-\BUG\wangyuan\2020.08.10\BUG_2801: Ë¼ÌØCSDK Í¨¹ıiot_audio_set_speaker_vol()½Ó¿ÚÉèÖÃÍ¨¹ıÒôÁ¿ÎŞĞ§ AT+CLVL¿ÉÒÔĞŞ¸ÄÍ¨»°ÒôÁ¿*/
 
 E_AMOPENAT_SPEAKER_GAIN OPENAT_get_speaker_gain(VOID);                /* »ñÈ¡ÑïÉùÆ÷µÄÔöÒæ½Ó¿Ú */
 
@@ -1033,6 +1039,9 @@ BOOL set_hw_channel(
                          );
 /*-\BUG WM-882\rufei\2013.7.18\ÍêÉÆÍ¨µÀÉèÖÃ*/
 
+/*+\NEW\zhuwangbin\2020.8.11\Ìí¼Ó¶ú»ú²å°ÎÅäÖÃ*/
+int OPENAT_headPlug(E_OPENAT_AUD_HEADSET_TYPE type);
+/*-\NEW\zhuwangbin\2020.8.11\Ìí¼Ó¶ú»ú²å°ÎÅäÖÃ*/
 
 E_AMOPENAT_AUDIO_CHANNEL OPENAT_get_current_channel(VOID);
 
@@ -1554,6 +1563,10 @@ BOOL openat_speexDecoderInit(void);
 int openat_speexDecoder(char encoded[], int encoded_size, short output[], int output_size);
 BOOL openat_speexDecoderDestroy(void);
 /*-\NEW\zhuwangbin\2020.05.14\Ìí¼Óopenat speex½Ó¿Ú*/
+
+/*+\bug2767\zhuwangbin\2020.8.5\Ìí¼ÓÍâ²¿paÉèÖÃ½Ó¿Ú*/
+BOOL OPENAT_ExPASet(OPENAT_EXPA_T * exPaCtrl);
+/*-\bug2767\zhuwangbin\2020.8.5\Ìí¼ÓÍâ²¿paÉèÖÃ½Ó¿Ú*/
 
 /*+\new\zhuwangbin\2020.6.2\Ìí¼ÓÒôÆµ¹¦·ÅÀàĞÍÉèÖÃ½Ó¿Ú*/
 BOOL OPENAT_setpa(OPENAT_SPKPA_TYPE_T type);

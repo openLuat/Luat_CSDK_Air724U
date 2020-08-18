@@ -777,7 +777,7 @@ int appimg_enter(void *param)
 	hSocketTask = iot_os_create_task(MQTT_Task,
                         NULL,
                         4096,
-                        5,
+                        50,
                         OPENAT_OS_CREATE_DEFAULT,
                         "demo_socket_mqtt");
 	NWState = OPENAT_NETWORK_DISCONNECT;

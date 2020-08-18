@@ -43,10 +43,16 @@ static VOID demo_ota_getinfo(VOID);
 
 static VOID demo_ota_url(char* url, int len)
 {
-	snprintf(url, len, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&firmware_name=http_CSDK_RDA8910&core_version=%s&dfota=1&version=1.0.0",
+	while((strlen(g_imei) == 0) || (strlen(g_version) == 0))
+	{
+		iot_os_sleep(1000);
+	}
+	snprintf(url, len, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&firmware_name=%s_CSDK_RDA8910&core_version=%s&dfota=1&version=%s",
 			PRODUCT_KEY,
 			g_imei,
-			g_version);
+			CSDK_PRO,
+			g_version,
+			CSDK_VER);
 	iot_debug_print("[ota] demo_ota_url url: %s", url);
 }
 

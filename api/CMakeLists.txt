@@ -26,6 +26,9 @@ target_include_directories(${target} PUBLIC include)
 target_include_directories(${target} PRIVATE ../components/include)
 target_include_directories(${target} PRIVATE ../components/newlib/include)
 target_include_directories(${target} PRIVATE ../components/openat_inc)
+target_include_directories(${target} PRIVATE ../components/ril/inc)
+
+target_link_libraries(${target} PRIVATE ril)
 
 target_sources(${target} PRIVATE
     src/iot_os.c

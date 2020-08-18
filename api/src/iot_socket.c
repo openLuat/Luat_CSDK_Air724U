@@ -18,6 +18,14 @@ int lwip_socket(int domain, int type, int protocol);
 int lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
                 struct timeval *timeout);
 struct hostent *lwip_gethostbyname(const char *name);
+int lwip_ioctl(int s, long cmd, void *argp);
+int lwip_getsockname (int s, struct sockaddr *name, socklen_t *namelen);
+int lwip_getaddrinfo(const char *nodename,
+       const char *servname,
+       const struct addrinfo *hints,
+       struct addrinfo **res);
+void lwip_freeaddrinfo(struct addrinfo *ai);
+
 
 
 /**创建socket
@@ -247,6 +255,58 @@ int select(int maxfdp1,
 int socket_errno(int socketfd)
 {
     return (int)CFW_TcpipGetLastError();
+}
+
+/**设备驱动程序中设备控制接口
+*@param		socketfd:	调用socket接口返回的socket描述符
+@param      cmd:   	指令，如某一个命令对应驱动层的某一个功能
+@param      argp:   可变参数，跟命令有关，传递进入驱动层的参数或者是接收数据的缓存
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+**/
+int	ioctl(int socketfd, long cmd, void *argp)
+{
+	return lwip_ioctl(socketfd, cmd, argp);
+}
+
+/**获取一个描述符的名字
+*@param		socketfd:	调用socket接口返回的socket描述符
+@param      name:   	描述符的名字
+@param      namelen:   	描述符的名字长度
+*@return	0:  表示成功
+            <0  表示有错误
+**/
+int getsockname (int socketfd, struct openat_sockaddr *name, openat_socklen_t *namelen)
+{
+	return lwip_getsockname(socketfd,name,namelen);
+}
+
+/**主机名到地址解析
+*@param		nodename:	一个主机名或者地址串
+@param      servname:   服务名可以是十进制的端口号，也可以是已定义的服务名称
+@param      hints:   	可以是一个空指针，也可以是一个指向某个openat_addrinfo结构体的指针
+@param      res: 		通过res指针参数返回一个指向openat_addrinfo结构体链表的指针
+
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+*@note      仅仅支持IPv4，且不允许调用者指定所需地址类型的任何信息，
+			返回的结构只包含了用于存储IPv4地址的空间
+**/
+int getaddrinfo(const char *nodename,
+       const char *servname,
+       const struct openat_addrinfo *hints,
+       struct openat_addrinfo **res)
+{
+	return lwip_getaddrinfo(nodename, servname, hints, res);
+}
+
+/**存储空间通过调用freeaddrinfo 返还给系统
+*@param		ai:	指向由getaddrinfo返回的第一个openat_addrinfo结构
+*
+**/
+void freeaddrinfo(struct openat_addrinfo *ai)
+{
+	lwip_freeaddrinfo(ai);
 }
 
 /******************************

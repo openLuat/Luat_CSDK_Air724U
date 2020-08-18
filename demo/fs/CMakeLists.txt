@@ -1,6 +1,6 @@
 
 ## +zhuwangbin 2020-6-30 add sffs.img
-execute_process(COMMAND cmd /c "sffs.bat ${out_hex_dir}" ${CMAKE_SOURCE_DIR}
+execute_process(COMMAND cmd /c "sffs.bat ${out_hex_dir} ${CONFIG_FS_SYS_FLASH_OFFSET} ${CONFIG_FS_SYS_FLASH_SIZE}" ${CMAKE_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/demo/fs/SFFS
     OUTPUT_VARIABLE SFFS_VAR
     OUTPUT_STRIP_TRAILING_WHITESPACE

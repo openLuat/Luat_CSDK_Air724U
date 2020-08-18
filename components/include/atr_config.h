@@ -269,6 +269,10 @@
 /*zhuwangbin 2020-5-20 add at+gpio*/
 /* #undef CONFIG_AT_GPIO_SUPPORT */
 
+/*+\NEW\czm\2020.07.21\添加中国电信自注册项目*/
+/* #undef CONFIG_BUILD_AT_CTREG */
+/*-\NEW\czm\2020.07.21\添加中国电信自注册项目*/
+
 #undef CONFIG_AT_WITHOUT_SAT
 #undef CONFIG_AT_WITHOUT_SMS
 #undef CONFIG_AT_WITHOUT_PBK

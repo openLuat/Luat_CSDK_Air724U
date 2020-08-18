@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "string.h"
+#include "at_process.h"
+#include "at_tok.h"
 #include "iot_os.h"
 #include "iot_debug.h"
 #include "iot_pmd.h"
@@ -27,125 +29,121 @@ typedef struct {
 }DEMO_NETWORK_MESSAGE;
 
 static HANDLE g_s_http_task;
-static u8 WIFILOC_IMEI[16] = {0};
-extern gsmloc_cellinfo GSMLOC_CELL;
+static char WIFILOC_IMEI[16] = {0};
+static int cellid;  //cell ID
+static int lac;  //LAC
+static int mcc;  //MCC
+static int mnc;  //MNC
 
-static AtCmdRsp AtCmdCb_wimei(char *pRspStr)
+static bool gsmGetIMEI(char* imeiOut)
 {
-	iot_debug_print("[wifiloc]AtCmdCb_wimei");
-    AtCmdRsp  rspValue = AT_RSP_WAIT;
-    char *rspStrTable[ ] = {"+CME ERROR","+WIMEI:","OK"};
-    s16  rspType = -1;
-    char *imei = (char *)WIFILOC_IMEI;
-    u8  i = 0;
-    char *p = pRspStr + 2;
-    for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
+    int err;
+    ATResponse *p_response = NULL;
+    char* line = NULL;
+    //UINT8 index = 0;
+    bool result = FALSE;
+    if(!imeiOut)
     {
-        if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
-        {
-            rspType = i;
-            if (rspType == 1){
-				strncpy(imei,p+strlen(rspStrTable[i]),15);
-				iot_debug_print("[vat]imei: %s",imei);
-            }
-            break;
-        }
+      return result;
     }
-    switch (rspType)
+
+    err = at_send_command_numeric("AT+GSN", &p_response);
+    if (err < 0 || p_response->success == 0){
+      result = FALSE;
+      goto end;
+    }
+
+    line = p_response->p_intermediates->line;
+
     {
-        case 0:  /* ERROR */
-        rspValue = AT_RSP_ERROR;
-        break;
-
-        case 1:  /* +wimei */
-		rspValue  = AT_RSP_WAIT;
-        break;
-
-		case 2:  /* OK */
-        rspValue  = AT_RSP_CONTINUE;
-        break;
-
-        default:
-        break;
+      strcpy(imeiOut,line);
     }
-    return rspValue;
+    result = TRUE;
+  end:
+    at_response_free(p_response);
+    return result;
+
 }
-static u8 state = 0xf;
-static AtCmdRsp AtCmdCb_EEMGINFO(char *pRspStr)
+
+static BOOL gsmGetCellInfo(int* mcc,int* mnc,int* lac,int* ci)
 {
-	iot_debug_print("[wifiloc]AtCmdCb_EEMGINFO");
-    AtCmdRsp  rspValue = AT_RSP_WAIT;
-    char *rspStrTable[ ] = {"+CME ERROR","+EEMGINFO: ", "OK"};
-    s16  rspType = -1;
-    u8  i = 0;
-    char *p = pRspStr + 2;
-    for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
+    ATResponse *p_response = NULL;
+    bool result = FALSE;
+	bool   lte;
+	int i;
+	char* out;
+
+	//+CCED:GSM current cell info:460,00,550b,3c94,26,37,37,13
+	//+CCED:LTE current cell:460,00,460045353407374,0,8,n50,3683,139024552,57,19,21771,42,471
+	
+    int err = at_send_command_singleline("AT+CCED=0,1", "+CCED:", &p_response);
+    if (err < 0 || p_response->success == 0)
     {
-        if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
-        {
-            rspType = i;
-            if (rspType == 1){
-				
-				state = atoi(&p[strlen(rspStrTable[i])]);
-				iot_debug_print("[gsmloc]state: %d",state);
-            }
-            break;
-        }
+        iot_debug_print("[iot_network] at_send_command_singleline error %d",__LINE__);
+        goto end;
     }
-    switch (rspType)
-    {
-		case 0:  /* ERROR */
-		rspValue = AT_RSP_ERROR;
-		break;
-
-		
-		case 1:  /* +EEMLTESVC: */
-			rspValue  = AT_RSP_WAIT;
-        break;
-
-		case 2:  /* OK */
-		if( state == 3)
+    char* line = p_response->p_intermediates->line;  
+    err = at_tok_start(&line);
+    if (err < 0)
+        goto end;
+	if(strstr(line, "GSM"))
+	{
+		lte = FALSE;
+	}
+	else
+	{
+		lte = TRUE;
+	}
+    err = at_tok_start(&line);
+	if (err < 0)
+        goto end;
+	err = at_tok_nextint(&line, mcc);
+    if (err < 0)
+        goto end;
+	err = at_tok_nextint(&line, mnc);
+    if (err < 0)
+        goto end;
+	if(lte)
+	{			
+		for(i = 0; i < 5; i++)
 		{
-			rspValue  = AT_RSP_CONTINUE;
+			at_tok_nextstr(&line, &out);
 		}
-		else if(state == 0 || state == 1 || state == 2){
-			rspValue  = AT_RSP_STEP;
+		err = at_tok_nextint(&line, ci);
+		if (err < 0)
+        	goto end;
+		for(i = 0; i < 2; i++)
+		{
+			at_tok_nextstr(&line, &out);
 		}
-		break;
-
-		default:
-		break;
-    }
-    return rspValue;
-}
-
-
-static VOID wifiloc_SendATCmd(VOID)
-{
-	AtCmdEntity atCmdInit[]={
-		{"AT+WIMEI?"AT_CMD_END,11,AtCmdCb_wimei},
-		{"AT+EEMOPT=1"AT_CMD_END,13,NULL},
-		{AT_CMD_DELAY"1000",10,NULL},
-		{"AT+EEMGINFO?"AT_CMD_END,14,AtCmdCb_EEMGINFO},
-	};
-	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
+		err = at_tok_nextint(&line, lac);
+		if (err < 0)
+        	goto end;
+	}
+	else
+	{			
+		err = at_tok_nexthexint(&line, &lac);
+	    if (err < 0)
+        	goto end;
+		err = at_tok_nexthexint(&line, &ci);
+	    if (err < 0)
+        	goto end;
+	}
+    result = TRUE;
+end:              
+    if(p_response!=NULL)
+    {
+        at_response_free(p_response);
+        p_response=NULL;
+    }  
+    return result;
 }
 
 static void get_wifilocinfo(CHAR* http_url)
 {
 	CHAR* p = NULL;
 	p = http_url;
-	while(GSMLOC_CELL.Cellinfo[0].Mcc == 0)
-	{
-		iot_debug_print("[wifiloc]get GSMLOC_CELL");
-		iot_os_sleep(2000);
-	}
-	p += sprintf(p,"http://bs.openluat.com/cps_all?cell=%03x,%d,%ld,%ld,%d&macs=",
-		GSMLOC_CELL.Cellinfo[0].Mcc,
-		GSMLOC_CELL.Cellinfo[0].Mnc,
-		GSMLOC_CELL.Cellinfo[0].Lac,
-		GSMLOC_CELL.Cellinfo[0].CellId, 
-		GSMLOC_CELL.Cellinfo[0].rssi);
+	p += sprintf(p,"http://bs.openluat.com/cps_all?cell=%d,%d,%d,%d,%d&macs=", mcc, mnc, lac, cellid, 0);
 
 	OPENAT_wifiScanRequest wreq = {0};
 	wreq.max = 10;
@@ -350,7 +348,10 @@ static void demo_http_task(PVOID pParameter)
                 break;
             case SOCKET_MSG_NETWORK_LINKED:
                 iot_debug_print("[wifiloc] network connected");
-				wifiloc_SendATCmd();
+				gsmGetCellInfo(&mcc, &mnc, &lac, &cellid);
+				iot_debug_print("[wifiloc] mnc: %d, mcc: %d, la:%d, ci:%d",mcc, mnc, lac, cellid);
+				gsmGetIMEI(WIFILOC_IMEI);
+				iot_debug_print("[wifiloc] WIFILOC_IMEI: %s",WIFILOC_IMEI);
                 get_wifiloc();
                 break;
         }

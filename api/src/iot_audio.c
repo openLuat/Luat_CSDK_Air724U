@@ -167,6 +167,28 @@ UINT32 iot_audio_get_speaker_vol(
     return IVTBL(get_music_volume)();
 }
 
+/**设通话的音量值
+*@param     vol:   设置通话音量值
+*@return	TRUE: 	    成功
+*           FALSE:      失败
+**/
+BOOL iot_audio_set_sph_vol(                                   
+                        UINT32 vol 
+                        )
+{
+    return IVTBL(set_sph_vol)(vol);
+}
+
+/**获取通话的音量值
+*@return	UINT32: 	 返回通话的音量值
+**/
+UINT32 iot_audio_get_sph_vol(                
+                        VOID
+                        )
+{
+    return IVTBL(get_sph_vol)();
+}
+
 
 /**设置音频通道
 *@param     channel:    通道
@@ -212,3 +234,17 @@ BOOL iot_audio_rec_stop()
 {
     return ((IVTBL(audio_stop_record)() == 0) ? 1 : 0);
 }
+
+/**流播放
+*@param  playformat:    数据流类型
+*@param  cb:    		数据流回调函数
+*@param  data:    		数据流
+*@param  len:  		  	数据流长度
+*@return	>0: 	    播放长度
+*           -1:      	播放失败
+**/
+int iot_audio_streamplay(E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len)
+{
+	return IVTBL(streamplay)(playformat,cb,data,len);
+}
+

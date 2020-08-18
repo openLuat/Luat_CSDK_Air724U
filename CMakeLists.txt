@@ -74,6 +74,7 @@ if(DEFINED ENV{AM_MODEL})
 		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U)
 		set(core_stub_o ${core_bin_dir}/lib/core_stub.o)
 		include(${core_bin_dir}/memd/core_config.cmake)
+		include(${core_bin_dir}/memd//partinfo.cmake)
 		include_directories(${core_bin_dir}/memd)
 		
         
@@ -94,6 +95,7 @@ if(DEFINED ENV{AM_MODEL})
 		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U_TTS)
 		set(core_stub_o ${core_bin_dir}/lib/core_stub.o)
 		include(${core_bin_dir}/memd/core_config.cmake)
+		include(${core_bin_dir}/memd//partinfo.cmake)
 		include_directories(${core_bin_dir}/memd)
         set(csdk_target Air720U_CSDK_TTS_demo_${CSDK_PRO})
 		set(APP_IMG_NAME "8915DM_cat1_CSDK_TTS")
@@ -122,14 +124,18 @@ set(gdbComGen_py ${tools_dir}/gdbComGen.py)
 include(cmake/toolchain-gcc.cmake)
 
 #/*+\NEW\chenzhimin\2020.07.8\ */
-include(cmake/partinfo.cmake)
+
 include(cmake/extension.cmake)
 include(config.cmake)
 
+if( NOT CONFIG_BOOT_FLASH_ADDRESS )
 math(EXPR CONFIG_BOOT_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_BOOT_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
 math(EXPR CONFIG_APP_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_APP_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
 math(EXPR CONFIG_FS_MODEM_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_FS_MODEM_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+
+
 math(EXPR CONFIG_FS_SYS_FLASH_ADDRESS "${CONFIG_NOR_PHY_ADDRESS}+${CONFIG_FS_SYS_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+endif()
 set(CONFIG_NVBIN_FIXED_SIZE 0x20000)
 #/*-\NEW\chenzhimin\2020.07.8\ */
 
@@ -266,7 +272,7 @@ if(CONFIG_APPIMG_LOAD_FILE)
     add_custom_target(${target}_pacgen ALL DEPENDS ${pac_file})
 endif()
 
-
+add_subdirectory_if_exist(components/ril)
 add_subdirectory_if_exist(api)
 #/*+\ADD\chenzhimin\2020.07.9\*/
 if( CONFIG_BUILD_APP_SSL OR 

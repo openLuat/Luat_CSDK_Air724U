@@ -1293,6 +1293,9 @@ typedef enum {
     OPENAT_AUD_SPK_GAIN_12dB,
     OPENAT_AUD_SPK_GAIN_15dB,
     OPENAT_AUD_SPK_GAIN_18dB,
+    /*+\BUG\wangyuan\2020.08.10\扩充选项，不去设置音量*/
+    OPENAT_AUD_SPK_GAIN_NOT_SET,
+    /*-\BUG\wangyuan\2020.08.10\扩充选项，不去设置音量*/
     OPENAT_AUD_SPK_GAIN_END,
 }E_AMOPENAT_SPEAKER_GAIN;
 
@@ -1309,6 +1312,16 @@ typedef enum {
     NumOfAMOPENATAudSPHVols
 }E_AMOPENAT_AUD_SPH_VOL;
 /*-\NEW\xiongjunqun\2015.05.28\增加通话中调节音量接口*/
+
+/*+\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+typedef enum
+{
+    OPENAT_AUD_HEADSET_PLUGOUT,
+    OPENAT_AUD_HEADSET_INSERT4P,
+    OPENAT_AUD_HEADSET_INSERT3P,
+    OPENAT_AUD_HEADSET_TYPE_QTY
+} E_OPENAT_AUD_HEADSET_TYPE;
+/*-\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
 
 typedef enum 
 {
@@ -1397,6 +1410,17 @@ typedef enum
     OPENAT_SPKPA_INPUT_TYPE_QTY = 0xFF000000
 } OPENAT_SPKPA_TYPE_T;
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
+
+/*+\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+typedef struct 
+{
+	BOOL enable;
+	UINT16 gpio;
+	UINT16 count;
+	UINT16 us;
+	E_AMOPENAT_AUDIO_CHANNEL outDev;
+}OPENAT_EXPA_T;
+/*-\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
 
 typedef void (*AUD_PLAY_CALLBACK_T)(E_AMOPENAT_PLAY_ERROR result);
 

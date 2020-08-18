@@ -211,7 +211,7 @@
 /**
  * reserved NOR flash size for application
  */
-#define CONFIG_APP_FLASH_SIZE 0x250000
+#define CONFIG_APP_FLASH_SIZE 0x260000
 
 /**
  * NOR flash physical address of application
@@ -221,12 +221,12 @@
 /**
  * NOR flash offset of loadable app image
  */
-#define CONFIG_APPIMG_FLASH_OFFSET 0x260000
+#define CONFIG_APPIMG_FLASH_OFFSET 0x270000
 
 /**
  * reserved NOR flash size for loadable app image
  */
-#define CONFIG_APPIMG_FLASH_SIZE 0x80000
+#define CONFIG_APPIMG_FLASH_SIZE 0xD0000
 
 /**
  * NOR flash offset of modem image file system
@@ -770,12 +770,12 @@
 /**
  * whether to enter RF calibration mode by gpio
  */
-#define CONFIG_BOARD_ENTER_CALIB_BY_GPIO
+/* #undef CONFIG_BOARD_ENTER_CALIB_BY_GPIO */
 
 /**
  * the gpio for detect entering RF calibration mode
  */
-#define CONFIG_BOARD_ENTER_CALIB_GPIO 13
+/* #undef CONFIG_BOARD_ENTER_CALIB_GPIO */
 
 /**
  * whether to support SIM1 hot plug

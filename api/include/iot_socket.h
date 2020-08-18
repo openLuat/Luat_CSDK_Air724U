@@ -56,8 +56,18 @@ struct openat_hostent {
 #define h_addr h_addr_list[0] /* for backward compatibility */
 };
 
-
 typedef uint32 openat_socklen_t;
+
+struct openat_addrinfo {
+    int               ai_flags;      /* Input flags. */
+    int               ai_family;     /* Address family of socket. */
+    int               ai_socktype;   /* Socket type. */
+    int               ai_protocol;   /* Protocol of socket. */
+    openat_socklen_t         ai_addrlen;    /* Length of socket address. */
+    struct openat_sockaddr  *ai_addr;       /* Socket address of socket. */
+    char             *ai_canonname;  /* Canonical name of service location. */
+    struct openat_addrinfo  *ai_next;       /* Pointer to next in list. */
+};
 
 #ifndef FD_SET
 #undef  FD_SETSIZE
@@ -93,11 +103,32 @@ struct timeval
 };
 #endif
 
+/** This is the aligned version of ip6_addr_t,
+	used as local variable, on the stack, etc. */
+struct ip6_addr {
+  uint32 addr[4];
+  uint8 zone;
+};
+
+/** IPv6 address */
+typedef struct ip6_addr ip6_addr_t;
+
+/** This is the aligned version of ip4_addr_t,
+   used as local variable, on the stack, etc. */
+struct ip4_addr {
+  uint32 addr;
+};
+
+/** ip4_addr_t uses a struct for convenience only, so that the same defines can
+ * operate both on ip4_addr_t as well as on ip4_addr_p_t. */
+typedef struct ip4_addr ip4_addr_t;
+
 #define sockaddr_in 			openat_sockaddr_in 
 #define hostent 				openat_hostent
 #define sockaddr 				openat_sockaddr
 #define in_addr 				openat_in_address
 #define socklen_t				openat_socklen_t
+#define addrinfo				openat_addrinfo
 #define OPENAT_FD_SET(n, p)  	FD_SET(n, p)
 #define OPENAT_FD_CLR(n, p)  	FD_CLR(n, p)
 #define OPENAT_FD_ISSET(n,p) 	FD_ISSET(n,p)
@@ -106,10 +137,21 @@ struct timeval
 #define openat_timeval 			timeval
 #define OPENAT_AF_UNSPEC       0
 #define OPENAT_AF_INET         2
+#define OPENAT_AI_PASSIVE      0x01
+#define OPENAT_AI_CANONNAME    0x02
+#define OPENAT_AI_NUMERICHOST  0x04
+#define OPENAT_AI_NUMERICSERV  0x08
+#define OPENAT_AI_V4MAPPED     0x10
+#define OPENAT_AI_ALL          0x20
+#define OPENAT_AI_ADDRCONFIG   0x40
+
 #define	PF_INET		OPENAT_AF_INET
 
 
 #define OPENAT_AF_INET6        10
+#define AF_INET         2
+#define AF_INET6        10
+
 
 /* Socket protocol types (TCP/UDP/RAW) */
 #define OPENAT_SOCK_STREAM     1
@@ -286,6 +328,10 @@ struct timeval
 #define  OPENAT_ENOMEDIUM      123  /* No medium found */
 #define  OPENAT_EMEDIUMTYPE    124  /* Wrong medium type */
 
+char *ip6addr_ntoa_r(const ip6_addr_t *addr, char *buf, int buflen);
+char*ip4addr_ntoa_r(const ip4_addr_t *addr, char *buf, int buflen);
+int ip6addr_aton(const char *cp, ip6_addr_t *addr);
+int ip4addr_aton(const char *cp, ip4_addr_t *addr);
 
 /**
  * @defgroup iot_sdk_socket socket接口
@@ -477,9 +523,69 @@ int select(int maxfdp1,
 **/                                       
 int socket_errno(int socketfd);
 
-int setNetifDns(CHAR *dns1, CHAR *dns2);
+/**设备驱动程序中设备控制接口
+*@param		socketfd:	调用socket接口返回的socket描述符
+@param      cmd:   	指令，如某一个命令对应驱动层的某一个功能
+@param      argp:   可变参数，跟命令有关，传递进入驱动层的参数或者是接收数据的缓存
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+**/
+int	ioctl(int socketfd, long cmd, void *argp);
 
-int getNetifDns(CHAR *dns1, CHAR *dns2);
+/**获取一个描述符的名字
+*@param		socketfd:	调用socket接口返回的socket描述符
+@param      name:   	描述符的名字
+@param      namelen:   	描述符的名字长度
+*@return	0:  表示成功
+            <0  表示有错误
+**/
+int getsockname (int socketfd, struct openat_sockaddr *name, openat_socklen_t *namelen);
+
+/**主机名到地址解析
+*@param		nodename:	一个主机名或者地址串
+@param      servname:   服务名可以是十进制的端口号，也可以是已定义的服务名称
+@param      hints:   	可以是一个空指针，也可以是一个指向某个openat_addrinfo结构体的指针
+@param      res: 		通过res指针参数返回一个指向openat_addrinfo结构体链表的指针
+
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+*@note      仅仅支持IPv4，且不允许调用者指定所需地址类型的任何信息，
+			返回的结构只包含了用于存储IPv4地址的空间
+**/
+int getaddrinfo(const char *nodename,
+       const char *servname,
+       const struct openat_addrinfo *hints,
+       struct openat_addrinfo **res);
+
+/**存储空间通过调用freeaddrinfo 返还给系统
+*@param		ai:	指向由getaddrinfo返回的第一个openat_addrinfo结构
+*
+**/
+void freeaddrinfo(struct openat_addrinfo *ai);
+
+/**将IP地址由“点分十进制”转换“二进制整数”
+*@param		af: 地址簇
+*@param		src: 源地址
+*@param		dst: 接收转换后的数据
+*@param		size: 缓存区dst的大小
+*@return	>0: 成功
+            <=0: 失败
+**/ 
+#define inet_ntop(af,src,dst,size) \
+    (((af) == AF_INET6) ? ip6addr_ntoa_r((const ip6_addr_t*)(src),(dst),(size)) \
+     : (((af) == AF_INET) ? ip4addr_ntoa_r((const ip4_addr_t*)(src),(dst),(size)) : NULL))
+
+/**将IP地址由“二进制整数”转换“点分十进制”
+*@param 	af: 地址簇
+*@param 	src: 源地址
+*@param 	dst: 接收转换后的数据
+*@return	>0: 成功
+			<=0: 失败
+**/ 
+#define inet_pton(af,src,dst) \
+    (((af) == AF_INET6) ? ip6addr_aton((src),(ip6_addr_t*)(dst)) \
+     : (((af) == AF_INET) ? ip4addr_aton((src),(ip4_addr_t*)(dst)) : 0))
+
 
 /**本地字节顺序转化为网络字节顺序(16bits)
 *@param		n: 本地字节书序数据
@@ -519,12 +625,51 @@ int getNetifDns(CHAR *dns1, CHAR *dns2);
 **/ 
 #define inet_ntoa(addr)       ipaddr_ntoa((openat_ip_addr_t*)&(addr))
 
-
-char *
-ipaddr_ntoa(const openat_ip_addr_t *addr);
-
+/**
+ * Check whether "cp" is a valid ascii representation
+ * of an Internet address and convert to a binary address.
+ * Returns 1 if the address is valid, 0 if not.
+ * This replaces inet_addr, the return value from which
+ * cannot distinguish between failure and a local broadcast address.
+ *
+ * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
+ * @param addr pointer to which to save the ip address in network order
+ * @return 1 if cp could be converted to addr, 0 on failure
+ */
 int
 ipaddr_aton(const char *cp, openat_ip_addr_t *addr);
+
+/**
+ * Ascii internet address interpretation routine.
+ * The value returned is in network order.
+ *
+ * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
+ * @return ip address in network order
+ */
+UINT32
+ipaddr_addr(const char *cp);
+
+/**
+ * Same as ipaddr_ntoa, but reentrant since a user-supplied buffer is used.
+ *
+ * @param addr ip address in network order to convert
+ * @param buf target buffer where the string is stored
+ * @param buflen length of buf
+ * @return either pointer to buf which now holds the ASCII
+ *         representation of addr or NULL if buf was too small
+ */
+char *ipaddr_ntoa_r(const openat_ip_addr_t *addr, char *buf, int buflen);
+
+/**
+ * Convert numeric IP address into decimal dotted ASCII representation.
+ * returns ptr to static buffer; not reentrant!
+ *
+ * @param addr ip address in network order to convert
+ * @return pointer to a global static (!) buffer that holds the ASCII
+ *         represenation of addr
+ */
+char *
+ipaddr_ntoa(const openat_ip_addr_t *addr);
 
 /** @}*/
 
