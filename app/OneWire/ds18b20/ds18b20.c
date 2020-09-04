@@ -142,6 +142,7 @@ static uint8 DS18B20_Colle(uint8 *LSB, uint8 *MSB)
  */
 uint8 DS18B20_GetTemp_Num(uint8 pin, int *TempNum)
 {
+    HANDLE crihand=NULL;
     uint8 LSB = 0, MSB = 0;
     uint8 var = 0;
     if (pin == 0 || pin == 1 || pin == 2 || pin == 3 || pin == 7)
@@ -153,7 +154,9 @@ uint8 DS18B20_GetTemp_Num(uint8 pin, int *TempNum)
 
 start:
 
+    crihand = OPENAT_enter_critical_section();
     var = DS18B20_Colle(&LSB, &MSB);
+    OPENAT_exit_critical_section(crihand);
     if (var != 0)
     {
         return var;

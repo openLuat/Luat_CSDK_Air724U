@@ -514,6 +514,9 @@ typedef enum
 	OPENAT_LDO_POWER_VCAMA,
 	OPENAT_LDO_POWER_VCAMD,
 	/*-\new\shenyuanyuan\2020.5.21\模块无VCAM输出*/
+	/*+\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+	OPENAT_LDO_POWER_VIBR,
+	/*-\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
 	OPENAT_LDO_POWER_INVALID
 }E_AMOPENAT_PM_LDO;
 
@@ -639,6 +642,8 @@ typedef enum E_AMOPENAT_KEYPAD_TYPE_TAG
     OPENAT_KEYPAD_TYPE_MAX
 }E_AMOPENAT_KEYPAD_TYPE;
 
+#define OPENAT_KEYPAD_ENABLE_DEBOUNCE (1 << ((OPENAT_KEYPAD_TYPE_MAX >> 1) + 1))
+
 /*+\NEW WM-718\rufei\2013.3.21\ 增加gpio键盘加密模式*/
 typedef enum E_AMOPENAT_GPIOKEY_MODE_TAG
 {
@@ -707,6 +712,7 @@ typedef struct T_AMOPENAT_KEYPAD_CONFIG_TAG
         }adc;
 /*-\NEW OPENAT-771\rufei\2013.8.8\上报ADC键盘采样数据*/
     }config;
+	UINT8 debounceTime;
 }T_AMOPENAT_KEYPAD_CONFIG;
 
 /*************************************************

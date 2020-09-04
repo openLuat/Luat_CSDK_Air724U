@@ -138,9 +138,22 @@ int at_send_command_multiline (const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse);
                                  
+/*********************************************************
+  Function:    at_send_command_sms
+  Description: 发送AT指令，并等待结果
+  Input:
+
+  Output:
+  Return:       AT_ERROR_xx/AT_SUCCESS
+  Others:
+*********************************************************/
+int at_send_command_sms (const char *command,
+                                const char *pdu,
+                                const char *responsePrefix,
+                                 ATResponse **pp_outResponse);
 
 /*********************************************************
-  Function:    at_send_command_multiline
+  Function:    at_send_command
   Description: 发送AT指令，不等待结果
   Input:
 

@@ -1087,6 +1087,9 @@ BOOL OPENAT_init_mono_lcd(                                      /* ∆¡ƒª≥ı ºªØΩ”ø
                             T_AMOPENAT_MONO_LCD_PARAM*  monoLcdParamP
                     );
 
+/*+\bug2958\czm\2020.9.1\disp.close() ÷Æ∫Û‘Ÿ÷¥––disp.init ŒﬁÃ· æ÷±Ω”÷ÿ∆Ù*/
+BOOL OPENAT_close_mono_lcd(void);/* Lcdπÿ±’Ω”ø⁄ */
+/*-\bug2958\czm\2020.9.1\disp.close() ÷Æ∫Û‘Ÿ÷¥––disp.init ŒﬁÃ· æ÷±Ω”÷ÿ∆Ù*/
 
 VOID OPENAT_send_mono_lcd_command(                              /* ∑¢ÀÕ√¸¡ÓΩ”ø⁄ */
                             UINT8 cmd                           /* √¸¡Ó */
@@ -1114,6 +1117,10 @@ VOID OPENAT_clear_mono_lcd(                                     /* «Â∆¡£¨“ª∞„”√”
 BOOL OPENAT_init_color_lcd(                                     /* ∆¡ƒª≥ı ºªØΩ”ø⁄ */
                             T_AMOPENAT_COLOR_LCD_PARAM *param   /* ≤ ∆¡≥ı ºªØ≤Œ ˝ */
                           );
+
+/*+\bug2958\czm\2020.9.1\disp.close() ÷Æ∫Û‘Ÿ÷¥––disp.init ŒﬁÃ· æ÷±Ω”÷ÿ∆Ù*/
+BOOL OPENAT_close_color_lcd(void);/* Lcdπÿ±’Ω”ø⁄ */
+/*-\bug2958\czm\2020.9.1\disp.close() ÷Æ∫Û‘Ÿ÷¥––disp.init ŒﬁÃ· æ÷±Ω”÷ÿ∆Ù*/
 
 BOOL OPENAT_spiconfig_color_lcd(                     /* ≤ ∆¡SPI≈‰÷√ */
                         void                    
