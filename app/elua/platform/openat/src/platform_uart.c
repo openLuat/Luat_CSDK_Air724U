@@ -858,12 +858,7 @@ u32 platform_s_uart_send_buff( unsigned id, const u8 *buff, u16 len )
     }
 	else if(PLATFORM_PORT_ID_USB == id)
     {  
-        char pbuf[10] = {0};
-        /*+\bug\czm\2020.7.16\这个地方实际上并没有什么乱用 */
-        //但是又不能把它删掉，我也不知道为什么，删掉程序就编译不过。
-        //玄学！不信？你试试看>_<
-        sprintf(pbuf, "%s\r\n",buff);
-        /*-\bug\czm\2020.7.16\这个地方实际上并没有什么乱用 */
+
     }
     else
     {
