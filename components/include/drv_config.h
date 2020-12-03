@@ -73,6 +73,7 @@
 #define CONFIG_USB_SUPPORT
 
 #ifdef CONFIG_USB_SUPPORT
+
 /**
  * usb connect timeout
  */
@@ -87,6 +88,22 @@
  * udc features, lower 8 bits for config->bmAttributes, higher are software defined
  */
 #define CONFIG_USB_DEVICE_CONTROLLER_FEATURE 0xE0
+
+/**
+ * usb ether host mac address
+ */
+#define CONFIG_USB_ETHER_HOST_MAC "\xf0\x4b\xb3\xb9\xeb\xe5"
+
+/**
+ * usb ether dev mac address
+ */
+#define CONFIG_USB_ETHER_DEV_MAC "\xfa\x32\x47\x15\xe1\x88"
+
+/**
+ * usb ether support dynamic change host mac address
+ */
+#define CONFIG_USB_ETHER_DYNAMIC_HOST_MAC_SUPPORT on
+
 #endif
 
 #endif

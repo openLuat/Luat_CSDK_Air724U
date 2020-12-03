@@ -143,15 +143,15 @@ static BOOL iot_vat_queue_head_out(VOID)
    if(s_atCmdEntityQueue.current == s_atCmdEntityQueue.last) /* the queue is empty */
        return FALSE;
 
-   if(s_atCmdEntityQueue.current>=s_atCmdEntityQueue.funLast
-           || s_atCmdEntityQueue.current<=s_atCmdEntityQueue.funFirst){
+//    if(s_atCmdEntityQueue.current>=s_atCmdEntityQueue.funLast
+//            || s_atCmdEntityQueue.current<=s_atCmdEntityQueue.funFirst){
        atCmdEnt = &(s_atCmdEntityQueue.atCmdEntityArray[s_atCmdEntityQueue.current]);
        if(atCmdEnt->p_atCmdStr){
            iot_os_free(atCmdEnt->p_atCmdStr);
            atCmdEnt->p_atCmdStr = NULL;
        }
        atCmdEnt->p_atCmdCallBack = NULL;
-   }
+//    }
    s_atCmdEntityQueue.current = (s_atCmdEntityQueue.current + 1) %  AT_CMD_QUEUE_COUNT;
    return TRUE;
 }

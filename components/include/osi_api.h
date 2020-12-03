@@ -232,6 +232,11 @@ typedef enum osiBootMode
 typedef enum osiShutdownMode
 {
     OSI_SHUTDOWN_RESET = 0,               ///< normal reset
+/*+\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
+#ifdef AM_LUA_SUPPORT
+    OSI_SHUTDOWN_CHARGER, // 用于关机充电功能
+#endif
+/*-\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
     OSI_SHUTDOWN_FORCE_DOWNLOAD = 0x5244, ///< 'RD' reset to force download mode
     OSI_SHUTDOWN_DOWNLOAD = 0x444e,       ///< 'DN' reset to download mode
     OSI_SHUTDOWN_CALIB_MODE = 0x434c,     ///< 'CL' reset to calibration mode
@@ -711,18 +716,8 @@ osiThread_t *osiThreadCurrent(void);
 /**
  * set whether current thread need FPU
  *
- * By default, FPU isn't permitted for new created thread. To enable FPU,
- * \p osiThreadSetFPUEnabled(true) should be called before floating point
- * instructions.
- *
- * Though it is possible to call \p osiThreadSetFPUEnabled(false) if it is
- * known that floating point instructions won't be used any more, it is not
- * necessary. It will only increase a little context save and restore cycles.
- * Typical usage it to call \p osiThreadSetFPUEnabled(true) at the beginning
- * of thread entry.
- *
- * It is undefined if thread uses floating point instructions whthout call
- * of \p osiThreadSetFPUEnabled(true).
+ * Obsoleted. Floating point can be used in all threads, and ISR. This API
+ * is just for compatible, and implemented as empty.
  *
  * \param enabled   true for enable FPU, false for disable FPU.
  */

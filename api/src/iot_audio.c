@@ -199,7 +199,7 @@ BOOL iot_audio_set_channel(
                         E_AMOPENAT_AUDIO_CHANNEL channel   
                    )
 {
-    return IVTBL(set_channel)(channel);
+    return IVTBL(set_channel)(channel, 0);
 }
 
 /**获取当前通道

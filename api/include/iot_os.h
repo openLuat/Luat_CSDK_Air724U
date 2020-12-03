@@ -32,13 +32,13 @@
 *@return	HANDLE: 	创建成功返回线程句柄
 **/
 HANDLE iot_os_create_task(                         
-                            PTASK_MAIN pTaskEntry,  
-                            PVOID pParameter,         
-                            UINT16 nStackSize,      
-                            UINT8 nPriority,       
-                            UINT16 nCreationFlags,     
-                            PCHAR pTaskName       
-						);
+                            PTASK_MAIN pTaskEntry, 
+                            PVOID pParameter,     
+                            UINT32 nStackSize,      
+                            UINT8 nPriority,        
+                            UINT16 nCreationFlags, 
+                            PCHAR pTaskName         
+                          );
 
 
 /**删除线程
@@ -380,7 +380,7 @@ BOOL iot_os_sleep(
 /**获取系统tick接口
 *@return	tick_num:   返回系统时间tick值
 **/
-UINT32 iot_os_get_system_tick(                    
+UINT64 iot_os_get_system_tick(                    
                         VOID
                          );
 

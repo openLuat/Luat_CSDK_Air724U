@@ -79,20 +79,28 @@ static inline void OPENAT_set_uldata_cb(T_AMOPENAT_HID_CONFIG *hid, outep_data_c
     hid->ops.uldata_cb = cb;
 }
 
+//创建HID设备
 T_AMOPENAT_HID *OPENAT_hid_func_create(T_AMOPENAT_HID_CONFIG cnf);
 
+//销毁HID设备
 void OPENAT_hid_func_destroy(T_AMOPENAT_HID *hid);
 
+//使能HID设备
 bool OPENAT_hid_func_enable(T_AMOPENAT_HID *hid);
 
+//失能HID设备
 void OPENAT_hid_func_disable(T_AMOPENAT_HID *hid);
 
+//分配一个提交缓存区
 T_AMOPENAT_HID_REPORT *OPENAT_hid_tx_req_alloc(T_AMOPENAT_HID *hid);
 
+//释放一个提交缓存区
 void OPENAT_hid_tx_req_free(T_AMOPENAT_HID *hid, T_AMOPENAT_HID_REPORT *req);
 
+//提交信息
 bool OPENAT_hid_tx_req_submit(T_AMOPENAT_HID *hid, T_AMOPENAT_HID_REPORT *req);
 
+//使能仅HID模式
 void OPENAT_hid_only(T_AMOPENAT_HID *h, bool enable);
 
 #ifdef __cplusplus

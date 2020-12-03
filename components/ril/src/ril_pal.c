@@ -61,7 +61,7 @@ UINT pal_ril_send_signal(PAL_THREAD_ID thread_id, void *msg)
 
 UINT pal_ril_send_high_prio_signal(PAL_THREAD_ID thread_id, void *msg)
 {
-    return (IVTBL(SendHighPriorityMessage)(thread_id, msg)? PAL_RIL_SUCCESS : PAL_RIL_ERROR);
+    return (IVTBL(SendHighPriorityMessage)(thread_id, 0, msg, 0)? PAL_RIL_SUCCESS : PAL_RIL_ERROR);
 }
 
 

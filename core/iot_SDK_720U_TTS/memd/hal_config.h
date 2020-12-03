@@ -828,4 +828,21 @@
 #define CONFIG_POC_VAT_SUPPORT
 #define CONFIG_POC_TONE_SUPPORT
 #/*-\new\zhuwangbin\2020.5.23\add poc app*/
+
+/**
+ * whether gpio is used for Vbat_RF switch
+ */
+#define CONFIG_GPIO_USED_FOR_VBAT_RF_SWITCH
+
+/**
+ * Used gpio x as Vbat_RF swtich
+ *
+ */
+#define CONFIG_GPIO_X_USED_FOR_VBAT_RF 8
+
+/**
+ * support extra function
+ */
+#define CONFIG_SUPPORT_EXTRA_FUNCTION
+
 #endif

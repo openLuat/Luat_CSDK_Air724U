@@ -1,1 +1,1 @@
-set(CORE_VER V1316)
+set(CORE_VER V1678)

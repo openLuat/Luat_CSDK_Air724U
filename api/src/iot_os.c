@@ -21,7 +21,7 @@ BOOL g_s_traceflag = FALSE;
 HANDLE iot_os_create_task(                         
                             PTASK_MAIN pTaskEntry, 
                             PVOID pParameter,     
-                            UINT16 nStackSize,      
+                            UINT32 nStackSize,      
                             UINT8 nPriority,        
                             UINT16 nCreationFlags, 
                             PCHAR pTaskName         
@@ -141,7 +141,7 @@ BOOL iot_os_send_high_priority_message(
                         PVOID pMessage         
                                   )
 {
-    return IVTBL(SendHighPriorityMessage)(hTask, pMessage);
+    return IVTBL(SendHighPriorityMessage)(hTask, 0, pMessage, 0);
 }
 
 /**检测消息队列中是否有消息
@@ -410,7 +410,7 @@ BOOL iot_os_sleep(
 /**获取系统tick接口
 *@return	tick_num:   返回系统时间tick值
 **/
-UINT32 iot_os_get_system_tick(                   
+UINT64 iot_os_get_system_tick(                   
                         VOID
                          )
 {

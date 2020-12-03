@@ -33,5 +33,7 @@ BOOL OPENAT_CameraVideoRecordStop(void);
 BOOL OPENAT_CameraWriteReg(PAMOPENAT_CAMERA_REG initRegTable_p, int len);
 /*+\NEW\zhuwangbin\2020.7.14\Ìí¼Ócamera sensorÐ´¼Ä´æÆ÷½Ó¿Ú*/
 
+BOOL OPENAT_CameraLedSet(UINT8 level);
+
 #endif /* OPENAT_CAMERA_H */
 

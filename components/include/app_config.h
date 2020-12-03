@@ -51,6 +51,9 @@
 /* #undef CONFIG_POC_SUPPORT */
 
 
+/* #undef CONFIG_USER_DONGLIAN_SUPPORT */
+
+
 /*+new\rww\2020.4.30\lua tts float空间不足*/
 /* #undef CONFIG_BUILD_LUA_TTS */
 

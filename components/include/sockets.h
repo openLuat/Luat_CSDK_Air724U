@@ -583,6 +583,29 @@ int lwip_getErrNo(void);
 #endif
 /*-\NEW\zhuwangbin\2020.06.5\添加善理poc平台*/
 
+/*+NEW\lijiaodi\2020.09.18\BUG3104 添加AT+TCPUSERPARAM*/ 
+void lwip_set_tcp_rto_update_flag(int flag);
+
+
+int lwip_get_tcp_rto_update_flag(void);
+
+
+
+void lwip_set_tcp_max_rtx(int max_rtx);
+
+
+int lwip_get_tcp_max_rtx();
+
+
+
+/*Note: value, using ms unit. and 500ms one step; minvalue is 500ms*/
+/*for RTO = value / 500, will round the value config.*/
+/*default value set to 1000 ms.*/
+void lwip_set_tcp_rto_update_value(u32_t value);
+
+
+u32_t lwip_get_tcp_rto_update_value(void);
+/*-NEW\lijiaodi\2020.09.18\BUG3104 添加AT+TCPUSERPARAM*/ 
 #if LWIP_COMPAT_SOCKETS
 #if LWIP_COMPAT_SOCKETS != 2
 /** @ingroup socket */

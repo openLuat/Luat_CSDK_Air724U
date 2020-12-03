@@ -43,6 +43,19 @@ int openat_rsa_sha256_verify(int nKeyMode, unsigned char *pKeyBuf, int nKeyLen,
       								  unsigned char *pInBuf, int nInLen,
       								  unsigned char *pInPlainBuf, int nInPlainLen);
 
+int openat_rsa_encrypt_ne(int nKeyMode, unsigned char *pKeyNBuf, int nKeyNLen,
+								unsigned char *pKeyEBuf, int nKeyELen,
+                                             unsigned char *pPswd, int nPswdLen,
+      								  int nEncryptMode,
+      								  unsigned char *pInBuf, int nInLen,
+      								  unsigned char *pOutBuf);
+
+int openat_rsa_decrypt_ne(int nKeyMode, unsigned char *pKeyNBuf, int nKeyNLen,
+								unsigned char *pKeyEBuf, int nKeyELen,
+                                             unsigned char *pPswd, int nPswdLen,
+      								  int nDecryptMode,
+      								  unsigned char *pInBuf, int nInLen,
+      								  unsigned char *pOutBuf, int *pOutLen, int nOutBufSize);
 
 
 #endif

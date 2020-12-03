@@ -143,6 +143,16 @@ typedef enum
   OPENAT_GPIO_INPUT_INT,
   OPENAT_GPIO_MODE_UNKNOWN
 }T_OPENAT_GPIO_MODE;
+  
+/*+\BUG\wangyuan\2020.10.13\BUG_3249:8910-CSDK 的 GPIO 配置上拉下拉接口*/
+typedef enum
+{ 
+  OPENAT_GPIO_NO_PULL = 0,
+  OPENAT_GPIO_PULLDOWN = 1,
+  OPENAT_GPIO_PULLUP = 2,
+  OPENAT_GPIO_PULLMODE_UNKNOWN
+}T_OPENAT_GPIO_PULLMODE;
+/*-\BUG\wangyuan\2020.10.13\BUG_3249:8910-CSDK 的 GPIO 配置上拉下拉接口*/
 
 /*+\BUG\AMOPENAT-13\brezen\2013.4.13\修改Openat和驱动api层数据类型强转*/
 typedef void (*OPENAT_GPIO_EVT_HANDLE)(E_OPENAT_DRV_EVT evt, E_AMOPENAT_GPIO_PORT gpioPort,unsigned char state);
@@ -167,6 +177,9 @@ typedef struct
 {
   unsigned char      defaultState;
   T_OPENAT_GPIO_INT_CFG   intCfg;
+  /*+\BUG\wangyuan\2020.10.23\BUG_3249:8910-CSDK 的 GPIO 配置上拉下拉接口*/
+  T_OPENAT_GPIO_PULLMODE  pullState;		/* 0: nopull, 1: pulldown, 2: pullup*/
+  /*-\BUG\wangyuan\2020.10.23\BUG_3249:8910-CSDK 的 GPIO 配置上拉下拉接口*/
 }T_OPENAT_GPIO_PARAM;
 
 typedef struct T_AMOPENAT_GPIO_CFG_TAG
@@ -288,6 +301,21 @@ typedef enum E_AMOPENAT_ADC_CHANNEL_TAG
     OPENAT_ADC_QTY
     /*-\NEW\zhuwangbin\2020.2.11\添加openat adc接口*/
 }E_AMOPENAT_ADC_CHANNEL;
+
+/*+\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+typedef enum E_AMOPENAT_ADC_SCALE_TAG
+{
+	OPENAT_ADC_SCALE_DEFAULT, //5v
+	OPENAT_ADC_SCALE_1V250, 
+    OPENAT_ADC_SCALE_2V444,
+    OPENAT_ADC_SCALE_3V233, 
+    OPENAT_ADC_SCALE_5V000,
+    OPENAT_ADC_SCALE_QTY,
+}E_AMOPENAT_ADC_SCALE;
+/*-\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+
+
+
 typedef enum E_AMOPENAT_ADC_CFG_MODE_TAG
 {
     OPENAT_ADC_MODE_NULL = 0,/*默认值*/
@@ -517,6 +545,12 @@ typedef enum
 	/*+\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
 	OPENAT_LDO_POWER_VIBR,
 	/*-\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+	/*+\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
+	OPENAT_LDO_POWER_VBACKLIGHT_R,
+	OPENAT_LDO_POWER_VBACKLIGHT_G,
+	OPENAT_LDO_POWER_VBACKLIGHT_B,
+	OPENAT_LDO_POWER_VBACKLIGHT_W,
+	/*-\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
 	OPENAT_LDO_POWER_INVALID
 }E_AMOPENAT_PM_LDO;
 
@@ -1028,7 +1062,6 @@ typedef enum E_AMOPENAT_I2C_PORT_TAG
     OPENAT_I2C_1,
     OPENAT_I2C_2,
     OPENAT_I2C_3,
-    OPENAT_I2C_4,
 /*-\NEW\zhuwangbin\2020.2.11\添加openat i2c接口*/
     OPENAT_I2C_QTY
 }E_AMOPENAT_I2C_PORT;
@@ -1178,6 +1211,7 @@ typedef struct T_AMOPENAT_CAMERA_PARAM_TAG
     /*-\new\zhuwangbin\2018.9.6\支持camera各行隔列输出使能*/
 	OPENAT_SPI_SPEED_MODE_E spi_speed;
 /*-\NEW\zhuwangbin\2020.4.26\添加openat cam接口*/
+	UINT16   mClk; //MCLK,单位M, 默认0为24M
 }T_AMOPENAT_CAMERA_PARAM;
 
 // T_AMOPENAT_CAM_PREVIEW_PARAM.encodeQuality video encoding quality
@@ -1427,6 +1461,16 @@ typedef struct
 	E_AMOPENAT_AUDIO_CHANNEL outDev;
 }OPENAT_EXPA_T;
 /*-\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+/*+\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
+typedef enum
+{
+    OPENAT_AUDEV_INPUT_MAINMIC = 0, ///< main mic
+    OPENAT_AUDEV_INPUT_AUXMIC = 1,  ///< auxilary mic
+    OPENAT_AUDEV_INPUT_DUALMIC = 2, ///< dual mic
+    OPENAT_AUDEV_INPUT_HPMIC_L = 3, ///< headphone mic left
+    OPENAT_AUDEV_INPUT_HPMIC_R = 4, ///< headphone mic right
+} E_AMOPENAT_MIC_CHANNEL;
+/*-\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
 
 typedef void (*AUD_PLAY_CALLBACK_T)(E_AMOPENAT_PLAY_ERROR result);
 

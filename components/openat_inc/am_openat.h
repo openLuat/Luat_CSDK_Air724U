@@ -86,6 +86,7 @@ typedef struct {
 #define GPIO10_R26 10
 #define GPIO11_R17 11
 /*\-NEW\yezhishe\2018.11.23\Ìí¼ÓGPIO8,9,10,11\*/
+
 /*+\NEW\wangyuan\2020.05.07\BUG_1126:Ö§³Öwifi¶¨Î»¹¦ÄÜ*/
 typedef struct
 {
@@ -103,6 +104,9 @@ typedef struct
 	OPENAT_wifiApInfo *aps;	 ///< room for aps
 } OPENAT_wifiScanRequest;
 /*-\NEW\wangyuan\2020.05.07\BUG_1126:Ö§³Öwifi¶¨Î»¹¦ÄÜ*/
+
+typedef void (*openat_wifi_info_cb)(OPENAT_wifiScanRequest* req);
+
     /*******************************************
     **                 SYSTEM                 **
     *******************************************/
@@ -160,10 +164,12 @@ BOOL OPENAT_send_message(                           /* ·¢ËÍÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶
                                       int message_length);
 
 /*+\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
-BOOL OPENAT_SendHighPriorityMessage(             /* ·¢ËÍ¸ßÓÅÏÈ¼¶ÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶ÓÁÐÍ·²¿ */
-											    HANDLE hTask,           /* Ïß³Ì¾ä±ú£¬create_task½Ó¿Ú·µ»ØÖµ */
-											    PVOID pMessage          /* Òª·¢ËÍÏûÏ¢Ö¸Õë */
-											);
+BOOL OPENAT_SendHighPriorityMessage(			   /* ·¢ËÍ¸ßÓÅÏÈ¼¶ÏûÏ¢½Ó¿Ú£¬Ìí¼Óµ½ÏûÏ¢¶ÓÁÐÍ·²¿ */
+											  HANDLE   destTask,
+											  int msg_id,
+											  void* pMessage,		   /* ´æ´¢ÏûÏ¢Ö¸Õë */
+											  int message_length);
+
 /*-\TASK\wangyuan\2020.06.28\task_255:Ö§³ÖÖÐÔÆÐÅ°², ¼æÈÝ2g CSDKµÄ½Ó¿ÚÌí¼Ó*/
 
 
@@ -584,6 +590,16 @@ E_AMOPENAT_MEMD_ERR OPENAT_flash_read(               /*¶Áflash*/
                        );
                        
 UINT32 OPENAT_flash_page(void);
+
+/*+\bug2991\zhuwangbin\2020.06.11\Ôö¼Ólua otp½Ó¿Ú*/
+BOOL openat_flash_eraseSecurity(UINT8 num);
+
+BOOL openat_flash_writeSecurity(UINT8 num, UINT16 offset, char * data, UINT32 size);
+
+BOOL openat_flash_readSecurity(UINT8 num, UINT16 offset, char * data, UINT32 size);
+
+BOOL openat_flash_lockSecurity(UINT8 num);
+/*-\bug2991\zhuwangbin\2020.06.11\Ôö¼Ólua otp½Ó¿Ú*/
 
 E_OPENAT_OTA_RESULT OPENAT_fota_init(void);
 E_OPENAT_OTA_RESULT OPENAT_fota_download(const char* data, UINT32 len, UINT32 total);
@@ -1011,10 +1027,12 @@ UINT32 OPENAT_get_sph_vol(void);
 E_AMOPENAT_SPEAKER_GAIN OPENAT_get_speaker_gain(VOID);                /* »ñÈ¡ÑïÉùÆ÷µÄÔöÒæ½Ó¿Ú */
 
 
-
+/*+\BUG\wangyuan\2020.11.27\BUG_3634£ºÔÚLuat°æ±¾ÉÏ¿ª·¢¡°ÉèÖÃmicÊäÈëÍ¨µÀ¡±µÄ½Ó¿Ú*/
 BOOL OPENAT_set_channel(                                        /* ÉèÖÃÒôÆµÍ¨µÀ½Ó¿Ú */
-                            E_AMOPENAT_AUDIO_CHANNEL channel    /* Í¨µÀ */
+                            E_AMOPENAT_AUDIO_CHANNEL outputchannel    /* Êä³öÍ¨µÀ */,
+                            E_AMOPENAT_MIC_CHANNEL inputchannel    /* ÊäÈëÍ¨µÀ */
                        );
+/*-\BUG\wangyuan\2020.11.27\BUG_3634£ºÔÚLuat°æ±¾ÉÏ¿ª·¢¡°ÉèÖÃmicÊäÈëÍ¨µÀ¡±µÄ½Ó¿Ú*/
 
 /*+\BUG\wangyuan\2020.06.08\BUG_2163:CSDKÌá¹©audioÒôÆµ²¥·Å½Ó¿Ú*/
 BOOL OPENAT_set_music_volume(UINT32 vol);		/* ÉèÖÃÒôÆµÒôÁ¿½Ó¿Ú */
@@ -1067,10 +1085,11 @@ int OPENAT_WritePlayData(char* data, unsigned size);
     
 /****************************** ADC ******************************/
 /*+\BUG\wangyuan\2020.06.30\BUG_2424:CSDK-8910 ADC µÄAPI ±àÒë´íÎó*/
+/*+\bug3689\zhuwangbin\2020.11.25\adcÌí¼Ó¿ÉÑ¡²ÎÊýscale*/
 BOOL OPENAT_InitADC(
-				    E_AMOPENAT_ADC_CHANNEL channel  /* ADC±àºÅ */,
-				    E_AMOPENAT_ADC_CFG_MODE mode
-				);
+	    E_AMOPENAT_ADC_CHANNEL channel  /* ADC±àºÅ */,
+	    E_AMOPENAT_ADC_CFG_MODE mode
+	    	);
 
 
 BOOL OPENAT_ReadADC(
@@ -1078,8 +1097,23 @@ BOOL OPENAT_ReadADC(
 				    kal_uint32*               adcValue,   /* adcÖµ */
 				    kal_uint32*               voltage    /* µçÑ¹Öµ*/
 				);
+
+BOOL OPENAT_CloseADC(
+    E_AMOPENAT_ADC_CHANNEL channel  /* ADC±àºÅ */
+);
+
+BOOL OPENAT_SetScaleAdc(E_AMOPENAT_ADC_CHANNEL channel,
+			E_AMOPENAT_ADC_SCALE scale);
+
+/*-\bug3689\zhuwangbin\2020.11.25\adcÌí¼Ó¿ÉÑ¡²ÎÊýscale*/
+
 /*-\BUG\wangyuan\2020.06.30\BUG_2424:CSDK-8910 ADC µÄAPI ±àÒë´íÎó*/
 
+/*+\bug3708\zhuwangbin\2020.11.26\ÓÅ»¯pwm´úÂë*/
+bool OPENAT_pwm_open(E_AMOPENAT_PWM_PORT port);
+bool OPENAT_pwm_set(T_AMOPENAT_PWM_CFG *pwm_cfg);
+bool OPENAT_pwm_close(E_AMOPENAT_PWM_PORT port);
+/*-\bug3708\zhuwangbin\2020.11.26\ÓÅ»¯pwm´úÂë*/
 
 /****************************** LCD ******************************/
 /* MONO */                                                  /* ºÚ°×ÆÁ*/			
