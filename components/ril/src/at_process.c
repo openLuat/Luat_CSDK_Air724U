@@ -6,9 +6,9 @@
 #define MAX_AT_RESPONSE (1 * 1024)
 #define NUM_ELEMS(x) (sizeof(x) / sizeof(x[0]))
 bool g_IsSMSRdy = FALSE;
-static HANDLE at_channel_ready_sem; //at ready
+static HANDLE at_channel_ready_sem = NULL; //at ready
 static PAL_THREAD_ID s_tid_reader = 0;
-static HANDLE s_state_sem;
+static HANDLE s_state_sem = NULL;
 
 static PAL_SEMAPHORE_ID s_commandsem;
 
@@ -70,6 +70,7 @@ void RIL_NotifyAtChannelReady(void)
 {
     pal_ril_sema_put(at_channel_ready_sem);
     pal_ril_sema_delete(at_channel_ready_sem);
+    at_channel_ready_sem = NULL;
 }
 
 /**
@@ -400,6 +401,7 @@ static void processLine(const char *line)
             break;
             /*+\NewReq ATMMI-144\xiongjunqun\2012.01.05\修改手动搜网代码不合理的地方----重新修改ABORTED的上报*/
         case SINGLELINE:
+            LOGD("%s", __FUNCTION__);
             if (sp_response->p_intermediates == NULL && (strStartsWith(line, s_responsePrefix) || 0 == strncmp(line, "ABORTED", strlen("ABORTED"))))
             {
                 addIntermediate(line);
@@ -508,7 +510,7 @@ PAL_THREAD_ID RIL_GetReaderThreadId(void)
 
 PAT_MESSAGE pIotVatMessage = NULL;
 
-static VOID at_message(UINT8 *pData, UINT16 length)
+VOID at_message(UINT8 *pData, UINT16 length)
 {
     RILChannelData *pMessage;
 
@@ -668,19 +670,22 @@ void ril_set_cb(PAT_MESSAGE pAtMessage)
 
 void at_init()
 {
-    at_channel_ready_sem = pal_ril_sema_create("at_channel_ready_sem", 0);
+    if (at_channel_ready_sem == NULL && s_state_sem == NULL)
+    {
+        at_channel_ready_sem = pal_ril_sema_create("at_channel_ready_sem", 0);
 
-    s_state_sem = pal_ril_sema_create("s_state_sem", 1);
+        s_state_sem = pal_ril_sema_create("s_state_sem", 1);
 
-    memset(s_ATBuffer, 0, sizeof(s_ATBuffer));
+        memset(s_ATBuffer, 0, sizeof(s_ATBuffer));
 
-    at_open();
+        at_open();
 
-    OPENAT_init_at(at_message);
-    //网络状态主动上报
-    at_send_command("ATE0", NULL);
-    at_send_command("AT+CREG=1", NULL);
-    at_send_command("AT+CEREG=1", NULL);
+        OPENAT_init_at(at_message);
+        //网络状态主动上报
+        at_send_command("ATE0", NULL);
+        at_send_command("AT+CREG=1", NULL);
+        at_send_command("AT+CEREG=1", NULL);
+    }
 }
 
 void at_regNetStatusCb(void (*netStatusCb)(int))

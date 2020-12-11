@@ -275,13 +275,7 @@ endif()
 add_subdirectory_if_exist(components/ril)
 add_subdirectory_if_exist(api)
 #/*+\ADD\chenzhimin\2020.07.9\*/
-if( CONFIG_BUILD_APP_SSL OR 
-CONFIG_BUILD_APP_FTP OR
-CONFIG_BUILD_APP_HTTP OR
-CONFIG_BUILD_APP_LITTLEVGL OR
-CONFIG_BUILD_APP_MQTT OR
-CONFIG_BUILD_APP_OLED_SSD1306 OR
-CONFIG_BUILD_APP_OneWire)
+if(CONFIG_BUILD_APP_EN)
     add_subdirectory_if_exist(app)
 endif()
 #/*-\ADD\chenzhimin\2020.07.9\*/
@@ -313,13 +307,7 @@ if(CONFIG_APPIMG_LOAD_FLASH)
     
     target_link_libraries(${target} PRIVATE api)
     #/*+\ADD\chenzhimin\2020.07.9\*/
-    if( CONFIG_BUILD_APP_SSL OR 
-    CONFIG_BUILD_APP_FTP OR
-    CONFIG_BUILD_APP_HTTP OR
-    CONFIG_BUILD_APP_LITTLEVGL OR
-    CONFIG_BUILD_APP_MQTT OR
-    CONFIG_BUILD_APP_OLED_SSD1306 OR
-    CONFIG_BUILD_APP_OneWire)
+    if(CONFIG_BUILD_APP_EN)
         target_link_libraries(${target} PRIVATE app)
     endif()
     #/*-\ADD\chenzhimin\2020.07.9\*/

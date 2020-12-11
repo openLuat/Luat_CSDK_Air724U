@@ -44,4 +44,7 @@ if(CONFIG_BUILD_APP_OneWire)
     add_subdirectory_if_exist(OneWire)
 endif()
 
+if(CONFIG_BUILD_APP_AT_ENGINE)
+    add_subdirectory_if_exist(at_engine)
+endif()
 #/*-\ADD\chenzhimin\2020.07.9\ */

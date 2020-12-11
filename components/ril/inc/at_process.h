@@ -175,6 +175,9 @@ int at_send_command (const char *command, ATResponse **pp_outResponse);
 *********************************************************/
 void at_response_free(ATResponse *p_response);
 
+
+VOID at_message(UINT8 *pData, UINT16 length);
+
 #endif
 
 
