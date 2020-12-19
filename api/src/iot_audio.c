@@ -199,7 +199,7 @@ BOOL iot_audio_set_channel(
                         E_AMOPENAT_AUDIO_CHANNEL channel   
                    )
 {
-    return IVTBL(set_channel)(channel, 0);
+    return IVTBL(set_channel)(channel,OPENAT_AUDEV_INPUT_MAINMIC);
 }
 
 /**获取当前通道
@@ -246,5 +246,19 @@ BOOL iot_audio_rec_stop()
 int iot_audio_streamplay(E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len)
 {
 	return IVTBL(streamplay)(playformat,cb,data,len);
+}
+
+
+/**流播放V2
+*@param  playformat:    数据流类型
+*@param  cb:    		数据流回调函数
+*@param  data:    		数据流
+*@param  len:  		  	数据流长度
+*@return	>0: 	    播放长度
+*           -1:      	播放失败
+**/
+int iot_audio_streamplayV2(E_AMOPENAT_AUD_PLAY_TYPE playtype,E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len)
+{
+	return IVTBL(streamplayV2)(playtype,playformat,cb,data,len);
 }
 

@@ -6,4 +6,5 @@ set FOTA_TYPE=%2
 set AM_MODEL=iot_SDK_720U
 call ..\tools\core_launch.bat socket
 
+
 cd %PROJECT_OUT% & cmake ..\.. -G Ninja & ninja & cd ..\..\project

@@ -165,7 +165,57 @@
       <region title="nb_rf_spi" base="0x41901000" size="0x30" skip="0"/>
       <region title="nb_tcu" base="0x41902000" size="0x1f0" skip="0"/>
       <region title="sci2" base="0x41a00000" size="0x3c" skip="0"/>
-      <region title="nb_ctrl" base="0x41920000" size="0xb000" skip="0"/>
+      <region title="nb_ctrl" base="0x41920000" size="260" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_common" base="0x41921000" size="548" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_intc" base="0x41922000" size="36" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_cs" base="0x41923000" size="2612" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_fft_rsrp" base="0x41924000" size="96" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_ca_rx_dump" base="0x41924200" size="56" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_acc" base="0x41924400" size="96" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_viterbi" base="0x41925000" size="84" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_meas" base="0x41926000" size="792" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_locseq_gen" base="0x41926400" size="60" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_ds_bsel" base="0x41927000" size="72" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_sp" base="0x41927100" size="52" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_tx_pusch" base="0x41928000" size="32" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_tx_chsc" base="0x41929000" size="44" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_tx_mdd" base="0x41929100" size="32" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_tx_frontend" base="0x4192a000" size="196" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
+      <region title="nb_ca_tx_dump" base="0x4192a200" size="324" skip="0">
+         <require addr="0x41804038" mask="0x80000" value="0x80000"/>
+      </region>
    </regions>
 
    <profile name="8910DM">

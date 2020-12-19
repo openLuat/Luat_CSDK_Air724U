@@ -32,12 +32,15 @@ int appimg_enter(void *param)
 	networkTest();
 	extern bool networkstatus;
 	while (networkstatus == FALSE)
+	{
+		iot_debug_print("[hello]coreTest wait network");
 		iot_os_sleep(500);
+	}
 	//关闭看门狗，死机不会重启。默认打开
 	iot_debug_set_fault_mode(OPENAT_FAULT_HANG);
 	//打开调试信息，默认关闭
 	iot_vat_send_cmd("AT^TRACECTRL=0,1,3\r\n", sizeof("AT^TRACECTRL=0,1,3\r\n"));
-	iot_debug_print("[hello]appimg_enter");
+	iot_debug_print("[hello]coreTest appimg_enter");
 	while (1)
 	{
 		fortest(zbarTest, 1, 200);
@@ -47,18 +50,18 @@ int appimg_enter(void *param)
 		fortest(datetimeTest, 1, 200);
 		fortest(fsTest, 1, 200, "/fs.test");
 
-		//fortest(ftpTest, 0, 1000); //重复测试必死机，好像也是文件没有删除。
+		//fortest(ftpTest, 0, 1000); //重复测试必死机
 
-		//fortest(gsmlocTest, 1, 200);//长时间循环测试会导致死机
-		fortest(httpTest, 1, 200); //有错误信息，我看不懂
+		//fortest(gsmlocTest, 1, 200);
+		//fortest(httpTest, 1, 200); //有错误信息
 		fortest(pwdTest, 1, 200);
 		fortest(RilTest, 1, 200);
 
 		fortest(socketTest, 1, 200, "DNS");
 		fortest(socketTest, 1, 200, "UDP");
 		fortest(socketTest, 1, 200, "TCP");
-		//fortest(vatTest, 1, 200);//循环测试几次就会死机
-		//fortest(ttsTest, 1, 200, "1", sizeof("1"));//几分钟就会死机
+		fortest(vatTest, 1, 200);
+		fortest(ttsTest, 1, 200, "1", sizeof("1"));
 	}
 	return 0;
 }

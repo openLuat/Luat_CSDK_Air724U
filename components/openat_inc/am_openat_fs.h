@@ -193,12 +193,31 @@ typedef enum E_AMOPENAT_FILE_DEVICE_NAME_TAG
     E_AMOPENAT_FS_SDCARD
 }E_AMOPENAT_FILE_DEVICE_NAME;
 
+typedef enum E_AMOPENAT_FLASH_TYPE_TAG
+{
+    E_AMOPENAT_FLASH_INTERNAL, // mount 内部的flash区域
+    E_AMOPENAT_FLASH_EXTERN_PINLCD, // mount 外部的flash区域，使用LCD pin脚复用  V_LCD供电
+    E_AMOPENAT_FLASH_EXTERN_PINGPIO,// mount 外部的flash区域，使用GPIO pin脚复用 V_PAD_1V8供电
+}E_AMOPENAT_FLASH_TYPE;
+
 typedef struct T_AMOPENAT_FILE_INFO_TAG
 {
     UINT64  totalSize;    // Total size
     UINT64  usedSize;     // Has used  size 
 }T_AMOPENAT_FILE_INFO;
 /*-\NewReq WM-743\maliang\2013.3.28\[OpenAt]增加接口获取文件系统信息*/
+
+/*+\NEW\zhuwangbin\2020.08.08\添加文件系统mount接口*/
+typedef struct T_AMOPENAT_FSUSER_MOUNT_TAG
+{
+	char *path;    //mount的文件系统根目录 长度>=5
+	UINT32 offset; //flash 地址偏移量
+	UINT32 size;  //文件系统的大小
+	E_AMOPENAT_FLASH_TYPE exFlash;
+	UINT8 clkDiv; //外部flash分频范围2-255. clk=166M/clkDiv
+} T_AMOPENAT_USER_FSMOUNT;
+/*-\NEW\zhuwangbin\2020.08.08\添加文件系统mount接口*/
+
 /*+\BUG\AMOPENAT-74\brezen\2013.9.24\添加FLASH NV接口，用来适应掉电机制*/
 #define  NV_SUCCESS                (0)
 #define  NV_ERR_NO_MORE_MEM        (-1)

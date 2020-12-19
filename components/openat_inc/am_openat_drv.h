@@ -550,7 +550,26 @@ typedef enum
 	OPENAT_LDO_POWER_VBACKLIGHT_G,
 	OPENAT_LDO_POWER_VBACKLIGHT_B,
 	OPENAT_LDO_POWER_VBACKLIGHT_W,
+	
 	/*-\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
+	
+	/*+\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
+	/*
+	*	level:0-15
+	*	0 : 关闭
+	*	1：2.2V
+	*	2：2.4V
+	*	3：2.5V
+	*	4：2.6V
+	*	5：2.7V
+	*	6：2.8V
+	*	7：2.9V
+	*	8：3.0V
+	*	大于8：3.0V
+	*/
+	OPENAT_LDO_POWER_HMICBIAS,
+	/*-\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
+	
 	OPENAT_LDO_POWER_INVALID
 }E_AMOPENAT_PM_LDO;
 
@@ -908,6 +927,9 @@ typedef struct
   /*+\BUG WM-822\WZQ\2013.5.25\兼容128*128的4级灰度屏*/
   uint16     pixelBits;
   /*-\BUG WM-822\WZQ\2013.5.25\兼容128*128的4级灰度屏*/
+  /*+\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
+  UINT8       Driving;//lcd_spi的驱动能力最大值为15
+  /*-\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
 }T_AMOPENAT_MONO_LCD_PARAM;
 
 typedef struct T_AMOPENAT_LCD_REFRESH_REQ_TAG
@@ -939,6 +961,9 @@ typedef struct
             uint32     frequence; /* SPI工作频率 */
             E_AMOPENAT_GPIO_PORT   csPort;  /* LCD片选GPIO口 */
             E_AMOPENAT_GPIO_PORT   rstPort; /* LCD复位GPIO口 */
+            /*+\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
+            UINT8       Driving;//lcd_spi的驱动能力最大值为15
+            /*-\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
         }spi;
     /*+\NEW\liweiqiang\2013.10.12\增加并口彩屏cs,rst管脚配置*/
         struct{
@@ -1363,6 +1388,43 @@ typedef enum
 } E_OPENAT_AUD_HEADSET_TYPE;
 /*-\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
 
+
+
+/*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+typedef enum
+{
+    OPENAT_AUD_HEADSET_TYPE_UNKNOWN_MIC_TYPE,
+    OPENAT_AUD_HEADSET_TYPE_NO_MIC,
+    OPENAT_AUD_HEADSET_TYPE_4POLE_NORMAL,
+    OPENAT_AUD_HEADSET_TYPE_4POLE_NOT_NORMAL,
+    OPENAT_AUD_HEADSET_TYPE_APPLE,
+    OPENAT_AUD_HEADSET_TYPE_ERR
+} E_OPENAT_AUD_HEADSET_MIC_TYPE;
+
+typedef enum
+{
+    OPENAT_AUD_HEADSET_DISCONNECT = 0,
+    OPENAT_AUD_HEADSET_CONNECT = 1,
+} E_OPENAT_AUD_HEADSET_STATUS;
+
+typedef enum
+{
+    OPENAT_AUD_MSG_HEADSET_PLUGIN = 1,
+    OPENAT_AUD_MSG_HEADSET_PLUGOUT = 2,
+    OPENAT_AUD_MSG_HEADSET_BTN_DOWN = 3,
+    OPENAT_AUD_MSG_HEADSET_BTN_UP = 4,
+} E_OPENAT_AUD_HEADSET_NOTIFY_MSG;
+
+typedef struct
+{
+    E_OPENAT_AUD_HEADSET_STATUS isplugin;
+    E_OPENAT_AUD_HEADSET_MIC_TYPE mictype;
+} OPENAT_HEADSET_STATUS_T;
+
+
+typedef void (*OPENAT_HEADSET_NOTIFY_CB)(void *ctx, E_OPENAT_AUD_HEADSET_NOTIFY_MSG id, uint32 param);
+/*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+
 typedef enum 
 {
     OPENAT_AUD_PLAY_ERR_NO,
@@ -1484,6 +1546,27 @@ typedef void (*MUSIC_PLAY_CALLBACK_T)(const char *file_name, int ret);
 typedef void (*AUD_STREAM_RECORD_CALLBACK_T)(int ret, char *data, int len);
 /*-\BUG\wangyuan\2020.07.31\BUG_2736:CSDK 大唐对讲机需求 支持流录音*/
 /*-\new\wj\2020.4.26\实现录音接口*/
+/*+\任务\czm\2020.9.20\任务:439 大唐POC项目开发:添加流录音和流播放接口，并需要支持消除底噪的算法*/
+typedef enum
+{
+    /**
+     * Placeholder for not in playing.
+     */
+    OPENAT_AUD_PLAY_TYPE_NONE = 0,
+    /**
+     * 播放本地音频路径。
+     */
+    OPENAT_AUD_PLAY_TYPE_LOCAL,
+    /**
+     * 在语音通话中播放到对端。
+     */
+    OPENAT_AUD_PLAY_TYPE_VOICE,
+    /**
+     * 在poc模式下播放本地音频路径，poc消噪播放。
+     */
+    OPENAT_AUD_PLAY_TYPE_POC,
+}E_AMOPENAT_AUD_PLAY_TYPE;
+/*-\任务\czm\2020.9.20\任务:439 大唐POC项目开发:添加流录音和流播放接口，并需要支持消除底噪的算法*/
 /*+\NewReq WM-702\maliang\2013.3.15\播放音频文件的接口增加一个参数，用来表示文件类型*/
 typedef enum E_AMOPENAT_AUD_FORMAT_TAG
 {
@@ -1496,25 +1579,31 @@ typedef enum E_AMOPENAT_AUD_FORMAT_TAG
 	/*+\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
     OPENAT_AUD_FORMAT_SPEEX,
 	/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
+	/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+	OPENAT_AUD_FORMAT_RTMP,
+	/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
     OPENAT_AUD_FORMAT_QTY,
 }E_AMOPENAT_AUD_FORMAT;
 /*-\NewReq WM-702\maliang\2013.3.15\播放音频文件的接口增加一个参数，用来表示文件类型*/
 
 typedef enum E_AMOPENAT_RECORD_TYPE_TAG
 {
-    OPENAT_RECORD_TYPE_NONE, ///< placeholder for unknown format
-    OPENAT_RECORD_TYPE_MIC,     ///Record from microphone.
-    OPENAT_RECORD_TYPE_VOICE,  ///
-    OPENAT_RECORD_TYPE_VOICE_DUAL,     ///
-    OPENAT_RECORD_TYPE_DEBUG_DUMP, 
+    OPENAT_RECORD_TYPE_NONE, ///< 用于未知格式的占位符
+    OPENAT_RECORD_TYPE_MIC,     ///从麦克风录制。 
+    OPENAT_RECORD_TYPE_VOICE,  ///录制语音通话。录制的流与上下行通道。
+    OPENAT_RECORD_TYPE_VOICE_DUAL,     //录制语音通话。录制的流是带有分离的上行链路和下行链路信道。
+    OPENAT_RECORD_TYPE_DEBUG_DUMP, //PCM转储，仅用于调试。
+/*+\任务\czm\2020.9.20\任务:439 大唐POC项目开发:添加流录音和流播放接口，并需要支持消除底噪的算法*/
+    OPENAT_RECORD_TYPE_POC,//在poc模式下从麦克风录制。
+/*-\任务\czm\2020.9.20\任务:439 大唐POC项目开发:添加流录音和流播放接口，并需要支持消除底噪的算法*/
 }E_AMOPENAT_RECORD_TYPE;
 
 typedef enum E_AMOPENAT_RECORD_QUALITY_TAG
 {
-    OPENAT_RECORD_QUALITY_LOW,    ///< quality low
-    OPENAT_RECORD_QUALITY_MEDIUM, ///< quality medium
-    OPENAT_RECORD_QUALITY_HIGH,   ///< quality high
-    OPENAT_RECORD_QUALITY_BEST,   ///< quality best
+    OPENAT_RECORD_QUALITY_LOW,    ///< 质量低
+    OPENAT_RECORD_QUALITY_MEDIUM, ///< 质量低
+    OPENAT_RECORD_QUALITY_HIGH,   ///< 质量低
+    OPENAT_RECORD_QUALITY_BEST,   ///< 质量最好
 } E_AMOPENAT_RECORD_QUALITY;
 
 typedef enum 
@@ -1525,13 +1614,13 @@ typedef enum
 
 typedef struct
 {
-	char *fileName;
-	int time_sec;
-	OpenatRecordMode_t record_mode;
-	E_AMOPENAT_RECORD_QUALITY quality;
-	E_AMOPENAT_RECORD_TYPE type;
-	E_AMOPENAT_AUD_FORMAT format;
-	AUD_STREAM_RECORD_CALLBACK_T stream_record_cb;
+	char *fileName;//设置保存文件的文件名。如果使用数据流方式获取数据，该设置无效
+	int time_sec;//设置录音的持续时间。时间一到就停止
+	OpenatRecordMode_t record_mode;//设置数据的获取方式
+	E_AMOPENAT_RECORD_QUALITY quality;//设置录音的质量
+	E_AMOPENAT_RECORD_TYPE type;//设置录音的类型
+	E_AMOPENAT_AUD_FORMAT format;//设置数据的格式
+	AUD_STREAM_RECORD_CALLBACK_T stream_record_cb;//设置数据流回调函数
 	/*+\bug2241\zhuwangbin\2020.6.20\流录音可配置回调长度阀值*/
 	int thresholdLength; //录音数据达到一定的长度就上报
 	/*-\bug2241\zhuwangbin\2020.6.20\流录音可配置回调长度阀值*/
@@ -2601,7 +2690,18 @@ typedef struct
     E_OPENAT_MODULE_TYPE type;
     E_OPEANT_MODULE_HWVER hw;
 }T_OPENAT_MODULE;
+/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+typedef enum{
+	OPNEAT_RTMP_PLAY_OK,
+	OPNEAT_RTMP_PLAY_ERR,
+	OPNEAT_RTMP_STOP_OK,
+	OPNEAT_RTMP_STOP_ERR,
+	OPNEAT_RTMP_RECEIVE_TIMEOUT,
+}E_OPENAT_RTMP_RESULT_CODE;
 
+
+typedef void (*OPENAT_RTMP_CB)(E_OPENAT_RTMP_RESULT_CODE result_code);
+/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
 /*----------------------------------------------*
  * 外部变量说明                                 *
  *----------------------------------------------*/

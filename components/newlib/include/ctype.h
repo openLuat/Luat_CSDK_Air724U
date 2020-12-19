@@ -10,27 +10,27 @@
 
 _BEGIN_STD_C
 
-int _EXFUN(isalnum, (int __c));
-int _EXFUN(isalpha, (int __c));
-int _EXFUN(iscntrl, (int __c));
-int _EXFUN(isdigit, (int __c));
-int _EXFUN(isgraph, (int __c));
-int _EXFUN(islower, (int __c));
-int _EXFUN(isprint, (int __c));
-int _EXFUN(ispunct, (int __c));
-int _EXFUN(isspace, (int __c));
-int _EXFUN(isupper, (int __c));
-int _EXFUN(isxdigit,(int __c));
-int _EXFUN(tolower, (int __c));
-int _EXFUN(toupper, (int __c));
+int isalnum (int __c);
+int isalpha (int __c);
+int iscntrl (int __c);
+int isdigit (int __c);
+int isgraph (int __c);
+int islower (int __c);
+int isprint (int __c);
+int ispunct (int __c);
+int isspace (int __c);
+int isupper (int __c);
+int isxdigit (int __c);
+int tolower (int __c);
+int toupper (int __c);
 
 #if __ISO_C_VISIBLE >= 1999
-int _EXFUN(isblank, (int __c));
+int isblank (int __c);
 #endif
 
 #if __MISC_VISIBLE || __XSI_VISIBLE
-int _EXFUN(isascii, (int __c));
-int _EXFUN(toascii, (int __c));
+int isascii (int __c);
+int toascii (int __c);
 #define _tolower(__c) ((unsigned char)(__c) - 'A' + 'a')
 #define _toupper(__c) ((unsigned char)(__c) - 'a' + 'A')
 #endif
@@ -66,7 +66,12 @@ extern int toascii_l (int __c, locale_t __l);
 #define _X	0100
 #define	_B	0200
 
+#ifdef __HAVE_LOCALE_INFO__
 const char *__locale_ctype_ptr (void);
+#else
+#define __locale_ctype_ptr()	_ctype_
+#endif
+
 # define __CTYPE_PTR	(__locale_ctype_ptr ())
 
 #ifndef __cplusplus
@@ -100,7 +105,11 @@ const char *__locale_ctype_ptr (void);
 #endif
 
 #if __POSIX_VISIBLE >= 200809
+#ifdef __HAVE_LOCALE_INFO__
 const char *__locale_ctype_ptr_l (locale_t);
+#else
+#define __locale_ctype_ptr_l(l)	_ctype_
+#endif
 #define __ctype_lookup_l(__c,__l) ((__locale_ctype_ptr_l(__l)+sizeof(""[__c]))[(int)(__c)])
 
 #define	isalpha_l(__c,__l)	(__ctype_lookup_l(__c,__l)&(_U|_L))
@@ -162,7 +171,7 @@ const char *__locale_ctype_ptr_l (locale_t);
 #endif /* !__cplusplus */
 
 /* For C++ backward-compatibility only.  */
-extern	__IMPORT _CONST char	_ctype_[];
+extern	__IMPORT const char	_ctype_[];
 
 _END_STD_C
 

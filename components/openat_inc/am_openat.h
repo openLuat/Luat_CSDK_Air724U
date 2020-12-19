@@ -550,10 +550,16 @@ INT32 OPENAT_ftell(                             /* нд╪Ч╤╗н╩╫с©з */
 INT32 OPENAT_get_fs_info(                            /* ╩Ях║нд╪Чо╣мЁпео╒╫с©з */
                             E_AMOPENAT_FILE_DEVICE_NAME       devName,            /*╩Ях║дд©Иdevice name╣дпео╒*/
                             T_AMOPENAT_FILE_INFO               *fileInfo,                   /*нд╪Чо╣мЁ╣дпео╒*/
-                            INT32 isSD,                  /*йг╥Я╩Ях║SD ©╗пео╒*/
+                            char  								*path,                  /*йг╥Я╩Ях║SD ©╗пео╒*/
 							INT32 type
                        );
 
+/*+\NEW\zhuwangbin\2020.08.08\лМ╪снд╪Чо╣мЁmount╫с©з*/
+BOOL OPENAT_fs_mount(T_AMOPENAT_USER_FSMOUNT *param);
+BOOL OPENAT_fs_unmount(T_AMOPENAT_USER_FSMOUNT *param);
+BOOL OPENAT_fs_format(T_AMOPENAT_USER_FSMOUNT *param);
+
+/*-\NEW\zhuwangbin\2020.08.08\лМ╪снд╪Чо╣мЁmount╫с©з*/
 
 /*-\NewReq WM-743\maliang\2013.3.28\[OpenAt]тЖ╪с╫с©з╩Ях║нд╪Чо╣мЁпео╒*/
     
@@ -945,6 +951,9 @@ BOOL OPENAT_play_dtmf(                                          /* ╡╔╥еDTMFрТ╫с©
 BOOL OPENAT_stop_dtmf(VOID);                                          /* мёж╧╡╔╥еDTMFрТ╫с©з */
 
 
+/*+\хннЯ\czm\2020.9.20\хннЯ:439 ╢СлфPOCоНд©©╙╥╒:лМ╪саВб╪рТ╨маВ╡╔╥е╫с©зё╛╡╒пХр╙ж╖ЁжоШЁЩ╣втК╣дкЦ╥╗*/
+int OPENAT_streamplayV2(E_AMOPENAT_AUD_PLAY_TYPE playtype,E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len);
+/*-\хннЯ\czm\2020.9.20\хннЯ:439 ╢СлфPOCоНд©©╙╥╒:лМ╪саВб╪рТ╨маВ╡╔╥е╫с©зё╛╡╒пХр╙ж╖ЁжоШЁЩ╣втК╣дкЦ╥╗*/
 int OPENAT_streamplay(E_AMOPENAT_AUD_FORMAT playformat,AUD_PLAY_CALLBACK_T cb,char* data,int len);
 
                             

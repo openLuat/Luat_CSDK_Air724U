@@ -32,13 +32,13 @@
 *@return	HANDLE: 	创建成功返回线程句柄
 **/
 HANDLE iot_os_create_task(                         
-                            PTASK_MAIN pTaskEntry, 
-                            PVOID pParameter,     
+                            PTASK_MAIN pTaskEntry,  
+                            PVOID pParameter,         
                             UINT32 nStackSize,      
-                            UINT8 nPriority,        
-                            UINT16 nCreationFlags, 
-                            PCHAR pTaskName         
-                          );
+                            UINT8 nPriority,       
+                            UINT16 nCreationFlags,     
+                            PCHAR pTaskName       
+						);
 
 
 /**删除线程

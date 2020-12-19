@@ -17,9 +17,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// macros for alias, either strong (global) or weak
+// macros for alias, either strong or weak. It can't work with LTO.
 #define OSI_STRONG_ALIAS(alias, sym) __asm(".global " #alias "\n" #alias " = " #sym)
 #define OSI_WEAK_ALIAS(alias, sym) __asm(".weak " #alias "\n" #alias " = " #sym)
+
+// macros for alias, either strong or weak,
+#define OSI_DECL_STRONG_ALIAS(oldname, newfunc) newfunc __attribute__((alias(#oldname)))
+#define OSI_DECL_WEAK_ALIAS(oldname, newfunc) newfunc __attribute__((weak, alias(#oldname)))
+
+#define OSI_STRINGFY(s) _OSI_STRINGFY(s)
+#define _OSI_STRINGFY(s) #s
 
 // macro for nop instruction
 #define OSI_NOP asm volatile("nop")
@@ -34,6 +41,7 @@
 
 #define OSI_ATTRIBUTE_ISR __attribute__((interrupt))
 #define OSI_ATTRIBUTE_USED __attribute__((used))
+#define OSI_ATTRIBUTE_OPTIMIZE(n) __attribute__((optimize(n)))
 
 // macros for "known" sections
 #define OSI_SECTION(sect) __attribute__((section(#sect)))
@@ -63,10 +71,21 @@
 #define OSI_NO_RETURN __attribute__((__noreturn__))
 #define OSI_NO_INLINE __attribute__((noinline))
 #define OSI_FORCE_INLINE __attribute__((always_inline)) inline
+
 #if __mips__
 #define OSI_NO_MIPS16 __attribute__((nomips16))
-#else
+#define OSI_NAKED
+#endif
+
+#if __arm__
 #define OSI_NO_MIPS16
+#define OSI_NAKED __attribute__((naked))
+#define OSI_DMB() asm volatile("dmb 0xf" :: \
+                                   : "memory")
+#define OSI_DSB() asm volatile("dsb 0xf" :: \
+                                   : "memory")
+#define OSI_ISB() asm volatile("isb 0xf" :: \
+                                   : "memory")
 #endif
 
 // macro maybe helpful for compiler optimization
@@ -82,6 +101,103 @@
 #define OSI_KSEG01_PHY_ADDR(addr) ((unsigned long)(addr)&0x0FFFFFFF)
 #endif
 
+typedef struct
+{
+    uint32_t data[16 / 4];
+} osiBits128_t, osiBytes16_t;
+
+typedef struct
+{
+    uint32_t data[32 / 4];
+} osiBits256_t, osiBytes32_t;
+
+typedef struct
+{
+    uint32_t data[64 / 4];
+} osiBits512_t, osiBytes64_t;
+
+typedef struct
+{
+    uint32_t data[80 / 4];
+} osiBits640_t, osiBytes80_t;
+
+typedef struct
+{
+    uint32_t data[512 / 4];
+} osiBits4096_t, osiBytes512_t;
+
+/**
+ * \brief tiny helper for buffer pointer and size
+ */
+typedef struct
+{
+    uintptr_t ptr; ///< buffer pointer
+    unsigned size; ///< buffer size
+} osiBuffer_t;
+
+/**
+ * \brief contiguous buffer, with size as first word
+ */
+typedef struct
+{
+    uint32_t size;    ///< size the following data
+    uint32_t data[0]; ///< data
+} osiBufSize32_t;
+
+/**
+ * \brief contiguous buffer, with size as first short
+ */
+typedef struct
+{
+    uint16_t size;    ///< size the following data
+    uint16_t data[0]; ///< data
+} osiBufSize16_t;
+
+/**
+ * \brief contiguous buffer, with size as first byte
+ */
+typedef struct
+{
+    uint8_t size;    ///< size the following data
+    uint8_t data[0]; ///< data
+} osiBufSize8_t;
+
+/**
+ * data structure to define an unsigned integer range
+ */
+typedef struct
+{
+    uint32_t minval; ///< minimal value
+    uint32_t maxval; ///< maximum value
+} osiUintRange_t;
+
+/**
+ * data structure to define a signed integer range
+ */
+typedef struct
+{
+    int minval; ///< minimal value
+    int maxval; ///< maximum value
+} osiIntRange_t;
+
+/**
+ * data structure to define a unsigned 64bits integer range
+ */
+typedef struct
+{
+    uint64_t minval; ///< minimal value
+    uint64_t maxval; ///< maximum value
+} osiUint64Range_t;
+
+/**
+ * data structure to define a signed 64bits integer range
+ */
+typedef struct
+{
+    int64_t minval; ///< minimal value
+    int64_t maxval; ///< maximum value
+} osiInt64Range_t;
+
 // do { ... } while (0) is common trick to avoid if/else error
 #define OSI_DO_WHILE0(expr) \
     do                      \
@@ -95,44 +211,73 @@
 // Busy loop wait until condition is true
 #define OSI_LOOP_WAIT(cond) OSI_DO_WHILE0(while (!(cond));)
 
-// wait until condition is true with timeout, use osiDelayUS(8) inside
-// return the condition
-#define OSI_LOOP_WAIT_TIMEOUT_US(cond, us) ({ unsigned _us8 = (us) / 8; bool _waited = false; for (unsigned n = 0; n < _us8; n++) if (cond) { _waited = true; break; } else { osiDelayUS(8); } _waited; })
-
 // Busy loop wait util condition is true. When polling peripherals, it is
 // needed to avoid read peripheral registers without delay, especially
 // when the peripheral is connected to a slow bus. This may cause the bus
 // is busy to react CPU register read, and other operations are affected.
 #define OSI_POLL_WAIT(cond) OSI_DO_WHILE0(while (!(cond)) { OSI_NOP; OSI_NOP; OSI_NOP; OSI_NOP; })
 
-// Wait until condition is true, and return false when cond2 becomes false
-#define OSI_LOOP_WAIT_IF(cond, cond2) ({bool _waited = false; do { if (cond) { _waited = true; break; }} while (cond2); _waited; })
-// macro for load section, symbol naming style matches linker script
-#define OSI_LOAD_SECTION(name)                 \
-    do                                         \
-    {                                          \
-        extern uint32_t __##name##_start;      \
-        extern uint32_t __##name##_end;        \
-        extern uint32_t __##name##_load_start; \
-        uint32_t *p;                           \
-        uint32_t *l;                           \
-        for (p = &__##name##_start,            \
-            l = &__##name##_load_start;        \
-             p < &__##name##_end;)             \
-            *p++ = *l++;                       \
-    } while (0)
+// Loop wait. Return true if cont_true is meet, return false if cond_false is meet.
+#define OSI_LOOP_WAIT_IF(cond_true, cond_false) \
+    ({                                          \
+        bool _waited;                           \
+        for (;;)                                \
+        {                                       \
+            if (cond_true)                      \
+            {                                   \
+                _waited = true;                 \
+                break;                          \
+            }                                   \
+            if (cond_false)                     \
+            {                                   \
+                _waited = false;                \
+                break;                          \
+            }                                   \
+        }                                       \
+        _waited;                                \
+    })
 
-// macro for clear section, symbol naming style matches linker script
-#define OSI_CLEAR_SECTION(name)           \
-    do                                    \
-    {                                     \
-        extern uint32_t __##name##_start; \
-        extern uint32_t __##name##_end;   \
-        uint32_t *p;                      \
-        for (p = &__##name##_start;       \
-             p < &__##name##_end;)        \
-            *p++ = 0;                     \
-    } while (0)
+// Loop wait with timeout
+#define OSI_LOOP_WAIT_TIMEOUT_US(cond, us)            \
+    ({                                                \
+        bool _waited = false;                         \
+        unsigned _us = (us);                          \
+        osiElapsedTimer_t _timeout;                   \
+        osiElapsedTimerStart(&_timeout);              \
+        do                                            \
+        {                                             \
+            if (cond)                                 \
+            {                                         \
+                _waited = true;                       \
+                break;                                \
+            }                                         \
+        } while (osiElapsedTimeUS(&_timeout) <= _us); \
+        _waited;                                      \
+    })
+
+// Loop wait with timeout, also post will be executed for each loop
+#define OSI_LOOP_WAIT_POST_TIMEOUT_US(cond, us, post) \
+    ({                                                \
+        bool _waited = false;                         \
+        unsigned _us = (us);                          \
+        osiElapsedTimer_t _timeout;                   \
+        osiElapsedTimerStart(&_timeout);              \
+        for (;;)                                      \
+        {                                             \
+            if (cond)                                 \
+            {                                         \
+                _waited = true;                       \
+                break;                                \
+            }                                         \
+            if (osiElapsedTimeUS(&_timeout) > _us)    \
+            {                                         \
+                _waited = false;                      \
+                break;                                \
+            }                                         \
+            (void)(post);                             \
+        }                                             \
+        _waited;                                      \
+    })
 
 // macro for fourcc tag
 #define OSI_MAKE_TAG(a, b, c, d) ((unsigned)(a) | ((unsigned)(b) << 8) | ((unsigned)(c) << 16) | ((unsigned)(d) << 24))
@@ -178,9 +323,13 @@
 #define OSI_FROM_BE16(v) __builtin_bswap16(v)
 #define OSI_FROM_BE32(v) __builtin_bswap32(v)
 
-// macro for 32bits register read and write
+// macro for 32bits/16bits/8bits register read and write
 #define OSI_REG32_WRITE(address, value) *(volatile uint32_t *)(address) = (value)
 #define OSI_REG32_READ(address) (*(volatile uint32_t *)(address))
+#define OSI_REG16_WRITE(address, value) *(volatile uint16_t *)(address) = (value)
+#define OSI_REG16_READ(address) (*(volatile uint16_t *)(address))
+#define OSI_REG8_WRITE(address, value) *(volatile uint8_t *)(address) = (value)
+#define OSI_REG8_READ(address) (*(volatile uint8_t *)(address))
 
 // macros for easier writing
 #define OSI_KB(n) ((unsigned)(n) * (unsigned)(1024))
@@ -191,6 +340,8 @@
 // macros for min, max. the variable will be accessed only once
 #define OSI_MIN(type, a, b) ({ type _a = (type)(a); type _b = (type)(b); _a < _b? _a : _b; })
 #define OSI_MAX(type, a, b) ({ type _a = (type)(a); type _b = (type)(b); _a > _b? _a : _b; })
+
+// Range [start, end) and region [start, start+size) macros
 #define OSI_IS_IN_RANGE(type, a, start, end) ({type _a = (type)(a); type _start = (type)(start); type _end = (type)(end); _a >= _start && _a < _end; })
 #define OSI_IS_IN_REGION(type, a, start, size) ({type _a = (type)(a); type _start = (type)(start); type _end = _start + (type)(size); _a >= _start && _a < _end; })
 #define OSI_RANGE_INSIDE(type, start1, end1, start2, end2) ({type _s1 = (type)(start1), _e1 = (type)(end1), _s2 = (type)(start2), _e2 = (type)(end2);  _s1 >= _s2 && _e1 <= _e2; })
@@ -219,5 +370,54 @@
 #define OSI_EXTERN_C_BEGIN
 #define OSI_EXTERN_C_END
 #endif
+
+// macro for load section, symbol naming style matches linker script
+#define OSI_LOAD_SECTION(name)                 \
+    do                                         \
+    {                                          \
+        extern uint32_t __##name##_start;      \
+        extern uint32_t __##name##_end;        \
+        extern uint32_t __##name##_load_start; \
+        uint32_t *p;                           \
+        uint32_t *l;                           \
+        for (p = &__##name##_start,            \
+            l = &__##name##_load_start;        \
+             p < &__##name##_end;)             \
+            *p++ = *l++;                       \
+    } while (0)
+
+// macro for clear section, symbol naming style matches linker script
+#define OSI_CLEAR_SECTION(name)           \
+    do                                    \
+    {                                     \
+        extern uint32_t __##name##_start; \
+        extern uint32_t __##name##_end;   \
+        uint32_t *p;                      \
+        for (p = &__##name##_start;       \
+             p < &__##name##_end;)        \
+            *p++ = 0;                     \
+    } while (0)
+
+// macros for "known" sections
+#define OSI_SECTION_SRAM_BOOT_TEXT OSI_SECTION(.sramboottext)
+#define OSI_SECTION_SRAM_TEXT OSI_SECTION(.sramtext)
+#define OSI_SECTION_SRAM_DATA OSI_SECTION(.sramdata)
+#define OSI_SECTION_SRAM_BSS OSI_SECTION(.srambss)
+#define OSI_SECTION_SRAM_UNINIT OSI_SECTION(.sramuninit)
+#define OSI_SECTION_SRAM_UC_DATA OSI_SECTION(.sramucdata)
+#define OSI_SECTION_SRAM_UC_BSS OSI_SECTION(.sramucbss)
+#define OSI_SECTION_SRAM_UC_UNINIT OSI_SECTION(.sramucuninit)
+#define OSI_SECTION_RAM_TEXT OSI_SECTION(.ramtext)
+#define OSI_SECTION_RAM_DATA OSI_SECTION(.ramdata)
+#define OSI_SECTION_RAM_BSS OSI_SECTION(.rambss)
+#define OSI_SECTION_RAM_UNINIT OSI_SECTION(.ramuninit)
+#define OSI_SECTION_RAM_UC_DATA OSI_SECTION(.ramucdata)
+#define OSI_SECTION_RAM_UC_BSS OSI_SECTION(.ramucbss)
+#define OSI_SECTION_RAM_UC_UNINIT OSI_SECTION(.ramucuninit)
+#define OSI_SECTION_BOOT_TEXT OSI_SECTION(.boottext)
+#define OSI_SECTION_RO_KEEP __attribute__((used, section(".rokeep")))
+#define OSI_SECTION_RW_KEEP __attribute__((used, section(".rwkeep")))
+
+#define OSI_SECTION_LINE(s) __attribute__((section(OSI_STRINGFY(s) "." OSI_STRINGFY(__LINE__))))
 
 #endif

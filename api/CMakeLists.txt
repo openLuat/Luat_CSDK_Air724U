@@ -21,7 +21,7 @@ target_link_libraries(${target} PRIVATE ${libc_file_name} ${libm_file_name} ${li
 #target_link_libraries(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/lib/libopenat.a)
 
 
-#璁剧疆鍖呭惈澶存枃浠?
+#设置包含头文??
 target_include_directories(${target} PUBLIC include)
 target_include_directories(${target} PRIVATE ../components/include)
 target_include_directories(${target} PRIVATE ../components/newlib/include)
@@ -51,6 +51,7 @@ target_sources(${target} PRIVATE
 	src/iot_camera.c
 	src/iot_tts.c
 	src/iot_audio.c
+	src/iot_bluetooth.c
 )
 
 

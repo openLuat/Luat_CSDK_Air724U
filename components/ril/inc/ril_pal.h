@@ -6,7 +6,7 @@
 
 
 #ifndef HANDLE
-#define HANDLE 		UINT32
+#define HANDLE 		void*
 #endif
 
 typedef HANDLE		PAL_THREAD_ID;

@@ -23,18 +23,14 @@
 #define CONFIG_KERNEL_SYSNV_ENABLED
 
 /**
- * whether to put log functions inside critical section
- *
- * It will introduce longer interrupt delay to put the whole log functions
- * inside critical section. At debug, or the log buffer is non-safe, this
- * can be defined.
- */
-/* #undef CONFIG_KERNEL_LOG_IN_CRITICAL */
-
-/**
  * RTOS tick Hz
  */
 #define CONFIG_KERNEL_TICK_HZ 50
+
+/**
+ * Default hardware tick frequency
+ */
+#define CONFIG_KERNEL_HWTICK_FREQ 2000000
 
 /**
  * RTOS tick relaxed time
@@ -123,22 +119,17 @@
 /**
  * profile buffer size in bytes
  */
-/* #undef CONFIG_KERNEL_PROFILE_BUF_SIZE */
+#define CONFIG_KERNEL_PROFILE_BUF_SIZE 0xc000
 
 /**
  * use host packet, flow id 0x97 for log
  */
-/* #undef CONFIG_KERNEL_TRACE_HOST97 */
+#define CONFIG_KERNEL_HOST_TRACE
 
 /**
  * use host packet, flow id 0x98 for log
  */
-#define CONFIG_KERNEL_TRACE_HOST98
-
-/**
- * use tra packet, type 0xc8/0xc9 for log
- */
-/* #undef CONFIG_KERNEL_TRACE_BBC8 */
+/* #undef CONFIG_KERNEL_DIAG_TRACE */
 
 /**
  * disable traceid forcedly
@@ -148,17 +139,27 @@
 /**
  * size in bytes for each log buffer
  */
-#define CONFIG_KERNEL_TRACE_BUF_SIZE 0x8000
+#define CONFIG_KERNEL_TRACE_BUF_SIZE 0x2000
 
 /**
  * log buffer count
  */
-#define CONFIG_KERNEL_TRACE_BUF_COUNT 2
+#define CONFIG_KERNEL_TRACE_BUF_COUNT 4
+
+/**
+ * external log buffer count
+ */
+#define CONFIG_KERNEL_TRACE_EXTERNAL_BUF_COUNT 8
 
 /**
  * count of memory allocate/free records
  */
 #define CONFIG_KERNEL_MEM_RECORD_COUNT 1024
+
+/**
+ * Maximum blue screen handler count
+ */
+#define CONFIG_KERNEL_BLUE_SCREEN_HANDLER_COUNT 8
 
 /**
  * whether to enable watchdog

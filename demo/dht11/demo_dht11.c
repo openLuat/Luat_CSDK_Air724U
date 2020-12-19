@@ -1,5 +1,5 @@
 /***************
-	demo_dht11
+    demo_dht11
 ****************/
 
 #include "iot_debug.h"
@@ -8,8 +8,8 @@
 #include "oled.h"
 #include "dht11.h"
 
-char HumStr[10] = {0};
-char TemStr[10] = {0};
+char HumStr[10] ={ 0 };
+char TemStr[10] ={ 0 };
 
 static void oled_task(PVOID pParameter)
 {

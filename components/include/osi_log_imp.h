@@ -36,6 +36,7 @@
 /*+NEW\2020.1.15\lijiaodi\添加openat打印*/
 #define LOG_TAG_OPENAT OSI_MAKE_LOG_TAG('O', 'P', 'E', 'N')
 /*-NEW\2020.1.15\lijiaodi\添加openat打印*/
+#define LOG_TAG_BT OSI_MAKE_LOG_TAG('B', 'T', ' ', ' ')
 
 void osiTracePrintf(unsigned tag, const char *fmt, ...);
 
@@ -65,11 +66,34 @@ void osiTraceLteIdEx(unsigned module, unsigned category, unsigned partype, unsig
 void osiTraceLteBasic(unsigned module, unsigned category, unsigned nargs, const char *fmt, ...);
 void osiTraceLteEx(unsigned module, unsigned category, unsigned partype, const char *fmt, ...);
 
+void osiTraceSendTraData(uint8_t type, osiBuffer_t *bufs, unsigned count, unsigned dlen);
+
+void osiTraceRawSend(uint8_t flowid, unsigned tag, const void *data, uint32_t len);
+void SCI_TraceCapData(unsigned data_type, const void *src_ptr, uint32_t size);
+
+enum
+{
+    __OSI_LOGPAR_I = 1,
+    __OSI_LOGPAR_D = 2,
+    __OSI_LOGPAR_F = 3,
+    __OSI_LOGPAR_S = 4,
+    __OSI_LOGPAR_M = 5
+};
+
 #ifdef OSI_LOG_USE_PRINTF
 extern int printf(const char *format, ...);
 #define __OSI_LOGB(level, fmtid, fmt, ...) printf(fmt, ##__VA_ARGS__)
 #define __OSI_LOGX(level, partype, fmtid, fmt, ...) printf(fmt, ##__VA_ARGS__)
 #define __OSI_PRINTF(level, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_SXPRINTF(id, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_SX_TRACE(id, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_SX_TRACEX(id, partype, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_PUB_TRACE(module, category, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_PUB_TRACEX(module, category, partype, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_LTE_TRACE(module, category, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_LTE_TRACEX(module, category, partype, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_TRACE(trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define __OSI_TRACEX(partype, trcid, fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
 #ifdef CONFIG_KERNEL_DISABLE_TRACEID
 #define __OSI_LOG_DISABLE_ID 1
@@ -110,16 +134,6 @@ extern int printf(const char *format, ...);
 #define __OSI_LOGX_IMP(tag, partype, fmt, ...) osiTraceEx(tag, partype, fmt, ##__VA_ARGS__)
 #define __OSI_DLOGB_IMP(tag, nargs, fmtid, ...) osiTraceIdBasic(tag, nargs, fmtid, ##__VA_ARGS__)
 #define __OSI_DLOGX_IMP(tag, partype, fmtid, ...) osiTraceIdEx(tag, partype, fmtid, ##__VA_ARGS__)
-#endif
-
-enum
-{
-    __OSI_LOGPAR_I = 1,
-    __OSI_LOGPAR_D = 2,
-    __OSI_LOGPAR_F = 3,
-    __OSI_LOGPAR_S = 4,
-    __OSI_LOGPAR_M = 5
-};
 
 static inline unsigned OSI_TSMAP_PARTYPE(unsigned n, unsigned tsmap)
 {
@@ -244,6 +258,8 @@ static inline unsigned OSI_TSMAP_PARTYPE(unsigned n, unsigned tsmap)
             osiTraceTraIdEx(partype, trcid, ##__VA_ARGS__); \
     } while (0)
 
+#endif
+
 #define __OSI_LOGPAR_IMP2(count, ...) __OSI_LOGPAR_X##count(__VA_ARGS__)
 #define __OSI_LOGPAR_IMP1(count, ...) __OSI_LOGPAR_IMP2(count, __VA_ARGS__)
 #define __OSI_LOGPAR(...) __OSI_LOGPAR_IMP1(OSI_VA_NARGS(__VA_ARGS__), __VA_ARGS__)
@@ -256,6 +272,7 @@ static inline unsigned OSI_TSMAP_PARTYPE(unsigned n, unsigned tsmap)
 #define __OSI_LOGPAR_X5(a, b, c, d, e) (__OSI_LOGPAR_POS(0, a) | __OSI_LOGPAR_POS(1, b) | __OSI_LOGPAR_POS(2, c) | __OSI_LOGPAR_POS(3, d) | __OSI_LOGPAR_POS(4, e))
 #define __OSI_LOGPAR_X6(a, b, c, d, e, f) (__OSI_LOGPAR_POS(0, a) | __OSI_LOGPAR_POS(1, b) | __OSI_LOGPAR_POS(2, c) | __OSI_LOGPAR_POS(3, d) | __OSI_LOGPAR_POS(4, e) | __OSI_LOGPAR_POS(5, f))
 #define __OSI_LOGPAR_X7(a, b, c, d, e, f, g) (__OSI_LOGPAR_POS(0, a) | __OSI_LOGPAR_POS(1, b) | __OSI_LOGPAR_POS(2, c) | __OSI_LOGPAR_POS(3, d) | __OSI_LOGPAR_POS(4, e) | __OSI_LOGPAR_POS(5, f) | __OSI_LOGPAR_POS(6, g))
+#define __OSI_LOGPAR_X8(a, b, c, d, e, f, g, h) (__OSI_LOGPAR_POS(0, a) | __OSI_LOGPAR_POS(1, b) | __OSI_LOGPAR_POS(2, c) | __OSI_LOGPAR_POS(3, d) | __OSI_LOGPAR_POS(4, e) | __OSI_LOGPAR_POS(5, f) | __OSI_LOGPAR_POS(6, g) | __OSI_LOGPAR_POS(7, h))
 
 /*
 for a in I D F S M; do

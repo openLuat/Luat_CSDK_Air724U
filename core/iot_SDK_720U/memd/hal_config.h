@@ -127,23 +127,13 @@
 #define CONFIG_FLASH_SIZE 0x800000
 
 /**
- * whether external NOR flash is used
- */
-/* #undef CONFIG_SUPPORT_EXT_FLASH */
-
-/**
- * external NOR flash size
- */
-/* #undef CONFIG_EXT_FLASH_SIZE */
-
-/**
  * SRAM size
  *
  * - 8955/8909: system SRAM size
  * - 8811: total SRAM size
- * - 8910: it is not used
+ * - 8910: total SRAM size
  */
-/* #undef CONFIG_SRAM_SIZE */
+#define CONFIG_SRAM_SIZE 0x40000
 
 /**
  * uimage header size (used in 8910)
@@ -191,115 +181,11 @@
 #define CONFIG_ROM_LOAD_SIZE 0xbf40
 
 /**
- * NOR flash offset of bootloader
- */
-#define CONFIG_BOOT_FLASH_OFFSET 0x0
-
-/**
- * bootloader reserved size on NOR flash
+ * whether dual bootloader is supported
  *
- * When dual bootloader is supported, this is the total reserved NOR flash
- * size for bootloader.
+ * Dual bootloader needs system ROM support.
  */
-#define CONFIG_BOOT_FLASH_SIZE 0x10000
-
-/**
- * NOR flash offset of application
- */
-#define CONFIG_APP_FLASH_OFFSET 0x10000
-
-/**
- * reserved NOR flash size for application
- */
-#define CONFIG_APP_FLASH_SIZE 0x150000
-
-/**
- * NOR flash physical address of application
- */
-#define CONFIG_APP_FLASH_ADDRESS 0x60010000
-
-/**
- * NOR flash offset of loadable app image
- */
-#define CONFIG_APPIMG_FLASH_OFFSET 0x160000
-
-/**
- * reserved NOR flash size for loadable app image
- */
-#define CONFIG_APPIMG_FLASH_SIZE 0x1E0000
-
-/**
- * NOR flash offset of modem image file system
- *
- * The mount point of modem image file system is \p CONFIG_FS_MODEM_MOUNT_POINT.
- */
-#define CONFIG_FS_MODEM_FLASH_OFFSET 0x4a0000
-
-/**
- * reserved NOR flash size for modem image file system
- */
-#define CONFIG_FS_MODEM_FLASH_SIZE 0x340000
-
-/**
- * NOR flash physical address of modem image file system
- */
-#define CONFIG_FS_MODEM_FLASH_ADDRESS 0x604a0000
-
-/**
- * NOR flash offset of system file system
- *
- * The mount point of system file system is \p CONFIG_FS_SYS_MOUNT_POINT.
- */
-#define CONFIG_FS_SYS_FLASH_OFFSET 0x340000
-
-/**
- * reserved NOR flash size for system file system
- */
-#define CONFIG_FS_SYS_FLASH_SIZE 0x160000
-
-/**
- * NOR flash offset of factory file system
- *
- * The mount point of factory file system is \p CONFIG_FS_FACTORY_MOUNT_POINT.
- */
-#define CONFIG_FS_FACTORY_FLASH_OFFSET 0x7e0000
-
-/**
- * reserved NOR flash size for factory file system
- */
-#define CONFIG_FS_FACTORY_FLASH_SIZE 0x20000
-
-/**
- * NOR flash offset of calibration data
- *
- * It is only used for legacy platforms, calibration data are located on flash
- * as raw data, rather than stored in file system.
- */
-/* #undef CONFIG_CALIB_FLASH_OFFSET */
-
-/**
- * NOR flash offset of GSM calibration data
- *
- * It is only used for legacy platforms, calibration data are located on flash
- * as raw data, rather than stored in file system.
- */
-/* #undef CONFIG_CALIB_GSM_FLASH_OFFSET */
-
-/**
- * NOR flash offset of NB calibration data
- *
- * It is only used for legacy platforms, calibration data are located on flash
- * as raw data, rather than stored in file system.
- */
-/* #undef CONFIG_CALIB_NB_FLASH_OFFSET */
-
-/**
- * NOR flash offset of factory data
- *
- * It is only used for legacy platforms, factory data are located on flash
- * as raw data, rather than stored in file system.
- */
-/* #undef CONFIG_FACTORY_FLASH_OFFSET */
+/* #undef CONFIG_DUAL_BOOTLOADER_ENABLE */
 
 /**
  * NOR flash address of bootloader
@@ -310,6 +196,24 @@
 #define CONFIG_BOOT_FLASH_ADDRESS 0x60000000
 
 /**
+ * NOR flash address of boot1 in dual bootloader
+ */
+/* #undef CONFIG_BOOT1_FLASH_ADDRESS */
+
+/**
+ * NOR flash address of boot2 in dual bootloader
+ */
+/* #undef CONFIG_BOOT2_FLASH_ADDRESS */
+
+/**
+ * bootloader reserved size on NOR flash
+ *
+ * When dual bootloader is supported, this is the total reserved NOR flash
+ * size for bootloader.
+ */
+#define CONFIG_BOOT_FLASH_SIZE 0x10000
+
+/**
  * bootloader maximum size
  *
  * When dual bootloader is enabled, it is \p CONFIG_BOOT_FLASH_SIZE/2.
@@ -318,6 +222,114 @@
  * The image header size is included.
  */
 #define CONFIG_BOOTLOADER_SIZE 0x10000
+
+/**
+ * NOR flash physical address of application
+ */
+#define CONFIG_APP_FLASH_ADDRESS 0x60010000
+
+/*+\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
+#define CONFIG_APPIMG_FLASH_OFFSET 0x180000
+/*-\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
+/**
+ * reserved NOR flash size for application
+ */
+#define CONFIG_APP_FLASH_SIZE 0x170000
+
+/**
+ * external NOR flash physical address of application
+ */
+/* #undef CONFIG_APP_FLASH2_ADDRESS */
+
+/**
+ * reserved external NOR flash size for application
+ */
+/* #undef CONFIG_APP_FLASH2_SIZE */
+
+/**
+ * NOR flash address of loadable app image
+ */
+#define CONFIG_APPIMG_FLASH_ADDRESS 0x60180000
+
+/**
+ * reserved NOR flash size for loadable app image
+ */
+#define CONFIG_APPIMG_FLASH_SIZE 0x180000
+
+/**
+ * NOR flash address of system file system
+ *
+ * The mount point of system file system is \p CONFIG_FS_SYS_MOUNT_POINT.
+ */
+#define CONFIG_FS_SYS_FLASH_ADDRESS 0x60300000
+
+/*+\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
+#define CONFIG_FS_SYS_FLASH_OFFSET 0x300000
+/*-\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
+
+/*+\new\wangjian\2020.8.24\下载lua固件和lua脚本失败*/
+/* #undef CONFIG_LUA_FLASH_OFFSET */
+/*-\new\wangjian\2020.8.24\下载lua固件和lua脚本失败*/
+/**
+ * reserved NOR flash size for system file system
+ */
+#define CONFIG_FS_SYS_FLASH_SIZE 0x260000
+
+/**
+ * NOR flash address of modem image file system
+ *
+ * The mount point of modem image file system is \p CONFIG_FS_MODEM_MOUNT_POINT.
+ */
+#define CONFIG_FS_MODEM_FLASH_ADDRESS 0x60560000
+
+/**
+ * reserved NOR flash size for modem image file system
+ */
+#define CONFIG_FS_MODEM_FLASH_SIZE 0x280000
+
+/**
+ * NOR flash address of factory file system
+ *
+ * The mount point of factory file system is \p CONFIG_FS_FACTORY_MOUNT_POINT.
+ */
+#define CONFIG_FS_FACTORY_FLASH_ADDRESS 0x607e0000
+
+/**
+ * reserved NOR flash size for factory file system
+ */
+#define CONFIG_FS_FACTORY_FLASH_SIZE 0x20000
+
+/**
+ * NOR flash address of calibration data
+ *
+ * It is only used for legacy platforms, calibration data are located on flash
+ * as raw data, rather than stored in file system.
+ */
+/* #undef CONFIG_CALIB_FLASH_ADDRESS */
+
+/**
+ * NOR flash address of GSM calibration data
+ *
+ * It is only used for legacy platforms, calibration data are located on flash
+ * as raw data, rather than stored in file system.
+ */
+/* #undef CONFIG_CALIB_GSM_FLASH_ADDRESS */
+
+/**
+ * NOR flash address of NB calibration data
+ *
+ * It is only used for legacy platforms, calibration data are located on flash
+ * as raw data, rather than stored in file system.
+ */
+/* #undef CONFIG_CALIB_NB_FLASH_ADDRESS */
+
+/**
+ * NOR flash address of factory data
+ *
+ * It is only used for legacy platforms, factory data are located on flash
+ * as raw data, rather than stored in file system.
+ */
+/* #undef CONFIG_FACTORY_FLASH_ADDRESS */
 
 /**
  * mount point of modem image file system
@@ -360,6 +372,12 @@
 #/*+\new\zhuwangbin\2020.5.23\add poc app*/
 /* #undef CONFIG_POC_SUPPORT */
 #/*-\new\zhuwangbin\2020.5.23\add poc app*/
+
+
+/* #undef CONFIG_BT_SUPPORT */
+
+/* #undef CONFIG_AT_BT_SUPPORT */
+
 /**
  * whether loading app image from file is enabled
  *
@@ -376,14 +394,14 @@
 /**
  * PSRAM or DDR offset for application
  */
-#define CONFIG_APP_RAM_OFFSET 0xC00000
+#define CONFIG_APP_RAM_OFFSET 0x980000
 
 /**
  * PSRAM or DDR total size for application
  *
  * When loadable app image is support, the reserved RAM are included inside.
  */
-#define CONFIG_APP_TOTAL_RAM_SIZE 0x400000
+#define CONFIG_APP_TOTAL_RAM_SIZE 0x680000
 
 /**
  * PSRAM or DDR size for application
@@ -391,7 +409,7 @@
  * This is the total size, minus various reserved size, for example loadable
  * app image reserved size.
  */
-#define CONFIG_APP_RAM_SIZE 0x300000
+#define CONFIG_APP_RAM_SIZE 0x580000
 
 /**
  * PSRAM or DDR offset for app image from NOR flash
@@ -418,6 +436,16 @@
  * PSRAM or DDR size for app image from RAM
  */
 #define CONFIG_APP_FILEIMG_RAM_SIZE  0x0
+
+/**
+ * PSRAM or DDR offset for BT firmware load addres
+ */
+#define CONFIG_APP_BTFW_RAM_OFFSET 0x1000000
+
+/**
+ * PSRAM or DDR size for BT firmware
+ */
+#define CONFIG_APP_BTFW_RAM_SIZE  0x0
 
 /**
  * SRAM offset for application
@@ -500,7 +528,7 @@
 /**
  * NOR flash offset for BCPU (8955, 8909)
  */
-/* #undef CONFIG_BCPU_FLASH_OFFSET */
+/* #undef CONFIG_BCPU_FLASH_ADDRESS */
 
 /**
  * RAM offset for BCPU (8955, 8909)
@@ -701,6 +729,16 @@
 /* #undef CONFIG_VCORE_LDO_LP */
 
 /**
+ * Power down flash in low power mode (8910)
+ */
+/* #undef CONFIG_FLASH_LP_POWER_DOWN */
+
+/**
+ * PSRAM enter half sleep in low power mode (8910)
+ */
+/* #undef CONFIG_PSRAM_LP_HALF_SLEEP */
+
+/**
  * force pull up for tst_h in iomux (8910)
  */
 #define CONFIG_TST_H_GROUND
@@ -780,12 +818,12 @@
 /**
  * whether to support SIM1 hot plug
  */
-/* #undef CONFIG_BOARD_SUPPORT_SIM1_DETECT */
+#define CONFIG_BOARD_SUPPORT_SIM1_DETECT
 
 /**
  * gpio for SIM1 hot plug detect
  */
-/* #undef CONFIG_BOARD_SIM1_DETECT_GPIO */
+#define CONFIG_BOARD_SIM1_DETECT_GPIO 4
 
 /**
  * whether to support SIM2 hot plug
@@ -830,6 +868,26 @@
 #/*-\new\zhuwangbin\2020.5.23\add poc app*/
 
 /**
+ * whether there is external flash on board
+ */
+/* #undef CONFIG_BOARD_WITH_EXT_FLASH */
+
+/**
+ * whether application will split into external flash
+ */
+/* #undef CONFIG_APP_FLASH2_ENABLED */
+
+/**
+ * whether there are file system on external flash
+ */
+#define CONFIG_FS_EXT_ENABLED
+
+/**
+ * whether support ims delta nv
+ */
+#define CONFIG_SUPPORT_IMS_DELTA_NV
+
+/**
  * whether gpio is used for Vbat_RF switch
  */
 #define CONFIG_GPIO_USED_FOR_VBAT_RF_SWITCH
@@ -839,10 +897,5 @@
  *
  */
 #define CONFIG_GPIO_X_USED_FOR_VBAT_RF 8
-
-/**
- * support extra function
- */
-#define CONFIG_SUPPORT_EXTRA_FUNCTION
 
 #endif

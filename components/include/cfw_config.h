@@ -41,6 +41,4 @@
 /* #undef CONFIG_CFW_CALL_STACK_WITH_IPC */
 /* #undef CONFIG_CFW_DEBUG_IPFILTER */
 
-#define CUS_EXTRA_FUNC
-
 #endif

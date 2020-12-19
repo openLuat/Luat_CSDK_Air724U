@@ -16,16 +16,6 @@
 // Auto generated. Don't edit it manually!
 
 /**
- * whether to use IFC for debughost RX
- */
-/* #undef CONFIG_DEBUGHOST_RX_USE_IFC */
-
-/**
- * debughost rx DMA size in bytes
- */
-/* #undef CONFIG_DEBUGHOST_RX_DMA_SIZE */
-
-/**
  * debughost rx buffer size in bytes
  *
  * This is the buffer before parsing host packet format.
@@ -38,9 +28,9 @@
 #define CONFIG_SUPPORT_BATTERY_CHARGER
 
 /**
- * whether external flash is supported
+ * whether to support camera single buffer
  */
-/* #undef CONFIG_SUPPORT_EXT_FLASH */
+/* #undef CONFIG_CAMERA_SINGLE_BUFFER */
 
 /**
  * host command engine packet size
@@ -48,24 +38,14 @@
 #define CONFIG_HOST_CMD_ENGINE_MAX_PACKET_SIZE 0x2020
 
 /**
- * whether to reuse uart at blue screen
- */
-#define CONFIG_UART_BLUESCREEN_ENABLE
-
-/**
- * uart device to be reused at blue screen
- */
-#define CONFIG_UART_BLUESCREEN DRV_NAME_UART1
-
-/**
- * uart baud rate to be reused at blue screen
- */
-#define CONFIG_UART_BLUESCREEN_BAUD 921600
-
-/**
  * uart TX baud rate at adaptive mode, before baud rate is detected
  */
 #define CONFIG_UART_AUTOMODE_DEFAULT_BAUD 115200
+
+/**
+ * enable wcn wifi scan or not
+ */
+#define CONFIG_WCN_WIFI_SCAN_SUPPORT
 
 /**
  * whether USB is supported
@@ -92,7 +72,7 @@
 /**
  * usb ether host mac address
  */
-#define CONFIG_USB_ETHER_HOST_MAC "\xf0\x4b\xb3\xb9\xeb\xe5"
+#define CONFIG_USB_ETHER_HOST_MAC "\xac\x4b\xb3\xb9\xeb\xe5"
 
 /**
  * usb ether dev mac address
@@ -106,4 +86,29 @@
 
 #endif
 
+/**
+ * support LCD driver
+ */
+#define CONFIG_LCD_SUPPORT
+
+/**
+ * support GC9305 panel
+ */
+#define CONFIG_SUPPORT_LCD_GC9305
+
+/**
+ * support ST7735S panel
+ */
+#define CONFIG_SUPPORT_LCD_ST7735S
+
+/**
+ * whether headset detect is supported
+ */
+#define CONFIG_HEADSET_DETECT_SUPPORT
+#ifdef CONFIG_HEADSET_DETECT_SUPPORT
+/**
+ * headset thread stack size in bytes
+ */
+#define CONFIG_HEADSET_STACK_SIZE 16384
+#endif
 #endif

@@ -19,6 +19,7 @@ int lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptse
                 struct timeval *timeout);
 struct hostent *lwip_gethostbyname(const char *name);
 int lwip_ioctl(int s, long cmd, void *argp);
+int lwip_fcntl(int s, int cmd, int val);
 int lwip_getsockname (int s, struct sockaddr *name, socklen_t *namelen);
 int lwip_getaddrinfo(const char *nodename,
        const char *servname,
@@ -267,6 +268,18 @@ int socket_errno(int socketfd)
 int	ioctl(int socketfd, long cmd, void *argp)
 {
 	return lwip_ioctl(socketfd, cmd, argp);
+}
+
+/**根据文件描述符来操作文件的特性接口
+*@param		socketfd:	调用socket接口返回的socket描述符
+*@param      cmd:   	指令，如某一个命令对应驱动层的某一个功能
+*@param      val:   供命令使用的参数
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+**/
+int	fcntl(int socketfd, int cmd, int val)
+{
+	return lwip_fcntl(socketfd, cmd, val);
 }
 
 /**获取一个描述符的名字

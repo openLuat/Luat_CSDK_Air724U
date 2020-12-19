@@ -35,6 +35,7 @@ NV_LOGIC_ADDRESS = 0xFE000003
 PRE_PACK_FILE_LOGIC_ADDRESS = 0xFE000004
 DEL_APPIMG_LOGIC_ADDRESS = 0xFE000005
 ERASE_SYSFS_LOGIC_ADDRESS = 0xFE000006
+FMT_FLASH_LOGIC_ADDRESS = 0xFE000006
 PHASE_CHECK_SIZE = 0x100
 
 CRC16_TABLE = [
@@ -71,6 +72,25 @@ CRC16_TABLE = [
     0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
     0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 ]
+
+
+def ensure_dir(dname):
+    # Create directory if not exists
+    if dname and not os.path.exists(dname):
+        os.makedirs(dname)
+
+
+def write_file_if_change(fname, data):
+    # Write file if changes, data is bytes
+    if os.path.exists(fname):
+        with open(fname, 'rb') as fh:
+            old_data = fh.read()
+        if old_data == data:
+            return
+
+    ensure_dir(os.path.dirname(fname))
+    with open(fname, 'wb') as fh:
+        fh.write(data)
 
 
 def calc_crc16(crc_base, s):
@@ -380,7 +400,7 @@ class PacConfig():
     '''
 
     def __init__(self):
-        self.dwNandStrategy = 0
+        self.dwNandStrategy = 1
         self.dwNandPageType = 0
         self.nvitems = []
         self.files = []
@@ -397,6 +417,7 @@ class PacConfig():
         self.szPrdVersion = cfg['szPrdVersion']
         self.szPrdAlias = cfg['szPrdAlias']
         self.dwMode = cfg['dwMode']
+        self.rebootByAt = cfg['rebootByAt']
         self.dwFlashType = cfg['dwFlashType']
         self.dwIsNvBackup = cfg['dwIsNvBackup']
         self.dwOmaDmProductFlag = cfg['dwOmaDmProductFlag']
@@ -455,6 +476,7 @@ class PacConfig():
         cfg['szPrdVersion'] = self.szPrdVersion
         cfg['szPrdAlias'] = self.szPrdAlias
         cfg['dwMode'] = self.dwMode
+        cfg['rebootByAt'] = self.rebootByAt
         cfg['dwFlashType'] = self.dwFlashType
         cfg['dwIsNvBackup'] = self.dwIsNvBackup
         cfg['dwOmaDmProductFlag'] = self.dwOmaDmProductFlag
@@ -569,20 +591,13 @@ class PacConfig():
                           1, 1, 0, ERASE_NV_LOGIC_ADDRESS, 0x0)
         self.files.append(fc)
 
-    def add_clear_sysfs(self, default_check: int):
-        ''' Add clear sysfs operation.
-        '''
-        fc = PacFileConfig()
-        fc.set_empty_file('EraseFlash', 'CLEARSYSFS', 'Clear Sysfs',
-                        1, default_check, 0, ERASE_SYSFS_LOGIC_ADDRESS, 0x0)
-        self.files.append(fc)
 
-    def add_erase_flash(self, szFileID: str, address: int, size: int):
+    def add_erase_flash(self, szFileID: str, address: int, size: int, defcheck: bool):
         ''' Add clear flash operation.
         '''
         fc = PacFileConfig()
         fc.set_empty_file('EraseFlash', szFileID, 'Erase flash',
-                          1, 1, 0, address, size)
+                          1, defcheck, 0, address, size)
         self.files.append(fc)
 
     def add_del_appimg(self, szFileID: str):
@@ -652,6 +667,7 @@ class PacConfig():
         product = ET.SubElement(product_list, "Product",
                                 {"name": self.szPrdName})
         ET.SubElement(product, "SchemeName").text = self.szPrdName
+        ET.SubElement(product, "RebootByAT").text = str(self.rebootByAt)
         ET.SubElement(product, "FlashTypeID").text = str(self.dwFlashType)
         ET.SubElement(product, "Mode").text = str(self.dwMode)
 
@@ -783,58 +799,54 @@ class PacConfig():
             [fh.write(x) for x in files_data]
 
 
+# Global PacConfig
+pc = PacConfig()
+
+
 def cfg_init(args):
-    pc = PacConfig()
+    global pc
     pc.szVersion = args.version
     pc.szPrdName = args.pname
     pc.szPrdVersion = args.pversion
     pc.szPrdAlias = args.palias
     pc.dwMode = args.mode
+    pc.rebootByAt = args.rebootat
     pc.dwFlashType = args.flashtype
     pc.dwIsNvBackup = 0
     pc.dwOmaDmProductFlag = args.productflag
     pc.dwIsOmaDm = args.omadm
     pc.dwIsPreload = args.preload
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_nvitem(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_nvitem(args.name, int(args.id, 16),
                   args.use, args.replace, args.cont, args.backup)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_host_fdl(args):
     name = args.name if args.name else os.path.basename(args.path)
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_host_fdl(args.address, args.size, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_fdl2(args):
     name = args.name if args.name else os.path.basename(args.path)
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_fdl2(args.address, args.size, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_fdl(args):
     name = args.name if args.name else os.path.basename(args.path)
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_fdl(args.address, args.size, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
@@ -842,20 +854,19 @@ def cfg_image(args):
     name = args.name if args.name else os.path.basename(args.path)
     desc = args.desc if args.desc else args.id
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
+    if os.path.getsize(args.path) == 0:
+        return 0  # ignore when the file is empty
+
     pc.add_code(args.id, desc, args.can_omit, args.default_check,
                 args.force_check, args.address, args.size,
                 args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_clear_nv(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_clear_nv()
-    pc.store_to_json(args.cfg)
     return 0
 
 def cfg_clear_sysfs(args):
@@ -866,36 +877,39 @@ def cfg_clear_sysfs(args):
     return 0
 
 def cfg_erase_flash(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
-    pc.add_erase_flash(args.id, args.address, args.size)
-    pc.store_to_json(args.cfg)
+    global pc
+    pc.add_erase_flash(args.id, args.address, args.size, not args.nocheck)
+    return 0
+
+
+def cfg_fmt_flash(args):
+    if len(args.bname) != 4:
+        print('block device name should be 4 characters')
+        return -1
+
+    global pc
+    size = struct.unpack('I', args.bname.encode('utf-8'))
+    pc.add_erase_flash(args.id, FMT_FLASH_LOGIC_ADDRESS, size[0], not args.nocheck)
     return 0
 
 
 def cfg_del_appimg(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_del_appimg(args.id)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_phase_check(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_phase_check()
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def cfg_nv(args):
     name = args.name if args.name else os.path.basename(args.path)
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_nv(args.size, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
@@ -903,11 +917,9 @@ def cfg_pack_file(args):
     name = args.name if args.name else os.path.basename(args.path)
     desc = args.desc if args.desc else args.id
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
     pc.add_pack_file(args.id, desc, args.can_omit, args.default_check,
                      args.force_check, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
@@ -915,41 +927,37 @@ def cfg_pack_cpio(args):
     name = args.name if args.name else os.path.basename(args.path)
     desc = args.desc if args.desc else args.id
 
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
+    if os.path.getsize(args.path) == 0:
+        return 0  # ignore when the file is empty
+
     pc.add_pack_cpio(args.id, desc, args.can_omit, args.default_check,
                      args.force_check, args.path, name)
-    pc.store_to_json(args.cfg)
     return 0
 
 
 def dep_gen(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
+
     flist = pc.dep_files()
+    flist.append(__file__)
 
-    norm_list = []
-    for f in flist:
-        f.replace('\\', '/').replace('//', '/')
-        if args.base and not f.startswith('/') and ':' not in f:
-            norm_list.append('{}/{}'.format(args.base, f))
-        else:
-            norm_list.append(f)
-
-    norm_list = sorted(list(set(norm_list)))
-    print(';'.join(norm_list))
+    dep = '{}: {}\n'.format(os.path.relpath(args.target, args.base),
+                            ' '.join([os.path.relpath(x, args.base) for x in flist]))
+    write_file_if_change(args.output, dep.encode('utf-8'))
     return 0
 
 
 def pac_gen(args):
-    pc = PacConfig()
-    pc.load_from_json(args.cfg)
+    global pc
+    if args.cfg:
+        pc.store_to_json(args.cfg)
     pc.pac_gen(args.fname)
     return 0
 
 
 def cfg_init_args(sub_parsers):
-    parser = sub_parsers.add_parser('cfg-init', help='init configuration file')
+    parser = sub_parsers.add_parser('cfg-init', help='init configuration')
     parser.set_defaults(func=cfg_init)
     parser.add_argument('--pname', dest='pname', required=True,
                         help='product name')
@@ -959,6 +967,8 @@ def cfg_init_args(sub_parsers):
                         help='product version')
     parser.add_argument('--version', dest='version', required=True,
                         help='version string')
+    parser.add_argument('--rebootat', dest='rebootat',
+                        type=int, choices=[0, 1], default=1)
     parser.add_argument('--flashtype', dest='flashtype',
                         type=int, required=True)
     parser.add_argument('--mode', dest='mode', type=int, default=0)
@@ -968,7 +978,6 @@ def cfg_init_args(sub_parsers):
                         type=int, choices=[0, 1], default=1)
     parser.add_argument('--preload', dest='preload',
                         type=int, choices=[0, 1], default=1)
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_nvitem_args(sub_parsers):
@@ -986,7 +995,6 @@ def cfg_nvitem_args(sub_parsers):
                         help='nvitem replace flag')
     parser.add_argument('--backup', dest='backup', type=int, choices=[0, 1], default=1,
                         help='nvitem backup flag')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_host_fdl_args(sub_parsers):
@@ -1001,7 +1009,6 @@ def cfg_host_fdl_args(sub_parsers):
                         help='local host fdl image file path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='host fdl image file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_fdl2_args(sub_parsers):
@@ -1016,7 +1023,6 @@ def cfg_fdl2_args(sub_parsers):
                         help='local fdl2 image file path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='fdl2 image file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_fdl_args(sub_parsers):
@@ -1031,7 +1037,6 @@ def cfg_fdl_args(sub_parsers):
                         help='local fdl image file path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='fdl image file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_image_args(sub_parsers):
@@ -1059,14 +1064,12 @@ def cfg_image_args(sub_parsers):
                         help='local image file path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='image file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_clear_nv_args(sub_parsers):
     parser = sub_parsers.add_parser(
         'cfg-clear-nv', help='add erase running NV')
     parser.set_defaults(func=cfg_clear_nv)
-    parser.add_argument('cfg', help='configuration file name')
 
 def cfg_clear_sysfs_args(sub_parsers):
     parser = sub_parsers.add_parser(
@@ -1087,7 +1090,20 @@ def cfg_erase_flash_args(sub_parsers):
                         help='erase flash start address')
     parser.add_argument('-s', '--size', dest='size', type=auto_int, required=True,
                         help='erase flash size')
-    parser.add_argument('cfg', help='configuration file name')
+    parser.add_argument('-n', '--nocheck', dest='nocheck', action='store_true',
+                        help='not check by default')
+
+
+def cfg_fmt_flash_args(sub_parsers):
+    parser = sub_parsers.add_parser(
+        'cfg-fmt-flash', help='add format flash file system')
+    parser.set_defaults(func=cfg_fmt_flash)
+    parser.add_argument('-i', '--id', dest='id', required=True,
+                        help='file ID in pac')
+    parser.add_argument('-b', '--block-device-name', dest='bname', required=True,
+                        help='flash block device name')
+    parser.add_argument('-n', '--nocheck', dest='nocheck', action='store_true',
+                        help='not check by default')
 
 
 def cfg_del_appimg_args(sub_parsers):
@@ -1096,14 +1112,12 @@ def cfg_del_appimg_args(sub_parsers):
     parser.set_defaults(func=cfg_del_appimg)
     parser.add_argument('-i', '--id', dest='id', required=True,
                         help='file ID in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_phase_check_args(sub_parsers):
     parser = sub_parsers.add_parser(
         'cfg-phase-check', help='add phase check')
     parser.set_defaults(func=cfg_phase_check)
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_nv_args(sub_parsers):
@@ -1116,7 +1130,6 @@ def cfg_nv_args(sub_parsers):
                         help='local host fdl image file path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='host fdl image file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_pack_file_args(sub_parsers):
@@ -1140,7 +1153,6 @@ def cfg_pack_file_args(sub_parsers):
                         help='local file or directory path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='remote file or directory path')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def cfg_pack_cpio_args(sub_parsers):
@@ -1164,14 +1176,14 @@ def cfg_pack_cpio_args(sub_parsers):
                         help='cpio file or directory path')
     parser.add_argument('-n', '--name', dest='name', default=None,
                         help='cpio file name in pac')
-    parser.add_argument('cfg', help='configuration file name')
 
 
 def pac_gen_args(sub_parsers):
     parser = sub_parsers.add_parser(
         'pac-gen', help='generate pac file')
     parser.set_defaults(func=pac_gen)
-    parser.add_argument('cfg', help='configuration file name')
+    parser.add_argument('--cfg', dest='cfg', default=None,
+                        help='configuration file name')
     parser.add_argument('fname', help='pac file name')
 
 
@@ -1181,7 +1193,8 @@ def dep_gen_args(sub_parsers):
     parser.set_defaults(func=dep_gen)
     parser.add_argument('--base', dest='base', default=None,
                         help='base directory of the dependency files')
-    parser.add_argument('cfg', help='configuration file name')
+    parser.add_argument('target', help='target of dependency')
+    parser.add_argument('output', help='output dependency file')
 
 
 def main(argv):
@@ -1199,6 +1212,7 @@ def main(argv):
     cfg_phase_check_args(sub_parsers)
     cfg_nv_args(sub_parsers)
     cfg_erase_flash_args(sub_parsers)
+    cfg_fmt_flash_args(sub_parsers)
     cfg_del_appimg_args(sub_parsers)
     cfg_pack_file_args(sub_parsers)
     cfg_pack_cpio_args(sub_parsers)

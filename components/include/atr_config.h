@@ -81,6 +81,11 @@
 #define CONFIG_ATR_LF_WAIT_MS 20
 
 /**
+ * support +++ in command line mode (non-standard)
+ */
+/* #undef CONFIG_ATR_CMD_TPLUS_ENABLE */
+
+/**
  * whether enable AT command output cache
  *
  * When enabled, a small cache will be added to AT command output. It will
@@ -268,6 +273,13 @@
 
 /*zhuwangbin 2020-5-20 add at+gpio*/
 /* #undef CONFIG_AT_GPIO_SUPPORT */
+
+
+/**
+ * whether to support TBox reference API
+ */
+/* #undef CONFIG_ATR_TB_API_SUPPORT */
+
 
 /*+\NEW\czm\2020.07.21\添加中国电信自注册项目*/
 /* #undef CONFIG_BUILD_AT_CTREG */

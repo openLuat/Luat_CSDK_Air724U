@@ -49,21 +49,23 @@ VOID iot_lcd_update_color_screen(
 				UINT16 *pDisplayBuffer    );
 
 /** 解码jpg格式图片
-*@param		filename: 文件路径包括文件名
+*@param		buffer:显示buffer
+*@param		len:显示buffer长度
 *@param		imageinfo: 文件格式
 *@return	INT32: 解码状态码
 **/
 INT32 iot_decode_jpeg(
-                    CONST char * filename,
-                    T_AMOPENAT_IMAGE_INFO *imageinfo
+                    UINT8 * buffer,
+                    UINT32 len,
+                    T_AMOPENAT_IMAGE_INFO * imageinfo
                     );
 
 /** 释放jpg格式解码数据
-*@param		buffer: 缓存显示buffer
+*@param		imageinfo: 文件格式
 *@return	INT32: 释放状态码
 **/
 INT32 iot_free_jpeg_decodedata(
-                    INT16* buffer
+                    T_AMOPENAT_IMAGE_INFO * imageinfo
                     );
 /** @}*/
 /** @}*/

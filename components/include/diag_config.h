@@ -40,4 +40,19 @@
  */
 #define CONFIG_DIAG_DEFAULT_USERIAL DRV_NAME_USRL_COM5
 
+/**
+ * pre-allocated buffer size
+ */
+#define CONFIG_DIAG_NORMAL_MODE_BUF_SIZE 0x10040
+
+/**
+ * allocated buffer size in calibratin mode
+ */
+#define CONFIG_DIAG_CALIB_MODE_BUF_SIZE 0x10040
+
+/**
+ * diag port debug support
+ */
+#define CONFIG_DIAG_DEBUG_SUPPORT
+
 #endif

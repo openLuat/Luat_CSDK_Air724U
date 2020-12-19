@@ -4,6 +4,7 @@
 #include "iot_debug.h"
 #include "iot_fs.h"
 #include "iot_flash.h"
+#include "iot_pmd.h"
 
 #define fs_print iot_debug_print
 #define DEMO_FS_FILE_PATH "demo_file"
@@ -182,14 +183,175 @@ static void demo_fs_ls(char *dirName)
     
 }
 
+static void demo_mountExternFlash(void)
+{
+	/*
+		以普冉P25Q64H， 8Mflash为例
+	*/
+	BOOL ret;
+	T_AMOPENAT_USER_FSMOUNT param;
+	T_AMOPENAT_FILE_INFO fileInfo;
+
+	/*复用lcd的pin脚，需要打开lcd的ldo*/
+	iot_pmd_poweron_ldo(OPENAT_LDO_POWER_VLCD, 15);
+
+	iot_os_sleep(100);
+	
+	/*0-4M创建文件系统 /ext1 */
+	param.exFlash = E_AMOPENAT_FLASH_EXTERN_PINLCD;
+	param.offset = 0;
+	param.size = 0x400000;
+	param.path = "/ext1";
+	param.clkDiv = 4; 
+	ret = iot_fs_mount(&param);
+	if (!ret)
+	{
+		ret = iot_fs_format(&param);
+
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+
+		
+		ret = iot_fs_mount(&param);
+	
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+	}
+
+	demo_fs_create("/ext1/ext1_file");
+	demo_fs_write("/ext1/ext1_file");
+	demo_fs_ls(param.path);
+	iot_fs_get_fs_info(param.path, &fileInfo);
+	fs_print("[fs] %s path %s, ret %d, mem Info (%d,%d)", __FUNCTION__, param.path, ret, fileInfo.totalSize, fileInfo.usedSize);
+	
+
+	/*4-8M创建文件系统 /ext2 */
+	param.exFlash = E_AMOPENAT_FLASH_EXTERN_PINLCD;
+	param.offset = 0x400000;
+	param.size = 0x400000;
+	param.path = "/ext2";
+	param.clkDiv = 4;
+	ret = iot_fs_mount(&param);
+	if (!ret)
+	{
+		ret = iot_fs_format(&param);
+
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+
+		ret = iot_fs_mount(&param);
+	
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+	}
+
+	demo_fs_create("/ext2/ext2_file");
+	demo_fs_write("/ext2/ext2_file");
+	demo_fs_ls(param.path);
+	iot_fs_get_fs_info(param.path, &fileInfo);
+	fs_print("[fs] %s path %s, ret %d, mem Info (%d,%d)", __FUNCTION__, param.path, ret, fileInfo.totalSize, fileInfo.usedSize);
+	
+}
+
+static void demo_mountAppFlash(void)
+{
+	/*
+		应用空间有剩余时， 可以mount成文件系统管理
+	*/
+	BOOL ret;
+	T_AMOPENAT_USER_FSMOUNT param;
+	T_AMOPENAT_FILE_INFO fileInfo;
+		
+	/*0x260000-0X2A0000创建文件系统 /ext1 */
+	param.exFlash = E_AMOPENAT_FLASH_INTERNAL;
+	param.offset = 0x260000;
+	param.size = 0x40000;
+	param.path = "/app1";
+	param.clkDiv = 2;
+	ret = iot_fs_mount(&param);
+	if (!ret)
+	{
+		ret = iot_fs_format(&param);
+
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+
+		
+		ret = iot_fs_mount(&param);
+	
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+	}
+
+	demo_fs_create("/app1/app1_file");
+	demo_fs_write("/app1/app1_file");
+	demo_fs_ls(param.path);
+	iot_fs_get_fs_info(param.path, &fileInfo);
+	fs_print("[fs] %s path %s, ret %d, mem Info (%d,%d)", __FUNCTION__, param.path, ret, fileInfo.totalSize, fileInfo.usedSize);
+	
+
+	/*0x2a0000-0x2E0000创建文件系统 /ext2 */
+	param.exFlash = E_AMOPENAT_FLASH_INTERNAL;
+	param.offset = 0x2a0000;
+	param.size = 0x40000;
+	param.path = "/app2";
+	param.clkDiv = 2;
+	ret = iot_fs_mount(&param);
+	if (!ret)
+	{
+		ret = iot_fs_format(&param);
+
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+
+		
+		ret = iot_fs_mount(&param);
+	
+		if (!ret)
+		{
+			fs_print("[fs] %s path %s, ret %d fail", __FUNCTION__, param.path, ret);
+			return;
+		}
+	}
+
+	demo_fs_create("/app2/app2_file");
+	demo_fs_write("/app2/app2_file");
+	demo_fs_ls(param.path);
+	iot_fs_get_fs_info(param.path, &fileInfo);
+	fs_print("[fs] %s path %s, ret %d, mem Info (%d,%d)", __FUNCTION__, param.path, ret, fileInfo.totalSize, fileInfo.usedSize);
+	
+}
+
+
 int appimg_enter(void *param)
 {    
     //开机立刻使用文件系统，会看不到打印信息
     INT32 ret;
 	
-	iot_os_sleep(400);
-    fs_print("[fs] appimg_enter");
-
+	iot_os_sleep(1000);
+    fs_print("[fs] appimg_enter");	
+	
 	/*显示预置文件sffs_file.txt*/
 	demo_fs_ls("/");
 	demo_fs_ls("/sdcard0");
@@ -229,6 +391,11 @@ int appimg_enter(void *param)
 	/*LS dir_2/subdir_2*/
 	demo_fs_ls("./");
 	
+	/*APP 剩余区域mount成文件系统*/
+	demo_mountAppFlash();
+
+	/*外挂flash上面mount文件系统*/
+	demo_mountExternFlash();
 	return 0;
 }
 

@@ -4,7 +4,6 @@
 #include "iot_network.h"
 #include "iot_socket.h"
 
-
 #define SOCKET_MSG_NETWORK_READY (0)
 #define SOCKET_MSG_NETWORK_LINKED (1)
 typedef struct {

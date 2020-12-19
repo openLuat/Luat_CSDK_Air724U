@@ -184,6 +184,76 @@ typedef struct ip4_addr ip4_addr_t;
 #define SO_NO_CHECK     0x100a /* don't create UDP checksum */
 #define SO_BINDTODEVICE 0x100b /* bind to device */
 
+#define	_FOPEN		(-1)	/* from sys/file.h, kernel use only */
+#define	_FREAD		0x0001	/* read enabled */
+#define	_FWRITE		0x0002	/* write enabled */
+#define	_FAPPEND	0x0008	/* append (writes guaranteed at the end) */
+#define	_FMARK		0x0010	/* internal; mark during gc() */
+#define	_FDEFER		0x0020	/* internal; defer for next gc pass */
+#define	_FASYNC		0x0040	/* signal pgrp when data ready */
+#define	_FSHLOCK	0x0080	/* BSD flock() shared lock present */
+#define	_FEXLOCK	0x0100	/* BSD flock() exclusive lock present */
+#define	_FCREAT		0x0200	/* open with file create */
+#define	_FTRUNC		0x0400	/* open with truncation */
+#define	_FEXCL		0x0800	/* error on open if file exists */
+#define	_FNBIO		0x1000	/* non blocking I/O (sys5 style) */
+#define	_FSYNC		0x2000	/* do all writes synchronously */
+#define	_FNONBLOCK	0x4000	/* non blocking I/O (POSIX style) */
+#define	_FNDELAY	_FNONBLOCK	/* non blocking I/O (4.2 style) */
+#define	_FNOCTTY	0x8000	/* don't assign a ctty on this open */
+
+#define	O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
+
+/*
+ * Flag values for open(2) and fcntl(2)
+ * The kernel adds 1 to the open modes to turn it into some
+ * combination of FREAD and FWRITE.
+ */
+#define	O_RDONLY	0		/* +1 == FREAD */
+#define	O_WRONLY	1		/* +1 == FWRITE */
+#define	O_RDWR		2		/* +1 == FREAD|FWRITE */
+#define	O_APPEND	_FAPPEND
+#define	O_CREAT		_FCREAT
+#define	O_TRUNC		_FTRUNC
+#define	O_EXCL		_FEXCL
+#define O_SYNC		_FSYNC
+/*	O_NDELAY	_FNDELAY 	set in include/fcntl.h */
+/*	O_NDELAY	_FNBIO 		set in include/fcntl.h */
+#define	O_NONBLOCK	_FNONBLOCK
+#define	O_NOCTTY	_FNOCTTY
+/* For machines which care - */
+
+/* fcntl(2) requests */
+#define	F_DUPFD		0	/* Duplicate fildes */
+#define	F_GETFD		1	/* Get fildes flags (close on exec) */
+#define	F_SETFD		2	/* Set fildes flags (close on exec) */
+#define	F_GETFL		3	/* Get file flags */
+#define	F_SETFL		4	/* Set file flags */
+#if __BSD_VISIBLE || __POSIX_VISIBLE >= 200112
+#define	F_GETOWN 	5	/* Get owner - for ASYNC */
+#define	F_SETOWN 	6	/* Set owner - for ASYNC */
+#endif /* __BSD_VISIBLE || __POSIX_VISIBLE >= 200112 */
+#define	F_GETLK  	7	/* Get record-locking information */
+#define	F_SETLK  	8	/* Set or Clear a record-lock (Non-Blocking) */
+#define	F_SETLKW 	9	/* Set or Clear a record-lock (Blocking) */
+#if __MISC_VISIBLE
+#define	F_RGETLK 	10	/* Test a remote lock to see if it is blocked */
+#define	F_RSETLK 	11	/* Set or unlock a remote lock */
+#define	F_CNVT 		12	/* Convert a fhandle to an open fd */
+#define	F_RSETLKW 	13	/* Set or Clear remote record-lock(Blocking) */
+#endif	/* __MISC_VISIBLE */
+#if __POSIX_VISIBLE >= 200809
+#define	F_DUPFD_CLOEXEC	14	/* As F_DUPFD, but set close-on-exec flag */
+#endif
+
+/* fcntl(2) flags (l_type field of flock structure) */
+#define	F_RDLCK		1	/* read lock */
+#define	F_WRLCK		2	/* write lock */
+#define	F_UNLCK		3	/* remove lock(s) */
+#if __MISC_VISIBLE
+#define	F_UNLKSYS	4	/* remove remote locks for a given system */
+#endif	/* __MISC_VISIBLE */
+
 /*
  * Options for level IPPROTO_TCP
  */
@@ -532,6 +602,15 @@ int socket_errno(int socketfd);
 **/
 int	ioctl(int socketfd, long cmd, void *argp);
 
+/**根据文件描述符来操作文件的特性接口
+*@param		socketfd:	调用socket接口返回的socket描述符
+*@param      cmd:   	指令，如某一个命令对应驱动层的某一个功能
+*@param      val:   供命令使用的参数
+*@return	>=0:  实际发送的长度
+            <0:  发送错误
+**/
+int	fcntl(int socketfd, int cmd, int val);
+
 /**获取一个描述符的名字
 *@param		socketfd:	调用socket接口返回的socket描述符
 @param      name:   	描述符的名字
@@ -625,51 +704,12 @@ void freeaddrinfo(struct openat_addrinfo *ai);
 **/ 
 #define inet_ntoa(addr)       ipaddr_ntoa((openat_ip_addr_t*)&(addr))
 
-/**
- * Check whether "cp" is a valid ascii representation
- * of an Internet address and convert to a binary address.
- * Returns 1 if the address is valid, 0 if not.
- * This replaces inet_addr, the return value from which
- * cannot distinguish between failure and a local broadcast address.
- *
- * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
- * @param addr pointer to which to save the ip address in network order
- * @return 1 if cp could be converted to addr, 0 on failure
- */
-int
-ipaddr_aton(const char *cp, openat_ip_addr_t *addr);
 
-/**
- * Ascii internet address interpretation routine.
- * The value returned is in network order.
- *
- * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
- * @return ip address in network order
- */
-UINT32
-ipaddr_addr(const char *cp);
-
-/**
- * Same as ipaddr_ntoa, but reentrant since a user-supplied buffer is used.
- *
- * @param addr ip address in network order to convert
- * @param buf target buffer where the string is stored
- * @param buflen length of buf
- * @return either pointer to buf which now holds the ASCII
- *         representation of addr or NULL if buf was too small
- */
-char *ipaddr_ntoa_r(const openat_ip_addr_t *addr, char *buf, int buflen);
-
-/**
- * Convert numeric IP address into decimal dotted ASCII representation.
- * returns ptr to static buffer; not reentrant!
- *
- * @param addr ip address in network order to convert
- * @return pointer to a global static (!) buffer that holds the ASCII
- *         represenation of addr
- */
 char *
 ipaddr_ntoa(const openat_ip_addr_t *addr);
+
+int
+ipaddr_aton(const char *cp, openat_ip_addr_t *addr);
 
 /** @}*/
 

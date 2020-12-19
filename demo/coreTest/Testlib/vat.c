@@ -130,7 +130,7 @@ static AtCmdRsp AtCmdCb_cimi(char *pRspStr)
 void vatTest(void)
 {
     AtCmdEntity atCmdInit[] = {
-        {AT_CMD_DELAY "2000", 10, NULL},
+        //{AT_CMD_DELAY "2000", 10, NULL},
         {"AT+WIMEI?" AT_CMD_END, 11, AtCmdCb_wimei},
         {"AT+ICCID" AT_CMD_END, 10, AtCmdCb_iccid},
         {"AT+CIMI" AT_CMD_END, 9, AtCmdCb_cimi},

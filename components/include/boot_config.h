@@ -42,11 +42,21 @@
 #define CONFIG_BOOT_IMAGE_SIZE 0xbf40
 
 /**
+ * BOOT2 (decompressed) image address
+ */
+#define CONFIG_BOOT2_IMAGE_START 0x810000
+
+/**
+ * BOOT2 (decompressed) image size
+ */
+#define CONFIG_BOOT2_IMAGE_SIZE 0x28000
+
+/**
  * FDL1 image address in SRAM (8910)
  *
  * It should match system ROM.
  */
-#define CONFIG_FDL1_IMAGE_START 0x810000
+#define CONFIG_FDL1_IMAGE_START 0x838000
 
 /**
  * FDL1 maximum image size (8910)
@@ -56,62 +66,59 @@
 /**
  * FDL2 image address in SRAM (8910)
  */
-#define CONFIG_FDL2_IMAGE_START 0x818000
+#define CONFIG_FDL2_IMAGE_START 0x810000
 
 /**
  * FDL2 maximum image size (8910)
  */
-#define CONFIG_FDL2_IMAGE_SIZE 0x10000
+#define CONFIG_FDL2_IMAGE_SIZE 0x28000
 
 /**
- * TTB start address (8910)
+ * NORFDL image address in SRAM (8811)
+ *
+ * It should match system ROM.
  */
-#define CONFIG_BOOT_TTB_START 0x828000
+/* #undef CONFIG_NORFDL_IMAGE_START */
 
 /**
- * TTB size (8910)
+ * NORFDL maximum image size (8811)
  */
-#define CONFIG_BOOT_TTB_SIZE 0x4400
-
-/**
- * bootloader exception stack start address (8910)
- */
-#define CONFIG_BOOT_EXCEPTION_STACK_START 0x82c400
-
-/**
- * bootloader exception stack size (8910)
- */
-#define CONFIG_BOOT_EXCEPTION_STACK_SIZE 0xc00
-
-/**
- * heap start address for bootloader, fdl1 and fdl2 (8910)
- */
-#define CONFIG_BOOT_SRAM_HEAP_START 0x82d000
-
-/**
- * heap size for bootloader, fdl1 and fdl2 (8910)
- */
-#define CONFIG_BOOT_SRAM_HEAP_SIZE 0x13000
+/* #undef CONFIG_NORFDL_IMAGE_SIZE */
 
 /**
  * bootloader SVC stack size (8910)
  */
-#define CONFIG_BOOT_SVC_STACK_SIZE 0xa00
+/* #undef CONFIG_BOOT_SVC_STACK_SIZE */
 
 /**
  * bootloader IRQ stack size (8910)
  */
-#define CONFIG_BOOT_IRQ_STACK_SIZE 0x200
+#define CONFIG_BOOT_IRQ_STACK_SIZE 0x800
 
 /**
- * bootloader SVC stack top address (8910)
+ * bootloader blue screen stack size (8910)
  */
-#define CONFIG_BOOT_SVC_STACK_TOP 0x82ce00
+#define CONFIG_BOOT_BLUE_SCREEN_STACK_SIZE 0x800
+
+/**
+ * bootloader SYS stack top address (8910)
+ */
+#define CONFIG_BOOT_SYS_STACK_TOP 0x810000
 
 /**
  * bootloader IRQ stack top address (8910)
  */
-#define CONFIG_BOOT_IRQ_STACK_TOP 0x82d000
+#define CONFIG_BOOT_IRQ_STACK_TOP 0x80f000
+
+/**
+ * bootloader blue screen stack top address (8910)
+ */
+#define CONFIG_BOOT_BLUE_SCREEN_STACK_TOP 0x80e800
+
+/**
+ * NORFDL stack size (8811)
+ */
+/* #undef CONFIG_NORFDL_STACK_SIZE */
 
 /**
  * whether to enable timer interrupt in bootloader (8910)
@@ -122,6 +129,16 @@
  * bootloader timer interval in milliseconds (8910)
  */
 /* #undef CONFIG_BOOT_TIMER_PERIOD */
+
+/**
+ * maximum FDL packet length
+ */
+#define CONFIG_FDL1_PACKET_MAX_LEN 0x840
+
+/**
+ * maximum FDL packet length
+ */
+#define CONFIG_FDL_PACKET_MAX_LEN 0x3000
 
 /**
  * fixed nv bin maximum size in bytes (8910, 8811)
@@ -137,5 +154,25 @@
  * FDL1, FDL2 default uart baud rate (8910)
  */
 #define CONFIG_FDL_UART_BAUD 921600
+
+/**
+ * Enable SMPL(Sudden Momentary Power Loss)(8910)
+ */
+/* #undef CONFIG_BOOT_SMPL_ENABLE */
+
+/**
+ * Set SMPL thimer threshold (8910)
+ */
+#define CONFIG_BOOT_SMPL_THRESHOLD 7
+
+/**
+ * Enable pbint 7s reset (8910)
+ */
+/* #undef CONFIG_BOOT_PB_7S_RESET_ENABLE */
+
+/**
+ * Enable UART download in bootloader through PDL protocol
+ */
+/* #undef CONFIG_BOOT_UART1_PDL_ENABLE */
 
 #endif

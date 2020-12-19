@@ -688,6 +688,23 @@ void vfs_umount_all(void);
  */
 void *vfs_fs_handle(const char *path);
 
+/**
+ * fs handle of mount point
+ *
+ * It can be used to determine whether a mount point is mounted.
+ *
+ * \param [in] path     mount point
+ * \return
+ *      - the file system implementation handler
+ */
+void *vfs_mount_handle(const char *path);
+
+
+/*»ñÈ¡fsµÄerrno*/
+int vfs_getErrno();
+
+
+
 #ifdef __cplusplus
 }
 #endif

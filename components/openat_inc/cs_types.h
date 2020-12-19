@@ -212,9 +212,6 @@ typedef  unsigned short ushort;
 #define sbyte						signed char
 #endif
 
-#ifndef ubyte
-#define ubyte 						unsigned char
-#endif
 
 typedef unsigned long ulong	;
 

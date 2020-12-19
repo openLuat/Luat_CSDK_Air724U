@@ -41,12 +41,17 @@ extern "C" {
 #define OSI_TIMER_IN_SERVICE ((osiThread_t *)0xffffffff)
 
 /**
+ * reserved event id to indicate nop
+ */
+#define OSI_EVENT_ID_NONE (0)
+
+/**
  * reserved event id to indicate quit event loop
  */
 #define OSI_EVENT_ID_QUIT (8)
 
 /**
- * elapsed timer for couting elapsed time
+ * elapsed timer for counting elapsed time
  */
 typedef uint32_t osiElapsedTimer_t;
 
@@ -239,6 +244,7 @@ typedef enum osiShutdownMode
 /*-\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
     OSI_SHUTDOWN_FORCE_DOWNLOAD = 0x5244, ///< 'RD' reset to force download mode
     OSI_SHUTDOWN_DOWNLOAD = 0x444e,       ///< 'DN' reset to download mode
+    OSI_SHUTDOWN_BL_DOWNLOAD = 0x4244,    ///< 'BD' reset to bootloader download mode
     OSI_SHUTDOWN_CALIB_MODE = 0x434c,     ///< 'CL' reset to calibration mode
     OSI_SHUTDOWN_NB_CALIB_MODE = 0x4e43,  ///< 'NC' reset to NB calibration mode
     OSI_SHUTDOWN_BBAT_MODE = 0x4241,      ///< 'BA' reset to BBAT mode
@@ -787,6 +793,18 @@ void osiThreadYield(void);
  * \param ms        sleep time in milliseconds
  */
 void osiThreadSleep(uint32_t ms);
+
+/**
+ * current thread sleep with high precision timer
+ *
+ * It won't use the underlay RTOS mechanism, rather it will use high
+ * precision timer.
+ *
+ * It will be used when high precision sleep time is needed.
+ *
+ * \param us        sleep time in microseconds
+ */
+void osiThreadSleepUS(uint32_t us);
 
 /**
  * current thread sleep with relaxed timeout
@@ -1338,6 +1356,7 @@ bool osiTimerSetEvent(osiTimer_t *timer, osiThread_t *thread, uint32_t timerid);
  * \param timer     the timer to be deleted
  */
 void osiTimerDelete(osiTimer_t *timer);
+void *osiTimerGetCbx(osiTimer_t *timer);
 /**
  * \brief change timer relaxed timeout for running timer
  *
@@ -1512,22 +1531,6 @@ bool osiTimerStart(osiTimer_t *timer, uint32_t ms);
 bool osiTimerStartRelaxed(osiTimer_t *timer, uint32_t ms, uint32_t relax_ms);
 
 /**
- * \brief start a timer with relaxed timeout, in unit of hardware tick
- *
- * **Don't** call this in application code. It is only for legacy codes.
- *
- * The frequency of hardware tick is chip dependent, and implementation dependent.
- *
- * \param timer     the timer to be started
- * \param ticks     normal timeout period in hardware tick
- * \param relax_ticks   relaxed timeout period in hardware tick
- * \return
- *      - true on success
- *      - false on invalid parameter
- */
-bool osiTimerStartHWTickRelaxed(osiTimer_t *timer, uint32_t ticks, uint32_t relax_ticks);
-
-/**
  * \brief start a timer, timeout in unit of microseconds
  *
  * Timeout in microseconds can support higher precision. However, the maximum
@@ -1557,7 +1560,7 @@ bool osiTimerStartMicrosecond(osiTimer_t *timer, uint32_t us);
  * It is the same as \p osiTimerStartPeriodicRelaxed, with \p relaxed_ms is 0.
  *
  * \param timer     the timer to be started
- * \param ms        interval in microseconds
+ * \param ms        interval in milliseconds
  * \return
  *      - true on success
  *      - false on invalid parameter
@@ -1572,7 +1575,7 @@ bool osiTimerStartPeriodic(osiTimer_t *timer, uint32_t ms);
  * Refer to \p osiTimerChangeRelaxed for explaination of \p relaxed_ms.
  *
  * \param timer     the timer to be started
- * \param ms        interval in microseconds
+ * \param ms        interval in milliseconds
  * \param relaxed_ms    relaxed timeout period
  * \return
  *      - true on success
@@ -1593,109 +1596,6 @@ bool osiTimerStartPeriodicRelaxed(osiTimer_t *timer, uint32_t ms, uint32_t relax
  *      - false on invalid parameter
  */
 bool osiTimerStop(osiTimer_t *timer);
-
-/**
- * \brief tickless light sleep for timer
- *
- * When OS tick is implemented in timer, \p idle_tick is the maximum
- * idle OS tick count (not hardware tick count) for sleep.
- *
- * The timer interrupt will be moved to minimum of:
- * * OS timer, after \p idle_tick
- * * other timers timeout time
- *
- * When there are no timers, timer interrupt will be disabled.
- *
- * The normal timeout time of timer, rather than the relaxed timeout
- * time of timer, will be used.
- *
- * When the timer interrupt is moved, it will return true. In that case,
- * the timer interrupt will be moved back after light sleep.
- *
- * \param idle_tick     OS tick sleep count
- * \return
- *      - true if timer interrupt is moved
- *      = false if timer interrupt is not moved
- */
-bool osiTimerLightSleep(uint32_t idle_tick);
-
-/**
- * \brief calculate the deep sleep time of all timers
- *
- * When OS tick is implemented in timer, \p idle_tick is the maximum
- * idle OS tick count (not hardware tick count) for sleep.
- *
- * When there are timers which will wakeup system, the return value is
- * the earliest timer wakeup time from now in milliseconds.
- *
- * When there are no timer will wakeup system, return \p INT64_MAX.
- *
- * The relaxed timeout time of timer, rather than the normal timeout
- * time, is used in checking sleep time.
- *
- * Usually, it will be called by system sleep module. And it is not
- * prohibited to be called in other cases.
- *
- * It **must** be called with interrupt disabled. The implementation
- * won't perform protection.
- *
- * \param idle_tick     OS tick sleep count
- * \return
- *      - the earliest sleep timer from now in milliseconds.
- *        \p INT64_MAX for no need to wakeup.
- */
-int64_t osiTimerDeepSleepTime(uint32_t idle_tick);
-
-/**
- * \brief calculate the PSM wakup time of all timers
- *
- * When OS tick is implemented in timer, OS tick is not considered.
- * That is, PSM wont't be waken by OS tick.
- *
- * The there are times which will wakeup system, the return value is
- * the earliest timer wakeup time in milliseconds.
- *
- * When there are no timer will wakeup system, return \p INT64_MAX.
- *
- * The relaxed timeout time of timer, rather than the normal timeout
- * time, is used in checking sleep time.
- *
- * It **must** be called with interrupt disabled. The implementation
- * won't perform protection.
- *
- * \return
- *      - the earliest wakeup timer from now in milliseconds.
- *        \p INT64_MAX for no need to wakeup.
- */
-int64_t osiTimerPsmWakeUpTime(void);
-
-/**
- * \brief timer module processing after wakeup
- *
- * In case \p osiUpHWTick will be discontinued at sleep, it should be called
- * after \p osiUpHWTick is stable.
- *
- * Usually, it will be called by system sleep module. And it is not
- * prohibited to be called in other cases.
- *
- * It **must** be called with interrupt disabled. The implementation
- * won't perform protection.
- */
-void osiTimerWakeupProcess(void);
-
-/**
- * \brief dump timer information to memory
- *
- * It is for debug only. The data format of timer information dump is
- * not stable, and may change. When the provided memory size is not
- * enough for all timers, some timers will be absent in dump.
- *
- * \param mem       memory for timer information dump
- * \param size      provided memory size
- * \return
- *      - dump memory size
- */
-int osiTimerDump(void *mem, unsigned size);
 
 /**
  * create a message queue
@@ -1910,6 +1810,12 @@ int64_t osiUpTime(void);
  */
 int64_t osiUpTimeUS(void);
 
+
+/*+\BUG3823\2020.12.8\zhuwangbin\OPENAT_get_system_tick获取的tick时间，改成关机后清零*/
+int64_t osiSystemTick(void);
+/*-\BUG3823\2020.12.8\zhuwangbin\OPENAT_get_system_tick获取的tick时间，改成关机后清零*/
+
+
 /**
  * \brief set monoclinic system time
  *
@@ -1921,7 +1827,7 @@ int64_t osiUpTimeUS(void);
  *
  * It should only be called in system integration.
  *
- * \param ms        target monoclinic system time in microseconds
+ * \param ms        target monoclinic system time in milliseconds
  */
 void osiSetUpTime(int64_t ms);
 
@@ -2024,31 +1930,6 @@ int64_t osiLocalTime(void);
 int64_t osiLocalSecond(void);
 
 /**
- * \brief monoclinic system hardware tick
- *
- * **Don't** call this in application code. It is only for legacy codes.
- *
- * The frequency of hardware tick is chip dependent, and implementation dependent.
- *
- * \return      monoclinic system hardware tick
- */
-int64_t osiUpHWTick(void);
-
-/**
- * \brief hardware tick count in 16384Hz
- *
- * The return value should be fulll 32bits value. That is, the next tick of
- * 0xffffffff will be 0. Then the simple substract will always provide the tick
- * delta.
- *
- * This is only for legacy codes. \p osiUpTime or \p osiUpTimeUS is recommended.
- * On some platform, it may be un-implemented.
- *
- * \return      hardware tick count
- */
-uint32_t osiHWTick16K(void);
-
-/**
  * \brief convert epoch time to up time
  *
  * When some values has special meanings, such as INT64_MAX means invalid or not
@@ -2060,7 +1941,7 @@ uint32_t osiHWTick16K(void);
 int64_t osiEpochToUpTime(int64_t epoch);
 
 /**
- * \brief start couting of elsapsed timer
+ * \brief start counting of elsapsed timer
  *
  * \param timer     elapsed timer, must be valid
  */
@@ -2249,32 +2130,6 @@ void osiPmWakeLock(osiPmSource_t *ps);
  * \param ps        PM source
  */
 void osiPmWakeUnlock(osiPmSource_t *ps);
-
-/**
- * \brief power management suspend
- *
- * Usually, it shouldn't be called directly by application. Rather, it will
- * be called after suspend criteria are met.
- */
-void osiPmSleep(uint32_t idle_tick);
-
-/**
- * \brief dump PM source information to memory
- *
- * It is for debug only. The data format of timer information dump is
- * not stable, and may change. Currently, there is 4 bytes header, and
- * 4 bytes for each PM source.
- *
- * Caller should make sure \p mem is enough for hold PM source information
- * of \p count.
- *
- * \param mem       memory for PM source information dump
- * \param count     maximum PM source count to be dump
- * \return
- *      - dump memory size
- *      - -1 if \p count is too small
- */
-int osiPmSourceDump(void *mem, int count);
 
 /**
  * \brief set 32K sleep flag
@@ -2526,9 +2381,19 @@ int osiPsmDataRestore(osiPsmDataOwner_t owner, void *buf, uint32_t size);
  * can't support debug event, and debug event output may be turned off
  * by compiling option.
  *
+ * It is possible that debughost may be blocked. And then debughost event
+ * sent will timeout.
+ *
+ * NOTE: Debug event output will take times. For example, when debug host
+ * baud rate is 921600, it may take up to 109us. And when debughost is
+ * blocked, it may take 200us for timeout.
+ *
  * \param event     word which will appear on trace tool
+ * \return
+ *      - true if the event is sent
+ *      - false if the event sent timeout
  */
-void osiDebugEvent(uint32_t event);
+bool osiDebugEvent(uint32_t event);
 
 /**
  * panic
@@ -2539,6 +2404,14 @@ void osiDebugEvent(uint32_t event);
  * and there are no compiling option to ignore it.
  */
 OSI_NO_RETURN void osiPanic(void);
+
+/**
+ * panic with specified address
+ *
+ * It is the same as \p osiPanic, except \p address is shown in log,
+ * rather than the return address of caller.
+ */
+OSI_NO_RETURN void osiPanicAt(void *address);
 
 /**
  * whether system is in panic mode
@@ -2553,6 +2426,29 @@ OSI_NO_RETURN void osiPanic(void);
  */
 bool osiIsPanic(void);
 
+/**
+ * register enter and polling callback at blue screen mode
+ *
+ * The maximum panic handler is pre-configured.
+ *
+ * \param enter         callback to be caled when entering panic mode
+ * \param poll          callback to be caled when during panic mode
+ * \param param         callback parameter
+ * \return
+ *      - true on success
+ *      - false on fail, invalid paramters or too many handlers
+ */
+bool osiRegisterBlueScreenHandler(osiCallback_t enter, osiCallback_t poll, void *param);
+
+/**
+ * optional assert
+ *
+ * It is a macro. When \p CONFIG_KERNEL_ASSERT_ENABLED is defined, it will
+ * panic when \p expect_true is not true. When \p CONFIG_KERNEL_ASSERT_ENABLED
+ * is not defined, it will be expanded as empty.
+ *
+ * \p info is just a remainder in source code. It won't be used.
+ */
 #ifdef CONFIG_KERNEL_ASSERT_ENABLED
 /*+\NEW\zhuwangbin\2020.4.2\添加AT*exinfo指令*/
 extern void osiPanicInfoFuncLineSet(const char *func, int line);
@@ -2605,14 +2501,6 @@ void osiDelayLoops(uint32_t count);
  *      - the return value of \p function
  */
 uint32_t osiCallWithStack(void *sp, void *function, uint32_t param0, uint32_t param1);
-
-#ifndef DOXYGEN
-// it is needed to place such definitions in a better place
-#define PM_TAG_ADI_BUS OSI_MAKE_TAG('A', 'D', 'I', 'B')
-#define PM_TAG_IOMUX OSI_MAKE_TAG('I', 'O', 'M', 'X')
-#define PM_TAG_GPIO OSI_MAKE_TAG('G', 'P', 'I', 'O')
-#define PM_TAG_AXI_DMA OSI_MAKE_TAG('A', 'D', 'M', 'A')
-#endif
 
 #ifdef __cplusplus
 }

@@ -30,6 +30,10 @@ HANDLE iot_os_create_task(
     HANDLE h = NULL;
     OPENAT_create_task(&h, pTaskEntry, pParameter, NULL, 
                 nStackSize, nPriority, nCreationFlags, 10, pTaskName);
+    if (h == NULL)
+    {
+        iot_debug_assert(0, __func__, __LINE__);
+    }
     return h;
 }
              

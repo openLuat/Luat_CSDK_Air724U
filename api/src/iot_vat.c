@@ -2,7 +2,7 @@
 #include "iot_debug.h"
 #include "iot_vat.h"
 #include "iot_os.h"
-
+#include "at_process.h"
 
 typedef struct UrcEntityQueueTag
 {

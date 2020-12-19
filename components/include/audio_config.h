@@ -41,6 +41,11 @@
 #define CONFIG_AUDIO_AMRWB_DEC_ENABLE
 
 /**
+ * whether SBC decoder enabled
+ */
+#define CONFIG_AUDIO_SBC_DEC_ENABLE
+
+/**
  * whether AMR-NB encoder enabled
  */
 #define CONFIG_AUDIO_AMRNB_ENC_ENABLE
@@ -49,5 +54,16 @@
  * whether AMR-WB encoder enabled
  */
 #define CONFIG_AUDIO_AMRWB_ENC_ENABLE
-
+#ifdef CONFIG_AUDIO_ENABLE
+/**
+ * whether ext i2s enable
+ */
+/* #undef CONFIG_AUDIO_EXT_I2S_ENABLE */
+#endif
+#ifdef CONFIG_AUDIO_ENABLE
+/**
+ * whether customer config audio ipc trigger mode enable
+ */
+/* #undef CONFIG_AUDIO_IPC_SET_TRIGGER_MODE_ENABLE */
+#endif
 #endif

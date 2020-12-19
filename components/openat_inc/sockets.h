@@ -201,6 +201,7 @@ int CFW_TcpipSocketSend(SOCKET nSocket, uint8_t *pData, uint16_t nDataSize, uint
 uint32_t CFW_TcpipSocketRecv(SOCKET nSocket, uint8_t *pData, uint16_t nDataSize, uint32_t nFlags);
 int CFW_TcpipSocketClose(SOCKET nSocket);
 uint32_t CFW_TcpipSocketShutdownOutput(SOCKET nSocket, int how);
+uint32_t CFW_TcpipSocketIoctl(SOCKET nSocket, int cmd, void *argp);
 uint32_t CFW_TcpipSocketSendto(SOCKET nSocket, void *pData, uint16_t nDataSize, uint32_t nFlags, CFW_TCPIP_SOCKET_ADDR *to, int tolen);
 uint32_t CFW_TcpipSocketRecvfrom(SOCKET nSocket, void *pMem, int nLen, uint32_t nFlags, CFW_TCPIP_SOCKET_ADDR *from, int *fromlen);
 uint32_t CFW_TcpipSocketBind(SOCKET nSocket, CFW_TCPIP_SOCKET_ADDR *pName, uint8_t nNameLen);
@@ -231,7 +232,8 @@ void CFW_SntpStop(CFW_SNTP_CONFIG *sntpconfig);
 #define LWIP_DATA 1
 #define PPP_DATA 2
 #define RNDIS_DATA 3
-bool CFW_get_Netif_dataCount(uint16_t simID, uint16_t CID, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
+bool CFW_get_Netif_dataCount(struct netif *netif, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
+bool CFW_get_Netif_dataCountBySimCid(uint16_t simID, uint16_t CID, uint16_t uType, uint16_t uDataType, uint32_t *loadsize);
 
 #if LWIP_IPV4
 #define IP4ADDR_PORT_TO_SOCKADDR(sin, ipaddr, port)       \

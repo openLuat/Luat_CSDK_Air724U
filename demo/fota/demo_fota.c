@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "at_process.h"
-#include "at_tok.h"
 #include "iot_sys.h"
 #include "iot_os.h"
 #include "iot_debug.h"
@@ -35,108 +33,19 @@ typedef struct {
 }DEMO_OTA_MESSAGE;
 
 static HANDLE g_s_ota_task;
+static char g_imei[16] = {0};
+static char g_version[6] = {0};
 
 #define AM_FOTA_URL_LEN 	420
 #define PRODUCT_KEY  		"T8epEmhBsH63HmmUwoEEE9n8aJoSwU7K"
 
-static bool gsmGetIMEI(char* imeiOut)
-{
-    int err;
-    ATResponse *p_response = NULL;
-    char* line = NULL;
-    //UINT8 index = 0;
-    bool result = FALSE;
-    if(!imeiOut)
-    {
-      return result;
-    }
-
-    err = at_send_command_numeric("AT+GSN", &p_response);
-    if (err < 0 || p_response->success == 0){
-      result = FALSE;
-      goto end;
-    }
-
-    line = p_response->p_intermediates->line;
-
-    {
-      strcpy(imeiOut,line);
-    }
-    result = TRUE;
-  end:
-    at_response_free(p_response);
-    return result;
-
-}
-
-static bool gsmGetVER(char* ver)
-{
-    int err;
-    ATResponse *p_response = NULL;
-    bool result = FALSE;
-	char* out;
-	char* p = NULL;
-	u8 cout = 0, num = 0;
-    if(!ver)
-    {
-      return result;
-    }
-
-    err = at_send_command_multiline("AT+CGMR", "+CGMR:", &p_response);
-    if (err < 0 || p_response->success == 0){
-      result = FALSE;
-      goto end;
-    }
-	char* line = p_response->p_intermediates->line; 
-    err = at_tok_start(&line);
-	if (err < 0)
-        goto end;
-	
-	err = at_tok_nextstr(&line, &out);;
-	if (err < 0)
-    	goto end;
-    {
-    	p = out;
-      	while(p++)
-		{
-			if(*p == '_')
-			{
-				cout++;
-				p++;
-			}
-			if(*p == 'V')
-			{
-				p++;
-			}
-			if(cout == 2)
-				break;
-			if(cout == 1)
-			{
-				ver[num++] = *p;
-			}
-      	}
-    }
-    result = TRUE;
-  end:
-    at_response_free(p_response);
-    return result;
-
-}
+static VOID demo_ota_getinfo(VOID);
 
 static VOID demo_ota_url(char* url, int len)
 {
-	
-	char g_imei[16] = {0};
-	char g_version[6] = {0};
-	if(FALSE == gsmGetVER(g_version))
+	while((strlen(g_imei) == 0) || (strlen(g_version) == 0))
 	{
-		iot_debug_print("[ota]gsmGetVER faild");
-		return;
-	}
-	if(FALSE == gsmGetIMEI(g_imei))
-	{
-		iot_debug_print("[ota]gsmGetIMEI faild");
-		return;
+		iot_os_sleep(1000);
 	}
 	snprintf(url, len, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&firmware_name=%s_CSDK_RDA8910&core_version=%s&dfota=1&version=%s",
 			PRODUCT_KEY,
@@ -312,6 +221,7 @@ static void demo_network_connetck(void)
 
 }
 
+
 static void demo_ota_task(PVOID pParameter)
 {
     DEMO_OTA_MESSAGE*    msg;
@@ -326,6 +236,7 @@ static void demo_ota_task(PVOID pParameter)
         {
             case DEMO_OTA_MSG_NETWORK_READY:
                 iot_debug_print("[ota] network connecting....");
+			    demo_ota_getinfo();
                 demo_network_connetck();
                 break;
             case DEMO_OTA_MSG_NETWORK_LINKED:
@@ -374,6 +285,116 @@ static void demo_otaworkIndCallBack(E_OPENAT_NETWORK_STATE state)
         return;
     }
     iot_os_free(msgptr);
+}
+
+static AtCmdRsp demo_ota_getimei(char *pRspStr)
+{
+	iot_debug_print("[ota]demo_ota_getimei");
+    AtCmdRsp  rspValue = AT_RSP_WAIT;
+    char *rspStrTable[ ] = {"+CME ERROR","+WIMEI: ", "OK"};
+    s16  rspType = -1;
+    char imei[16] = {0};
+    u8  i = 0;
+    char *p = pRspStr + 2;
+    for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
+    {
+        if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
+        {
+            rspType = i;
+            if (rspType == 1){
+				strncpy(imei,p+strlen(rspStrTable[i]),15);
+				strncpy(g_imei, imei, 15);
+            }
+            break;
+        }
+    }
+    switch (rspType)
+    {
+        case 0:  /* ERROR */
+        rspValue = AT_RSP_ERROR;
+        break;
+
+        case 1:  /* +wimei */
+        rspValue  = AT_RSP_WAIT;
+        break;
+
+		case 2:  /* OK */
+        rspValue  = AT_RSP_CONTINUE;
+        break;
+
+        default:
+        break;
+    }
+    return rspValue;
+}
+static AtCmdRsp demo_ota_getversion(char *pRspStr)
+{
+	iot_debug_print("[ota]demo_ota_getversion");
+    AtCmdRsp  rspValue = AT_RSP_WAIT;
+    char *rspStrTable[ ] = {"ERROR","CSDK", "OK"};
+    s16  rspType = -1;
+    char version[6] = {0};
+    u8  i = 0, cout = 0, num = 0;
+    char *p = pRspStr + 2;
+    for (i = 0; i < sizeof(rspStrTable) / sizeof(rspStrTable[0]); i++)
+    {
+        if (!strncmp(rspStrTable[i], p, strlen(rspStrTable[i])))
+        {
+            rspType = i;
+            if (rspType == 1){
+				while(p++)
+				{
+					if(*p == '_')
+					{
+						cout++;
+						p++;
+					}
+					if(*p == 'V')
+					{
+						p++;
+					}
+					if(cout == 2)
+						break;
+					if(cout == 1)
+					{
+						version[num++] = *p;
+					}
+				}
+				strncpy(g_version, (version), (strlen(version)));
+				iot_debug_print("[ota]demo_ota_getversion g_version: %s", g_version);
+            }
+            break;
+        }
+    }
+    switch (rspType)
+    {
+        case 0:  /* ERROR */
+        rspValue = AT_RSP_ERROR;
+        break;
+
+        case 1:  /* version */
+        	rspValue  = AT_RSP_WAIT;
+        break;
+		
+		case 2: /* OK */
+			rspValue  = AT_RSP_CONTINUE;
+		break;
+
+        default:
+        break;
+    }
+    return rspValue;
+}
+
+
+static VOID demo_ota_getinfo(VOID)
+{
+	AtCmdEntity atCmdInit[]={
+		{AT_CMD_DELAY"2000",10,NULL},
+		{"AT+VER"AT_CMD_END, 8, demo_ota_getversion},
+		{"AT+WIMEI?"AT_CMD_END,11,demo_ota_getimei},
+	};
+	iot_vat_push_cmd(atCmdInit,sizeof(atCmdInit) / sizeof(atCmdInit[0]));
 }
 
 int appimg_enter(void *param)

@@ -60,4 +60,19 @@
  */
 #define LOG_TAG_SRV OSI_MAKE_LOG_TAG('S', 'E', 'R', 'V')
 
+/**
+ * whether to enable simlock service
+ */
+/* #undef CONFIG_SRV_SIMLOCK_ENABLE */
+
+/**
+ * minimal power on voltage
+ */
+#define CONFIG_SRV_POWER_ON_VOLTAGE 3400
+
+/**
+ * power off voltage threshold
+ */
+#define CONFIG_SRV_POWER_OFF_VOLTAGE 3250
+
 #endif

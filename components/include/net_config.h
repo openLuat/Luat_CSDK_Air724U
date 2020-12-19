@@ -15,10 +15,10 @@
 
 // Auto generated. Don't edit it manually!
 
-#define CONFIG_NET_LWIP_DEBUG
+/* #undef CONFIG_NET_LWIP_DEBUG */
 #define CONFIG_NET_TCPIP_SUPPORT
 #define CONFIG_NET_LWIP_IPV4_ON
-#define CONFIG_NET_LWIP_PPP_ON
+/* #undef CONFIG_NET_LWIP_PPP_ON */
 #define CONFIG_NET_LOG_BUF_COUNT 2
 #define CONFIG_NET_LOG_BUF_SIZE 8192
 

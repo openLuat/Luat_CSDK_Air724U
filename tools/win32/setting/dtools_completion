@@ -13,8 +13,9 @@
 
 __dtools_complete() {
     if [[ "1" -eq "$COMP_CWORD" ]]; then
-        local cmdlist=$($1 cmdlist)
-        COMPREPLY=($(compgen -W "$cmdlist" -- "${COMP_WORDS[COMP_CWORD]}"))
+        local _program=$1
+        local _cmdlist=$(${_program/\~/$HOME} cmdlist)
+        COMPREPLY=($(compgen -W "$_cmdlist" -- "${COMP_WORDS[COMP_CWORD]}"))
         return
     fi
 }

@@ -20,6 +20,9 @@ if(CONFIG_BUILD_APP_SSL)
     add_subdirectory_if_exist(ssl)
 endif()
 
+if(CONFIG_BUILD_APP_MBEDTLS)
+	add_subdirectory_if_exist(mbedtls)
+endif()
 if(CONFIG_BUILD_APP_FTP)
     add_subdirectory_if_exist(ftp)
 endif()
@@ -47,4 +50,5 @@ endif()
 if(CONFIG_BUILD_APP_AT_ENGINE)
     add_subdirectory_if_exist(at_engine)
 endif()
+
 #/*-\ADD\chenzhimin\2020.07.9\ */

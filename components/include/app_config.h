@@ -43,6 +43,7 @@
  */
 /* #undef CONFIG_APP_SSIM_SUPPORT */
 
+
 /* #undef CONFIG_BUILD_AT */
 
 /*
@@ -50,7 +51,9 @@
 */
 /* #undef CONFIG_POC_SUPPORT */
 
-
+/*
+*\NEW zhuwangbin 2020.9.11 add DONGLIAN
+*/
 /* #undef CONFIG_USER_DONGLIAN_SUPPORT */
 
 
@@ -61,5 +64,10 @@
 /* #undef CONFIG_BUILD_LUA_FLOAT */
 /*-new\rww\2020.4.30\lua tts float空间不足*/
 
+
+/**
+ * Whether to reuse at uart at blue screen
+ */
+#define CONFIG_ATR_UART_BLUE_SCREEN_DEBUG
 
 #endif

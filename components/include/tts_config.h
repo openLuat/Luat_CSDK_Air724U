@@ -17,6 +17,8 @@
 
 #define LOG_TAG_TTS OSI_MAKE_LOG_TAG('T', 'T', 'S', ' ')
 
+/* #undef CONFIG_TTS_RESOURCE_8K_SUPPORT */
+
 /**
  * Whether TTS player is supported
  */

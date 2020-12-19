@@ -128,14 +128,15 @@ INT32 iot_fs_get_current_dir(
                         );
 
 /**获取文件系统信息
-*@param		devName:	查找文件句柄
+*@param		path:	文件系统的根目录
 *@param		fileInfo:	文件系统信息
-*@return	INT32 	返回值小于0表示失败,其余成功
+*@return	INT32 返回值小于0表示失败,其余成功
 **/
 INT32 iot_fs_get_fs_info(                         
-                        E_AMOPENAT_FILE_DEVICE_NAME       devName,         
+                        char       *path,         
                         T_AMOPENAT_FILE_INFO               *fileInfo                 
                    );
+
 
 /**获取文件大小接口
 *@param	   pszFileNameUniLe:   文件全路径名称
@@ -172,6 +173,50 @@ INT32 iot_fs_find_next(
 INT32 iot_fs_find_close(
      INT32 iFd
 );
+
+/**文件定位接口
+*@param 	iFd:		文件句柄，open_file 或 create_file 返回的
+*@return	INT32:		返回文件的偏移量
+**/
+INT32 iot_fs_ftell(    
+							INT32 iFd			
+					  );
+
+
+/**mount用户自己的文件系统
+*@param	param  文件系统配置结构体
+*@note		path: 文件系统根目录,
+*@note      offset; flash 地址偏移量
+*@note		size: 文件系统大小
+*@note		exFlash: 是否是外部flash
+*@note		注:path以/开头,长度需要大于等于5 例如"/APP1"
+*@note      支持的flash型号
+			XT25W32B	0x16600b
+			XT25W64B	0x17600b
+			XM25QU64A	0x173820
+			XM25QU64B	0x175020
+			XM25QU32C	0x165020
+			XM25QU16C	0x155020
+			P25Q64H		0x176085
+			GD25LE64E	0x1760c8
+			GD25LQ128C	0x1860c8
+			W25Q64JV	0x1740ef
+			GD25Q127C	0x1840c8
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/ 
+BOOL iot_fs_mount(T_AMOPENAT_USER_FSMOUNT * param);
+
+/**unmount用户自己的文件系统
+*@param	param  文件系统配置结构体
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/ 
+BOOL iot_fs_unmount(T_AMOPENAT_USER_FSMOUNT * param);
+
+/**unmount用户自己的文件系统
+*@param	param  文件系统配置结构体
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/
+BOOL iot_fs_format(T_AMOPENAT_USER_FSMOUNT * param);
 
 /** @}*/
 

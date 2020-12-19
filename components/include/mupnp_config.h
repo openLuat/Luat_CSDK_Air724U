@@ -13,7 +13,7 @@
 #ifndef _MUPNP_CONFIG_H_
 #define _MUPNP_CONFIG_H_
 
-#define CONFIG_MUPNP_USE_OPENSSL
+/* #undef CONFIG_MUPNP_USE_OPENSSL */
 
 
 #endif

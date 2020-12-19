@@ -39,8 +39,9 @@ typedef struct
 }T_AMOPENAT_DECODE_INPUT_PARAM;
 
 INT32 OPENAT_ImgsDecodeJpeg(UINT8 * buffer, UINT32 len, T_AMOPENAT_IMAGE_INFO *imageinfo);
-INT32 OPENAT_ImgsDecodeJpegBuffer(CONST char * buffer, T_AMOPENAT_IMAGE_INFO *imageinfo);
-INT32 OPENAT_ImgsFreeJpegDecodedata(UINT16* buffer);
+/*+\BUG\wangyuan\2020.09.11\适配OPENAT_ImgsFreeJpegDecodedata接口*/
+INT32 OPENAT_ImgsFreeJpegDecodedata(T_AMOPENAT_IMAGE_INFO *imageinfo);
+/*-\BUG\wangyuan\2020.09.11\适配OPENAT_ImgsFreeJpegDecodedata接口*/
 INT32 OPENAT_ImgsEncodeJpegBuffer(
           T_AMOPENAT_DECODE_INPUT_PARAM *inputParam,
           UINT8    *outBuffer,

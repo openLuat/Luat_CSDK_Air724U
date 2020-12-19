@@ -164,6 +164,43 @@ enum
 #define OSI_TRACE(trcid, fmt, ...) __OSI_TRACE(trcid, fmt, ##__VA_ARGS__)
 #define OSI_TRACEX(partype, trcid, fmt, ...) __OSI_TRACEX(partype, trcid, fmt, ##__VA_ARGS__)
 
+#define OSI_NAS_TRACE(category, fmtid, fmt, ...) OSI_PUB_TRACE(TRA_NAS, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NAS_TRACEX(category, partype, fmtid, fmt, ...) OSI_PUB_TRACEX(TRA_NAS, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NAS_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_PUB_TRACEX(TRA_NAS, TRA_S1, OSI_LOGPAR_SIM, 0x10007460, "nas_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_NASU_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_NASU, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NASU_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_NASU, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NASU_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_NAS, TRA_S1, OSI_LOGPAR_SIM, 0x10007461, "rab_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_ERRC_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_ERRC, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ERRC_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_ERRC, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ERRC_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_ERRC, TRA_S1, OSI_LOGPAR_SIM, 0x10007462, "errc_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_LPP_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_LPP, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_LPP_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_LPP, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_LPP_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_LPP, TRA_S1, OSI_LOGPAR_SIM, 0x10007463, "lpp_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_EPDC_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_EPDC, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_EPDC_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_EPDC, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_EPDC_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_EPDC, TRA_S1, OSI_LOGPAR_SIM, 0x10007464, "epdc_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_ROHC_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_ROHC, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ROHC_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_ROHC, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ROHC_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_ROHC, TRA_S1, OSI_LOGPAR_SIM, 0x10007465, "rohc_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_ERLC_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_ERLC, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ERLC_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_ERLC, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_ERLC_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_ERLC, TRA_S1, OSI_LOGPAR_SIM, 0x10007466, "erlc_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_EMAC_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_EMAC, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_EMAC_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_EMAC, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_EMAC_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_EMAC, TRA_S1, OSI_LOGPAR_SIM, 0x10007467, "emac_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+#define OSI_NL1C_TRACE(category, fmtid, fmt, ...) OSI_LTE_TRACE(TRA_NL1C, category, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NL1C_TRACEX(category, partype, fmtid, fmt, ...) OSI_LTE_TRACEX(TRA_NL1C, category, partype, fmtid, fmt, ##__VA_ARGS__)
+#define OSI_NL1C_TRACE_DUMP(hint_info, dataLen, data) \
+    OSI_LTE_TRACEX(TRA_NL1C, TRA_S1, OSI_LOGPAR_SIM, 0x10007468, "nl1c_dump_%s(%d bytes): %*s", hint_info, (dataLen), (dataLen), (data))
+
 /**
  * \brief trace vprintf by parsing format string
  *

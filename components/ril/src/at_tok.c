@@ -51,7 +51,7 @@ static void skipWhiteSpace(char **p_cur)
 {
     if (*p_cur == NULL) return;
 
-    while (**p_cur != '\0' && isspace(**p_cur)) {
+    while (**p_cur != '\0' && ril_isspace(**p_cur)) {
         (*p_cur)++;
     }
 }
@@ -103,9 +103,7 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
     if (*p_cur == NULL) {
         return -1;
     }
-
     ret = nextTok(p_cur);
-
     if (ret == NULL) {
         return -1;
     } else {

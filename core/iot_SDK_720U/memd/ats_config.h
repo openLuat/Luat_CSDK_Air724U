@@ -20,7 +20,7 @@
 
 #define GMI_ID "CSDK"
 #define GMM_ID "CSDK_720U"
-#define GMR_ID "CSDK_V1678_RDA8910"
+#define GMR_ID "CSDK_V301819_RDA8910"
 
 /**
  * Whether to support coap AT commands
@@ -33,9 +33,19 @@
 /* #undef CONFIG_AT_HTTP_SUPPORT */
 
 /**
+ * Whether to support alic AT commands
+ */
+/* #undef CONFIG_AT_ALIC_SUPPORT */
+
+/**
  * Whether to support ftp client AT commands
  */
 /* #undef CONFIG_AT_FTP_SUPPORT */
+
+/**
+  * Whether to support (refactored) ftp client AT commands
+ */
+#define CONFIG_AT_NEWFTP_SUPPORT
 
 /**
  * Whether to support MYNET AT commands
@@ -70,6 +80,21 @@
 /* #undef CONFIG_AT_DM_LWM2M_SUPPORT */
 
 /**
+ * whether to support oceanconnect AT commands
+ */
+/* #undef CONFIG_AT_OCEANCONNECT_SUPPORT */
+
+/**
+ * whether to support MQTT (based on lwIP) AT commands
+ */
+/* #undef CONFIG_AT_LWIP_MQTT_SUPPORT */
+
+/**
+ * whether to support MQTT (based on paho) AT commands
+ */
+/* #undef CONFIG_AT_PAHO_MQTT_SUPPORT */
+
+/**
  * whether to support AT commands for memory size
  */
 #define CONFIG_AT_EMMCDDRSIZE_SUPPORT
@@ -87,13 +112,55 @@
  */
 #define CONFIG_AT_GLOBAL_APN_SUPPORT
 
+
 /*+\new\task_183\rww\2020.4.1\添加libat版本号*/
 /* #undef CONFIG_BUILD_AT */
 
 #ifdef CONFIG_BUILD_AT
 #define LIBAT_ID ""
+
+/**
+ * whether some bt test at command can be used
+ */
+/* #undef CONFIG_AT_BTCOMM_SUPPORT */
+
+/**
+ * whether some bt test at command can be used
+ */
+/* #undef CONFIG_AT_SPBLE_SUPPORT */
+
+/**
+ * whether some bt test at command can be used
+ */
+/* #undef CONFIG_AT_SPBTTEST_SUPPORT */
+
+/**
+ * whether some bt basic at command can be used
+ */
+/* #undef CONFIG_AT_BT_CLASSIC_SUPPORT */
+
+/**
+ * whether some wifi basic at command can be used
+ */
+/* #undef CONFIG_AT_WIFISCAN_SUPPORT */
+
+/**
+ * whether wifi sensitivity test command can be used
+ */
+/* #undef CONFIG_AT_WIFI_SENSITIVITY_TEST_SUPPORT */
+
 #endif
 /*-\new\task_183\rww\2020.4.1\添加libat版本号*/
+
+/**
+ * whether some blueu verify at command can be used
+ */
+/* #undef CONFIG_AT_BLUEU_VERIFY_SUPPORT */
+
+/**
+ * whether some bt app at command can be used
+ */
+/* #undef CONFIG_AT_BT_APP_SUPPORT */
 
 /**+\new\zhuwangbin\2020.5.26\添加mqtt 3GPP宏控制mqtt 3GPP的at指令，方便裁剪 **/
 #define CONFIG_ATR_MQTT_SUPPORT
