@@ -1,0 +1,7 @@
+if(CONFIG_APPIMG_LOAD_FLASH)
+add_appimg(${target} ${flash_ldscript} demo_bluetooth_slave.c)    
+#add_appimg(${target} ${flash_ldscript} demo_bluetooth_master.c) 
+elseif(CONFIG_APPIMG_LOAD_FILE)
+add_appimg(${target} ${file_ldscript} demo_bluetooth_slave.c)
+#add_appimg(${target} ${file_ldscript} demo_bluetooth_master.c)
+endif()
