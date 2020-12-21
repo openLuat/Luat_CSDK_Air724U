@@ -9,69 +9,69 @@
             "plain_file": [
                 {
                     "file": "mem_index_list",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\memory_index_list.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\memory_index_list.bin"
                 },
                 {
                     "file": "nvm\\static_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\static_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\static_nv.bin"
                 },
                 {
                     "file": "nvm\\phy_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\phy_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\phy_nv.bin"
                 },
                 {
                     "file": "nvm\\dynamic_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\dynamic_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\dynamic_nv.bin"
                 },
                 {
                     "file": "nvm\\rf_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\rf_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\rf_nv.bin"
                 },
                 {
                     "file": "nvm\\cfw_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\cfw_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\cfw_nv.bin"
                 },
                 {
                     "file": "nvm\\audio_calib.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\audio_calib.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\audio_calib.bin"
                 },
                 {
                     "file": "nvm\\audio_codec_nv.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\audio_codec_nv.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\audio_codec_nv.bin"
                 },
                 {
                     "file": "nvm\\bt_sprd.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\bt_sprd.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\bt_sprd.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_customize_data.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_customize_data.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_customize_data.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_user_data.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_user_data.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_user_data.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_control_key.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_control_key.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\nvbin\\sim_lock_control_key.bin"
                 }
             ],
             "lzma3_file": [
                 {
                     "file": "cp.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\cp.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\cp.bin"
                 },
                 {
                     "file": "riscV.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\riscV.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\riscV.bin"
                 },
                 {
                     "file": "zsp.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\zsp.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\zsp.bin"
                 },
                 {
                     "file": "bcpu_gsm.bin",
-                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\bcpu_gsm.bin"
+                    "local_file": "Z:/RDA8910/V1.3/Main/out/8915DM_cat1_CSDK_BT_TTS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_NoVolte_cus\\cpbin\\bcpu_gsm.bin"
                 }
             ]
         }
