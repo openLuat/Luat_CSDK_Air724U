@@ -18,6 +18,6 @@
 /*
  * enable blueu bt stack
  */
-#define CONFIG_BLUEU_BT_ENABLE
+/* #undef CONFIG_BLUEU_BT_ENABLE */
 
 #endif

@@ -229,12 +229,12 @@
 #define CONFIG_APP_FLASH_ADDRESS 0x60010000
 
 /*+\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
-#define CONFIG_APPIMG_FLASH_OFFSET 0x180000
+#define CONFIG_APPIMG_FLASH_OFFSET 0x1b0000
 /*-\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
 /**
  * reserved NOR flash size for application
  */
-#define CONFIG_APP_FLASH_SIZE 0x170000
+#define CONFIG_APP_FLASH_SIZE 0x1A0000
 
 /**
  * external NOR flash physical address of application
@@ -249,22 +249,22 @@
 /**
  * NOR flash address of loadable app image
  */
-#define CONFIG_APPIMG_FLASH_ADDRESS 0x60180000
+#define CONFIG_APPIMG_FLASH_ADDRESS 0x601B0000
 
 /**
  * reserved NOR flash size for loadable app image
  */
-#define CONFIG_APPIMG_FLASH_SIZE 0x180000
+#define CONFIG_APPIMG_FLASH_SIZE 0x190000
 
 /**
  * NOR flash address of system file system
  *
  * The mount point of system file system is \p CONFIG_FS_SYS_MOUNT_POINT.
  */
-#define CONFIG_FS_SYS_FLASH_ADDRESS 0x60300000
+#define CONFIG_FS_SYS_FLASH_ADDRESS 0x60340000
 
 /*+\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
-#define CONFIG_FS_SYS_FLASH_OFFSET 0x300000
+#define CONFIG_FS_SYS_FLASH_OFFSET 0x340000
 /*-\NEW\zhuwangbin\2020.8.15\兼容1.2V, offset未定义导致CSDK无法升级问题*/
 
 /*+\new\wangjian\2020.8.24\下载lua固件和lua脚本失败*/
@@ -273,19 +273,19 @@
 /**
  * reserved NOR flash size for system file system
  */
-#define CONFIG_FS_SYS_FLASH_SIZE 0x260000
+#define CONFIG_FS_SYS_FLASH_SIZE 0x160000
 
 /**
  * NOR flash address of modem image file system
  *
  * The mount point of modem image file system is \p CONFIG_FS_MODEM_MOUNT_POINT.
  */
-#define CONFIG_FS_MODEM_FLASH_ADDRESS 0x60560000
+#define CONFIG_FS_MODEM_FLASH_ADDRESS 0x604a0000
 
 /**
  * reserved NOR flash size for modem image file system
  */
-#define CONFIG_FS_MODEM_FLASH_SIZE 0x280000
+#define CONFIG_FS_MODEM_FLASH_SIZE 0x340000
 
 /**
  * NOR flash address of factory file system
@@ -394,14 +394,14 @@
 /**
  * PSRAM or DDR offset for application
  */
-#define CONFIG_APP_RAM_OFFSET 0x980000
+#define CONFIG_APP_RAM_OFFSET 0xC00000
 
 /**
  * PSRAM or DDR total size for application
  *
  * When loadable app image is support, the reserved RAM are included inside.
  */
-#define CONFIG_APP_TOTAL_RAM_SIZE 0x680000
+#define CONFIG_APP_TOTAL_RAM_SIZE 0x400000
 
 /**
  * PSRAM or DDR size for application
@@ -409,7 +409,7 @@
  * This is the total size, minus various reserved size, for example loadable
  * app image reserved size.
  */
-#define CONFIG_APP_RAM_SIZE 0x580000
+#define CONFIG_APP_RAM_SIZE 0x300000
 
 /**
  * PSRAM or DDR offset for app image from NOR flash
