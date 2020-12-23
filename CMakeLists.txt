@@ -62,7 +62,7 @@ if(DEFINED ENV{FOTA_FLAG})
 	message("${FOTA_FLAG}=${FOTA_TYPE}")
 endif()
 
-#select core_type  0=iot_SDK_720U 1:iot_SDK_720U_TTS 2:iot_SDK_720U_VOLTE
+#select core_type  0=iot_SDK_720U 1:iot_SDK_720U_BT_TTS 2:iot_SDK_720U_BT_TTS_VOLTE
 if(DEFINED ENV{AM_MODEL})
 	set(AM_MODEL $ENV{AM_MODEL})
 	if ((${AM_MODEL} STREQUAL  "iot_SDK_720U"))
@@ -103,7 +103,7 @@ if(DEFINED ENV{AM_MODEL})
 		#/*-\new\czm\2020.9.21\bug:3136  新案（板牙） CSDK 需求 内存剩余空间 裁剪到 5M左右的版本*/
 	elseif((${AM_MODEL} STREQUAL  "iot_SDK_720U_BT_TTS_VOLTE"))
 		message("core/iot_SDK_720U_BT_TTS_VOLTE")
-		set(core_type 1)
+		set(core_type 2)
 		add_definitions(-DTTS_ENABLE)
 		include(${CMAKE_SOURCE_DIR}/core/${AM_MODEL}/memd/version.cmake)
 		set(core_name CSDK_RDA8910_BT_TTS_VOLTE)
@@ -118,25 +118,8 @@ if(DEFINED ENV{AM_MODEL})
 		#/*+\new\czm\2020.9.21\bug:3136  新案（板牙） CSDK 需求 内存剩余空间 裁剪到 5M左右的版本*/
         set(UIS8915DM_cus_name "cat1_UIS8915DM_BB_RF_SS_cus")
 		#/*-\new\czm\2020.9.21\bug:3136  新案（板牙） CSDK 需求 内存剩余空间 裁剪到 5M左右的版本*/
-	elseif((${AM_MODEL} STREQUAL  "iot_SDK_720U_VOLTE"))
-		message("core/iot_SDK_720U_VOLTE")
-		set(core_type 2)
-		add_definitions(-DTTS_ENABLE)
-		include(${CMAKE_SOURCE_DIR}/core/${AM_MODEL}/memd/version.cmake)
-		set(core_name CSDK_RDA8910_VOLTE)
-		set(core_vername CSDK_${CORE_VER}_RDA8910_VOLTE)
-		set(core_bin_dir ${CMAKE_SOURCE_DIR}/core/iot_SDK_720U_VOLTE)
-		set(core_stub_o ${core_bin_dir}/lib/core_stub.o)
-		include(${core_bin_dir}/memd/core_config.cmake)
-		include(${core_bin_dir}/memd//partinfo.cmake)
-		include_directories(${core_bin_dir}/memd)
-        set(csdk_target Air720U_CSDK_VOLTE_demo_${CSDK_PRO})
-		set(APP_IMG_NAME "8915DM_cat1_CSDK_VOLTE")
-		#/*+\new\czm\2020.9.21\bug:3136  新案（板牙） CSDK 需求 内存剩余空间 裁剪到 5M左右的版本*/
-        set(UIS8915DM_cus_name "cat1_UIS8915DM_BB_RF_SS_cus")
-		#/*+\new\czm\2020.9.21\bug:3136  新案（板牙） CSDK 需求 内存剩余空间 裁剪到 5M左右的版本*/
 	else()
-		message(FATAL_ERROR "AM_MODEL: ${AM_MODEL} != iot_SDK_720U or iot_SDK_720U_BT_TTS or iot_SDK_720U_BT_TTS_VOLTE or iot_SDK_720U_VOLTE")
+		message(FATAL_ERROR "AM_MODEL: ${AM_MODEL} != iot_SDK_720U or iot_SDK_720U_BT_TTS or iot_SDK_720U_BT_TTS_VOLTE")
 	endif()
 endif()
 
