@@ -21,10 +21,10 @@
 typedef struct 
 {
     unsigned char id;         ///< event identifier
-    char state;      ///< 返回状态
-    UINT8 len;
-    unsigned char * dataPtr;    ///< 返回的数据指针
-    UINT16 uuid;   ///characteristic
+    char state;               ///< 返回状态
+    UINT8 len;                ///< 返回的数据长度
+    unsigned char * dataPtr;  ///< 返回的数据指针
+    UINT16 uuid;   
     UINT16 handle;
     UINT8 long_uuid[16];
     UINT8 uuid_flag;
@@ -32,8 +32,8 @@ typedef struct
 
 typedef struct 
 {
-   UINT8 AdvMin;            ///< 最小广播间隔
-   UINT8 AdvMax;            ///< 最大广播间隔
+   UINT16 AdvMin;            ///< 最小广播间隔
+   UINT16 AdvMax;            ///< 最大广播间隔
    UINT8 AdvType;           ///< 广播类型
    UINT8 OwnAddrType;       ///< 广播本地地址类型
    UINT8 DirectAddrType;    ///< 定向地址类型
@@ -42,6 +42,14 @@ typedef struct
    UINT8 AdvFilter;         ///< 广播过滤策略
 }T_OPENAT_BLE_ADV_PARAM;
 
+typedef struct 
+{
+    UINT8 scanType;        //  扫描类型   
+    UINT16 scanInterval;   //  扫描间隔
+    UINT16 scanWindow;     //  扫描窗口
+    UINT8 filterPolicy;    //  扫描过滤策略
+    UINT8 own_addr_type;   //  本地地址类型
+} T_OPENAT_BLE_SCAN_PARAM;
 
 typedef enum
 {
@@ -50,7 +58,7 @@ typedef enum
     BLE_SET_ADV_DATA,		///< 设置BLE 广播广播包数据
     BLE_SET_SCANRSP_DATA,	///< 设置BLE 广播响应包数据
 	BLE_SET_ADV_ENABLE,		///< 是否使能广播
-	BLE_SET_BLE_SCAN,		///< 是否使能扫描
+	BLE_SET_SCAN_ENABLE,		///< 是否使能扫描
 	BLE_READ_STATE,			///< 读BLE 是否使能
     BLE_ADD_SERVICE,        ///< 添加服务
     BLE_ADD_CHARACTERISTIC, ///< 添加特征
@@ -60,6 +68,8 @@ typedef enum
     BLE_OPEN_NOTIFICATION,  ///< 打开通知
     BLE_CLOSE_NOTIFICATION,  ///< 关闭通知
     BLE_GET_ADDR,           ///< 获取蓝牙MAC地址
+    BLE_SET_BEACON_DATA,     ///< 设置beacon数据
+    BLE_SET_SCAN_PARAM,		///< 设置BLE扫描参数
 } E_OPENAT_BT_CMD;
 
 typedef enum
@@ -68,12 +78,59 @@ typedef enum
     BLE_MASTER,	      ///< 设置BLE主模式
 } E_OPENAT_BT_MODE;
 
+typedef enum
+{
+    UUID_SHORT = 0,    // 16位uuid
+    UUID_LONG,	       // 128位uuid
+} E_OPENAT_BLE_UUID_FLAG;
+
+typedef struct 
+{
+    E_OPENAT_BLE_UUID_FLAG uuid_type;
+    union {
+        UINT16 uuid_short;
+        UINT8 uuid_long[16];
+    };
+}T_OPENAT_BLE_UUID;
+
+typedef struct 
+{
+    T_OPENAT_BLE_UUID uuid;
+    UINT8   attvalue;//属性值
+    UINT16  permisssion;//权限
+}T_OPENAT_BLE_CHARACTERISTIC_PARAM;
+
+typedef struct 
+{
+    T_OPENAT_BLE_UUID uuid;
+    UINT8   value[255];//属性
+    UINT16  configurationBits;//属性
+}T_OPENAT_BLE_DESCRIPTOR_PARAM;
+
+typedef struct 
+{
+    UINT8 		data[BLE_MAX_ADV_MUBER]; 
+    UINT8       len;
+}T_OPENAT_BLE_ADV_DATA;
+
+typedef struct 
+{
+    UINT8 uuid[16];
+    UINT16 major;
+    UINT16 minor; 
+}T_OPENAT_BLE_BEACON_DATA;
+
 typedef union {
-    T_OPENAT_BLE_ADV_PARAM  *AdvParam;   ///< 设置BLE 广播广播参数
-    char 		*data;              ///< 设置BLE 广播名称、广播包数据、响应包数据、获取蓝牙MAC地址
+    T_OPENAT_BLE_ADV_PARAM  *advparam;   ///< 设置BLE 广播参数
+    T_OPENAT_BLE_SCAN_PARAM  *scanparam;   ///< 设置BLE 扫描参数
+    T_OPENAT_BLE_ADV_DATA   *advdata;    ///< 广播包数据、响应包数据
+    UINT8 	*data;    ///< 设置BLE 广播名称、获取蓝牙MAC地址
     UINT8       advEnable;          ///< 是否使能广播、使能扫描
-    UINT8       *uuid;              ///< 添加服务、添加特征、添加描述、发现特征、打开通知、关闭通知
-}U_OPENAT_BT_IOTCTL_PARM;
+    T_OPENAT_BLE_UUID  *uuid;   ///< 添加服务、发现特征、打开通知、关闭通知
+    T_OPENAT_BLE_CHARACTERISTIC_PARAM  *characteristicparam;   ///< 添加特征
+    T_OPENAT_BLE_DESCRIPTOR_PARAM   *descriptorparam;   ///< 添加描述
+    T_OPENAT_BLE_BEACON_DATA   *beacondata;   ///< 设置beacon数据
+}U_OPENAT_BT_IOTCTL_PARAM;
 
 typedef enum{
     OPENAT_BT_ME_ON_CNF = 1,
@@ -116,27 +173,12 @@ typedef enum{
     OPENAT_BLE_RECV_DATA = 100,
 }E_OPENAT_BT_EVENT;
 
-typedef enum
-{
-    UUID_SHORT = 0,    // 16位uuid
-    UUID_LONG,	       // 128位uuid
-} E_OPENAT_BLE_UUID_FLAG;
-
-typedef struct 
-{
-    E_OPENAT_BLE_UUID_FLAG uuid_type;
-    union {
-        UINT16 uuid_short;
-        UINT8 uuid_long[16];
-    };
-}T_OPENAT_BLE_UUID;
-
 typedef VOID (*F_BT_CB)(VOID* param);
 void OPENAT_SetBLECallback(F_BT_CB handler);
 BOOL OPENAT_OpenBT(E_OPENAT_BT_MODE mode);
 BOOL OPENAT_CloseBT(void);
 BOOL OPENAT_WriteBLE(UINT16 handle,T_OPENAT_BLE_UUID uuid,char *data,UINT8 len);
-BOOL OPENAT_IotctlBLE(E_OPENAT_BT_CMD cmd,U_OPENAT_BT_IOTCTL_PARM  *parm,UINT8 len,UINT16 handle);
+BOOL OPENAT_IotctlBLE(UINT16 handle,E_OPENAT_BT_CMD cmd,U_OPENAT_BT_IOTCTL_PARAM param);
 BOOL OPENAT_DisconnectBLE(UINT16 handle);
 BOOL OPENAT_ConnectBLE(UINT8 addr_type, char *addr);
 

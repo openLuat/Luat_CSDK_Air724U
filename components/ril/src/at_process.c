@@ -5,7 +5,7 @@
 
 #define MAX_AT_RESPONSE (1 * 1024)
 #define NUM_ELEMS(x) (sizeof(x) / sizeof(x[0]))
-
+bool g_IsSMSRdy = FALSE;
 static HANDLE at_channel_ready_sem = NULL; //at ready
 static PAL_THREAD_ID s_tid_reader = 0;
 static HANDLE s_state_sem = NULL;
@@ -131,6 +131,7 @@ static void onUnsolicited(const char *s, const char *sms_pdu)
     }
     else if (strStartsWith(s, "SMS READY"))
     {
+    	g_IsSMSRdy = TRUE;
     }
     else if (strStartsWith(s, "+E_UTRAN Service"))
     {
@@ -227,6 +228,20 @@ static void handleFinalResponse(const char *line)
     sp_response->finalResponse = strdup(line);
 
     pal_ril_sema_put(s_commandsem);
+}
+
+static int writeCtrlZ (const char *s)
+{
+    int len = strlen(s);
+    char ctrlz[2]={26,0}; // ctrl+z
+
+    LOGD("AT> %s^Z\n", s);
+
+    AT_DUMP( ">* ", s, strlen(s) );
+    pal_ril_channel_write(s, len, FALSE);
+    pal_ril_channel_write(ctrlz, 1, FALSE);
+  
+    return 0;
 }
 
 static const char *readline()
@@ -358,7 +373,7 @@ static void processLine(const char *line)
     {
         sp_response->success = 0;
         handleFinalResponse(line);
-#if 0        
+#if 1        
     } else if (s_smsPDU != NULL && 0 == strcmp(line, "> ")) {
         // See eg. TS 27.005 4.3
         // Commands like AT+CMGS have a "> " prompt
@@ -391,6 +406,10 @@ static void processLine(const char *line)
             {
                 addIntermediate(line);
             }
+			else if((sp_response->finalResponse == NULL)&&(strstr(s_responsePrefix, "+CMGR") || strstr(s_responsePrefix, "+CMGL"))) /*将读到的短信内容返回到结果中*/
+			{
+				addIntermediate(line);
+			}
             else
             {
                 /* we already have an intermediate response */
@@ -399,6 +418,10 @@ static void processLine(const char *line)
             break;
         case MULTILINE:
             if (strStartsWith(line, s_responsePrefix) || 0 == strncmp(line, "ABORTED", strlen("ABORTED")))
+            {
+                addIntermediate(line);
+            }
+			else if((sp_response->finalResponse == NULL)&&(strstr(s_responsePrefix, "+CMGR") || strstr(s_responsePrefix, "+CMGL"))) /*将读到的短信内容返回到结果中*/
             {
                 addIntermediate(line);
             }
@@ -752,7 +775,39 @@ int at_send_command_multiline(const char *command,
 }
 
 /*********************************************************
-  Function:    at_send_command_multiline
+  Function:    at_send_command_sms
+  Description: 发送AT指令，并等待结果
+  Input:
+
+  Output:
+  Return:       AT_ERROR_xx/AT_SUCCESS
+  Others:
+*********************************************************/
+int at_send_command_sms (const char *command,
+                                const char *pdu,
+                                const char *responsePrefix,
+                                 ATResponse **pp_outResponse)
+{
+    int err;
+
+    err = at_send_command_full_nolock(command, SINGLELINE, responsePrefix,
+                                    pdu, 0, pp_outResponse);
+
+    if (err == 0 && pp_outResponse != NULL
+        && (*pp_outResponse)->success > 0
+        && (*pp_outResponse)->p_intermediates == NULL
+    ) {
+        /* successful command must have an intermediate response */
+        at_response_free(*pp_outResponse);
+        *pp_outResponse = NULL;
+        return AT_ERROR_INVALID_RESPONSE;
+    }
+
+    return err;
+}
+
+/*********************************************************
+  Function:    at_send_command
   Description: 发送AT指令，不等待结果
   Input:
 

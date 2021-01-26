@@ -331,6 +331,11 @@ typedef struct
 #define OSI_REG8_WRITE(address, value) *(volatile uint8_t *)(address) = (value)
 #define OSI_REG8_READ(address) (*(volatile uint8_t *)(address))
 
+// a*b/c, b and c are positive constants
+// It can avoid 64bits division, and avoid 32bits overflow of (a*b)
+#define OSI_SMULDIV(a, b, c) (((int)(a) * (((b)*0x100000000ULL) / (c))) >> 32)
+#define OSI_UMULDIV(a, b, c) (((unsigned)(a) * (((b)*0x100000000ULL) / (c))) >> 32)
+
 // macros for easier writing
 #define OSI_KB(n) ((unsigned)(n) * (unsigned)(1024))
 #define OSI_MB(n) ((unsigned)(n) * (unsigned)(1024 * 1024))

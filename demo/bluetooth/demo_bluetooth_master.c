@@ -86,6 +86,7 @@ void bluetooth_callback(T_OPENAT_BLE_EVENT_PARAM *result)
     char scanaddr[20] = {0};
     ble_scan_report_info *ble_scanInfo = NULL;
     ble_report_info_t *msg = NULL;
+    U_OPENAT_BT_IOTCTL_PARAM  param = {0};
     msg = iot_os_malloc(sizeof(ble_report_info_t));
 	msg->eventid = result->id;
 	msg->state  =  result->state;
@@ -136,7 +137,8 @@ void bluetooth_callback(T_OPENAT_BLE_EVENT_PARAM *result)
             
             if(memcmp(ble_scanInfo->name,"Luat_Air724UG",strlen("Luat_Air724UG")) == 0) //连接的蓝牙名称
             {
-                iot_ble_iotctl(BLE_SET_BLE_SCAN,(U_OPENAT_BT_IOTCTL_PARM*)0,0,0);//关闭扫描
+                param.advEnable = 0;
+                iot_ble_iotctl(0,BLE_SET_SCAN_ENABLE,param);//关闭扫描
                 iot_ble_connect(scanaddr,ble_scanInfo->addr_type);//连接蓝牙
             }
             iot_os_free(msg);
@@ -165,18 +167,29 @@ void bluetooth_callback(T_OPENAT_BLE_EVENT_PARAM *result)
 BOOL ble_poweron(VOID)
 {
     iot_debug_print("[bluetooth]bt poweron");
-    iot_bt_open(BLE_MASTER);//打开蓝牙
+    ret = iot_bt_open(BLE_MASTER);//打开蓝牙
     return TRUE;
 }
 
 BOOL scan(VOID)
 {
     int i;
+    //U_OPENAT_BT_IOTCTL_PARAM  param1 = {0};
+    U_OPENAT_BT_IOTCTL_PARAM  param2 = {0};
     ble_report_info_t *msg = NULL;
     UINT8 connect_addr_type = 0;
     char connect_scanaddr[20] = {0};
+    //T_OPENAT_BLE_SCAN_PARAM scanparam = {1,0x30,0x06,0,0};//广播参数
     iot_debug_print("[bluetooth]bt scan");
-    iot_ble_iotctl(BLE_SET_BLE_SCAN,(U_OPENAT_BT_IOTCTL_PARM*)1,0,0);//打开扫描
+    param2.advEnable = 1;
+/*
+    param1.scanparam = iot_os_malloc(sizeof(T_OPENAT_BLE_SCAN_PARAM));
+    memcpy(param1.scanparam,&scanparam,sizeof(T_OPENAT_BLE_SCAN_PARAM));
+    iot_ble_iotctl(0,BLE_SET_SCAN_PARAM,param1);//设置广播参数
+    iot_os_free(param1.scanparam);
+    param1.scanparam = NULL;
+*/
+    iot_ble_iotctl(0,BLE_SET_SCAN_ENABLE,param2);//打开扫描
     iot_os_wait_message(ble_test_handle,&msg);
     if(msg->eventid != OPENAT_BLE_SET_SCAN_ENABLE)//等待扫描使能成功
     {
@@ -193,20 +206,32 @@ BOOL scan(VOID)
 BOOL ble_data_trans(VOID)
 {
     T_OPENAT_BLE_UUID uuid = {0};
+    T_OPENAT_BLE_UUID uuid_s = {0};
+    T_OPENAT_BLE_UUID uuid_c = {0};
     ble_report_info_t *msg = NULL;
     char *bleRcvBuffer = NULL;
-    UINT8 uuid_s[2] = {0xfee0 >> 8, 0xfee0 & 0xff};
-    UINT8 uuid_c[2] = {0xfee2 >> 8, 0xfee2 & 0xff};
+    U_OPENAT_BT_IOTCTL_PARAM  param1 = {0};
+    U_OPENAT_BT_IOTCTL_PARAM  param2 = {0};
+    U_OPENAT_BT_IOTCTL_PARAM  param3 = {0};
+    
     uuid.uuid_short = 0xfee1;
     uuid.uuid_type = UUID_SHORT;
+    uuid_s.uuid_short = 0xfee0;
+    uuid_s.uuid_type = UUID_SHORT;
+    uuid_c.uuid_short = 0xfee2;
+    uuid_c.uuid_type = UUID_SHORT;
     //UINT8 uuid_s[16] = {0xF2, 0xC3, 0xF0, 0xAE, 0xA9, 0xFA, 0x15, 0x8C, 0x9D, 0x49, 0xAE, 0x73, 0x71, 0x0A, 0x81, 0xE7};
     //UINT8 uuid_c[16] = {0x9F, 0x9F, 0x00, 0xC1, 0x58, 0xBD, 0x32, 0xB6, 0x9E, 0x4C, 0x21, 0x9C, 0xC9, 0xD6, 0xF8, 0xBE};
     iot_debug_print("[bluetooth]bt data trans");
     
     /*连接成功，发现包含的服务及特征，并打开通知*/
-    iot_ble_iotctl(BLE_FIND_SERVICE,NULL,0,connect_handle);//发现服务
-
-    iot_ble_iotctl(BLE_FIND_CHARACTERISTIC,(U_OPENAT_BT_IOTCTL_PARM*)uuid_s,sizeof(uuid_s),connect_handle);//发现服务内的特征
+    iot_ble_iotctl(connect_handle,BLE_FIND_SERVICE,param1);//发现服务
+    
+    param2.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
+    memcpy(param2.uuid,&uuid_s,sizeof(T_OPENAT_BLE_UUID));
+    iot_ble_iotctl(connect_handle,BLE_FIND_CHARACTERISTIC,param2);//发现服务内的特征
+    iot_os_free(param2.uuid);
+    param2.uuid = NULL;
     iot_os_wait_message(ble_test_handle,&msg);
     if(msg->eventid != OPENAT_BLE_FIND_CHARACTERISTIC_IND)//等待发现特征成功
     {
@@ -216,7 +241,11 @@ BOOL ble_data_trans(VOID)
     }
     iot_os_free(msg);
     msg = NULL;
-    iot_ble_iotctl(BLE_OPEN_NOTIFICATION,(U_OPENAT_BT_IOTCTL_PARM*)uuid_c,sizeof(uuid_c),connect_handle);//打开通知
+    param3.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
+    memcpy(param3.uuid,&uuid_c,sizeof(T_OPENAT_BLE_UUID));
+    iot_ble_iotctl(connect_handle,BLE_OPEN_NOTIFICATION,param3);//打开通知
+    iot_os_free(param3.uuid);
+    param3.uuid = NULL;
     while(1)
     {
         iot_ble_write(connect_handle,uuid,"1234567890",strlen("1234567890"));

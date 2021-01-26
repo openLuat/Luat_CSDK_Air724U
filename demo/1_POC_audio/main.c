@@ -44,7 +44,7 @@ void poc_audio_stream_record()
     iot_audio_rec_start(&param, audio_rec_handle);
 }
 
-int appimg_enter(void *param)
+void poc_audio_test(PVOID pParameter)
 {
     iot_debug_set_fault_mode(OPENAT_FAULT_HANG);
 
@@ -85,6 +85,25 @@ int appimg_enter(void *param)
         //4、停止播放
         iot_audio_stop_music();
     }
+    return 0;
+}
+
+
+int appimg_enter(void *param)
+{
+    iot_debug_print("[hello]appimg_enter");
+    //关闭看门狗，死机不会重启。默认打开
+    iot_debug_set_fault_mode(OPENAT_FAULT_HANG);
+    iot_os_sleep(100);
+    //设置keypad,第3行,第2列为物理强制下载按键（OK按键）。开机时按下该按键会进入下载模式
+    //poc项目没引出boot按键，必须调用一次设置keypad进入下载模式，否则变砖后只能拆机了。
+    iot_vat_send_cmd("AT*DOWNLOAD=2,3,2\r\n", sizeof("AT*DOWNLOAD=2,3,2\r\n"));
+    iot_os_sleep(100);
+    //打开调试信息，默认关闭
+    iot_vat_send_cmd("AT^TRACECTRL=0,1,2\r\n", sizeof("AT^TRACECTRL=0,1,2\r\n"));
+    iot_os_sleep(100);
+
+    iot_os_create_task(poc_audio_test, NULL, 1024, 1, OPENAT_OS_CREATE_DEFAULT, "poc_audio_test");
     return 0;
 }
 

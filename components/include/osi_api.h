@@ -206,6 +206,7 @@ typedef enum osiBootCause
     /*+\NEW\zhuwangbin\2020.04.04\区分软件重启和reset按键重启*/
     OSI_BOOTCAUSE_RESET = (1 << 7),   
     /*-\NEW\zhuwangbin\2020.04.04\区分软件重启和reset按键重启*/
+    OSI_BOOTCAUSE_PANIC = (1 << 9),      ///< boot by panic reset
 } osiBootCause_t;
 
 /**
@@ -233,6 +234,9 @@ typedef enum osiBootMode
  * shudown mode
  *
  * For each platform, not all shutdown modes are supported.
+ *
+ * \p OSI_SHUTDOWN_PANIC is a special case. Though it is a s*shutdown mode*,
+ * it will appear as \p OSI_BOOTCAUSE_PANIC after reset.
  */
 typedef enum osiShutdownMode
 {
@@ -251,6 +255,7 @@ typedef enum osiShutdownMode
     OSI_SHUTDOWN_UPGRADE = 0x4654,        ///< 'FT' reset to upgrade mode
     OSI_SHUTDOWN_POWER_OFF = 0x4f46,      ///< 'OF' power off
     OSI_SHUTDOWN_PSM_SLEEP = 0x5053,      ///< 'PS' power saving mode
+    OSI_SHUTDOWN_PANIC = 0x504e,          ///< 'PN' panic reset
 } osiShutdownMode_t;
 
 /**
@@ -482,6 +487,19 @@ bool osiIrqSetPriority(uint32_t irqn, uint32_t priority);
  * \return      IRQ priority
  */
 uint32_t osiIrqGetPriority(uint32_t irqn);
+
+/**
+ * set interrupt group
+ *
+ * This is only valid when GIC is used.
+ *
+ * \param irqn      IRQ number
+ * \param group     GIC group
+ * \return
+ *      - true on success
+ *      - false on invalid parameters
+ */
+bool osiIrqSetGroup(uint32_t irqn, uint32_t group);
 
 /**
  * check whether there are pending interrupt
@@ -1054,7 +1072,7 @@ bool osiWorkEnqueue(osiWork_t *work, osiWorkQueue_t *wq);
  *      osiWorkEnqueue(work1, wq);
  *      osiWorkEnqueue(work2, wq);
  *      osiWorkEnqueue(work1, wq);
- * \encode
+ * \endcode
  *
  * If work queue is busy on another work during these calls, and when work
  * queue processing these works, it will:
@@ -1332,6 +1350,7 @@ bool osiTimerSetWork(osiTimer_t *timer, osiWork_t *work, osiWorkQueue_t *wq);
  *
  * \p timer should be created by \p osiTimerEventCreate.
  *
+ * \param timer     timer to be changed
  * \param thread    thread to execute the callback, it can't be NULL
  * \param timerid   timerid in expiration event
  * \return
@@ -1422,7 +1441,7 @@ bool osiTimerSetPeriod(osiTimer_t *timer, uint32_t ms, bool periodic);
  *
  * \param timer     the timer to be set
  * \param ms        period in milliseconds
- * \param relaxed   relaxed timeout in milliseconds
+ * \param relaxed_ms    relaxed timeout in milliseconds
  * \param periodic  true for periodic, false for one shot
  * \return
  *      - true on success

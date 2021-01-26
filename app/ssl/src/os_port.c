@@ -153,9 +153,39 @@ uint64_t __be64_to_cpu(uint64_t x)
 	return Result;
 }
 
-int gettimeofday(struct openat_timeval *__p, void *__tz)
+// int gettimeofday(struct openat_timeval *__p, void *__tz)
+// {
+// 	time((time_t *)&__p->tv_sec);
+// 	__p->tv_usec = 0;
+// 	return __p->tv_sec;
+// }
+
+
+/*******************************************
+  definition of some functions of libc
+ *******************************************/
+
+int fstat(int fd, struct stat *st)
 {
-	time((time_t *)&__p->tv_sec);
-	__p->tv_usec = 0;
-	return __p->tv_sec;
+    return vfs_fstat(fd, st);
+}
+
+ssize_t read(int fd, void *buf, size_t count)
+{
+    return vfs_read(fd, buf, count);
+}
+
+ssize_t write(int fd, const void *buf, size_t count)
+{
+    return vfs_write(fd, buf, count);
+}
+
+long lseek(int fd, long offset, int whence)
+{
+    return vfs_lseek(fd, offset, whence);
+}
+
+int isatty(int fd)
+{
+    return 0;
 }

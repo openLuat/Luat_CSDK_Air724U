@@ -677,7 +677,7 @@ BOOL OPENAT_close_gpio(
                       );
 /*-\BUG WM-720\rufei\2013.3.21\ 增加gpio的close接口*/
 
-
+bool OPENAT_gpioPulse(E_AMOPENAT_GPIO_PORT port, unsigned high_us, unsigned low_us, unsigned count, unsigned idle);
 
 /****************************** PMD ******************************/
 BOOL OPENAT_init_pmd(     
@@ -1568,6 +1568,13 @@ typedef enum E_AMOPENAT_CUST_INIT_RESULT_TAG
     OPENAT_CUST_INIT_RES_ERROR,     /* 客户程序初始化失败，不会调用cust_main函数 */
     OPENAT_CUST_INIT_RES_MAX
 }E_AMOPENAT_CUST_INIT_RESUL;
+
+/*+\BUG:3874\czm\2021.01.03\AT版本wifiscan指令，添加一个参数支持异步扫描模式，默认为同步*/
+typedef enum{
+	OPENAT_WIFI_SCAN_STOP,
+	OPENAT_WIFI_SCAN_OPEN,
+}openatWifiScanState;
+/*-\BUG:3874\czm\2021.01.03\AT版本wifiscan指令，添加一个参数支持异步扫描模式，默认为同步*/
 
 extern u16 lua_lcd_height;
 extern u16 lua_lcd_width;

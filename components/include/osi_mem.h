@@ -39,6 +39,25 @@ typedef struct
 } osiMemPoolStat_t;
 
 /**
+ * memory allocate/free record
+ */
+typedef struct
+{
+    uintptr_t caller; ///< [31] 1: allocate, 0: free, [30:0] caller address[31:1]
+    uintptr_t ptr;    ///< address
+} osiMemRecord_t;
+
+/**
+ * memory block information for error scan
+ */
+typedef struct
+{
+    uintptr_t address; ///< usable address
+    uintptr_t caller;  ///< caller address
+    unsigned flags;    ///< error flags
+} osiMemErrorBlock_t;
+
+/**
  * initialize a fixed pool
  *
  * Initialize and register a fixed size block pool. The pool management data
@@ -86,7 +105,7 @@ osiMemPool_t *osiBlockPoolInit(void *ptr, size_t size, ...);
  * The first created block pool will be set to default automatically.
  * And this API will change default pool.
  *
- * When \a pool is NULL or invalid, it will return silently.
+ * When \p pool is NULL or invalid, it will return silently.
  *
  * @param pool  pool to be set as default.
  */
@@ -95,7 +114,7 @@ void osiPoolSetDefault(osiMemPool_t *pool);
 /**
  * allocate from specified pool
  *
- * When \a pool is NULL or invalid, or \a size is zero, NULL will be
+ * When \p pool is NULL or invalid, or \p size is zero, NULL will be
  * returned.
  *
  * Refer to malloc(3).
@@ -111,7 +130,7 @@ void *osiPoolMalloc(osiMemPool_t *pool, size_t size);
 /**
  * allocate from specified pool, which is unlikely to be freed
  *
- * Comparing to \a osiPoolMalloc, allocator will try to allocate
+ * Comparing to \p osiPoolMalloc, allocator will try to allocate
  * from location with less fragmentation impact.
  *
  * Usually, it only be called at system initialization. It is a replacement
@@ -161,7 +180,7 @@ void *osiPoolRealloc(osiMemPool_t *pool, void *ptr, size_t size);
  *
  * The pool must be block pool.
  *
- * \a alignment should be power of 2. When \a alignment is less than
+ * \p alignment should be power of 2. When \p alignment is less than
  * default alignment, it will behavior the same as `osiPoolMalloc`.
  *
  * Refer to memalign(3).
@@ -289,8 +308,8 @@ void osiFree(void *ptr);
 /**
  * get memory pool information
  *
- * \a max_block_size is the maximum allocatable size. \a realloc and
- * \a memalign will use more extra spaces, they may fail with that size.
+ * \p max_block_size is the maximum allocatable size. \p realloc and
+ * \p memalign will use more extra spaces, they may fail with that size.
  *
  * \code{.cpp}
  * malloc(stat->max_block_size);        // will success
@@ -298,13 +317,35 @@ void osiFree(void *ptr);
  * memalign(32, stat->max_block_size);  // may fail
  * \endcode
  *
- * @param pool      the memory pool. \a NULL for default memory pool
+ * @param pool      the memory pool. \p NULL for default memory pool
  * @param stat      output memory pool information
  * @return
  *      - true on success
- *      - false if there are no memory pool, or \a stat is NULL
+ *      - false if there are no memory pool, or \p stat is NULL
  */
 bool osiMemPoolStat(osiMemPool_t *pool, osiMemPoolStat_t *stat);
+
+/**
+ * scan all heaps for memory block error
+ *
+ * This should only be called after system enter blue screen.
+ *
+ * \param blocks    output memory block error information
+ * \param count     maximum error block count
+ * \return
+ *      - memory block error count
+ */
+int osiMemScanError(osiMemErrorBlock_t *blocks, unsigned count);
+
+/**
+ * get last memory allocate/free records
+ *
+ * \param records   output memory allocate/free record
+ * \param count     maximum record count
+ * \return
+ *      - memory allocate/free record count
+ */
+int osiMemRecordGetLast(osiMemRecord_t *records, unsigned count);
 
 #ifdef __cplusplus
 }

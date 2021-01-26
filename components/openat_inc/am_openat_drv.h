@@ -1056,6 +1056,7 @@ extern const char gpio_oled_data_pin;
 typedef enum
 {
   OPENAT_SPI_1,
+  OPENAT_SPI_2,
   OPENAT_SPI_QTY
 }E_AMOPENAT_SPI_PORT;
 

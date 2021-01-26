@@ -287,15 +287,6 @@
 #define	_Alignof(x)		__alignof(x)
 #endif
 
-#if !defined(__cplusplus) && !__has_extension(c_atomic) && \
-    !__has_extension(cxx_atomic)
-/*
- * No native support for _Atomic(). Place object in structure to prevent
- * most forms of direct non-atomic access.
- */
-#define	_Atomic(T)		struct { T volatile __val; }
-#endif
-
 #if defined(__cplusplus) && __cplusplus >= 201103L
 #define	_Noreturn		[[noreturn]]
 #else
@@ -333,6 +324,15 @@
 #endif
 
 #endif /* __STDC_VERSION__ || __STDC_VERSION__ < 201112L */
+
+#if !defined(__cplusplus) && !__has_extension(c_atomic) && \
+    !__has_extension(cxx_atomic)
+/*
+ * No native support for _Atomic(). Place object in structure to prevent
+ * most forms of direct non-atomic access.
+ */
+#define	_Atomic(T)		struct { T volatile __val; }
+#endif
 
 /*
  * Emulation of C11 _Generic().  Unlike the previously defined C11

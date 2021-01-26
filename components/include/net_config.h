@@ -15,7 +15,7 @@
 
 // Auto generated. Don't edit it manually!
 
-/* #undef CONFIG_NET_LWIP_DEBUG */
+#define CONFIG_NET_LWIP_DEBUG
 #define CONFIG_NET_TCPIP_SUPPORT
 #define CONFIG_NET_LWIP_IPV4_ON
 /* #undef CONFIG_NET_LWIP_PPP_ON */

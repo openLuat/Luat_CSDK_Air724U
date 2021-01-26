@@ -20,7 +20,7 @@
 
 #define GMI_ID "CSDK"
 #define GMM_ID "CSDK_720U"
-#define GMR_ID "CSDK_V301867_RDA8910_FS"
+#define GMR_ID "CSDK_V302038_RDA8910_FS"
 
 /**
  * Whether to support coap AT commands
@@ -148,6 +148,12 @@
  * whether wifi sensitivity test command can be used
  */
 /* #undef CONFIG_AT_WIFI_SENSITIVITY_TEST_SUPPORT */
+
+/**
+ * whether some bt basic at command can be used
+ */
+/* #undef CONFIG_SUPPORT_EXTRA_FUNCTION */
+
 
 #endif
 /*-\new\task_183\rww\2020.4.1\Ìí¼Ólibat°æ±¾ºÅ*/
