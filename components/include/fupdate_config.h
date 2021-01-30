@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 RDA Technologies Limited and/or its affiliates("RDA").
+ /* Copyright (C) 2018 RDA Technologies Limited and/or its affiliates("RDA").
  * All rights reserved.
  *
  * This software is supplied "AS IS" without any warranties.
@@ -28,6 +28,10 @@
 #define CONFIG_NEWAPP_FILE_NAME "newapp.tmp"
 #define FUPDATE_NEWAPP_FILE_NAME CONFIG_FS_FOTA_DATA_DIR "/" CONFIG_NEWAPP_FILE_NAME
 //-zhuwangbin\2020.06.20\add newapp newcore api
+//+liangjian\2020.06.20\add newapp newcore api
+#define CONFIG_OPENAT_UPDATE_FILE_NAME "sys_airm2m_openat_ota_flag.flag"
+#define OPENAT_UPDATE_FILE_NAME  CONFIG_FS_FOTA_DATA_DIR "/" CONFIG_OPENAT_UPDATE_FILE_NAME
+//-\2020.06.20\add newapp newcore api
 
 #define FUPDATE_PACK_FILE_NAME CONFIG_FS_FOTA_DATA_DIR "/" CONFIG_FUPDATE_PACK_FILE_NAME
 #define FUPDATE_STAGE_FILE_NAME CONFIG_FS_FOTA_DATA_DIR "/" CONFIG_FUPDATE_STAGE_FILE_NAME

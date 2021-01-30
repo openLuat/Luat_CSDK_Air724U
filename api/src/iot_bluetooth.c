@@ -45,26 +45,25 @@ BOOL iot_ble_write(
     return IVTBL(WriteBLE)(handle,uuid,data,len);
 }
 
-/**关闭蓝牙
-*@param  cmd:        功能cmd
-*@param  parm:        广播参数
-*@param  len:        数据长度
+/**蓝牙其他操作
 *@param  handle:      连接句柄  
+*@param  cmd:        功能cmd
+*@param  parm:        参数
 *@return	TRUE: 	    成功
 *           FALSE:      失败
 **/
-BOOL iot_ble_iotctl(                                        
+BOOL iot_ble_iotctl(      
+                        UINT16 handle,                                  
                         E_OPENAT_BT_CMD cmd,
-                        U_OPENAT_BT_IOTCTL_PARM  *parm,
-                        UINT8 len,
-                        UINT16 handle
+                        U_OPENAT_BT_IOTCTL_PARAM  param
+         
                 )
 {
-    return IVTBL(IotctlBLE)(cmd,parm, len,handle);
+    return IVTBL(IotctlBLE)(handle,cmd,param);
 }
 
 /**断开蓝牙连接
-* *@param  handle:      连接句柄  
+*@param  handle:      连接句柄  
 *@return	TRUE: 	    成功
 *           FALSE:      失败
 **/

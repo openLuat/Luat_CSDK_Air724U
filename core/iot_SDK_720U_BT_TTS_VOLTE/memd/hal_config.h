@@ -16,6 +16,16 @@
 // Auto generated. Don't edit it manually!
 
 /**
+ * build target
+ */
+#define CONFIG_BUILD_TARGET "8915DM_cat1_CSDK_BT_TTS_VOLTE"
+
+/**
+ * Build identify string
+ */
+#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CSDK_BT_TTS_VOLTE-debug-DEVEL-svn2063"
+
+/**
  * whether it is 8910 series
  */
 #define CONFIG_SOC_8910
@@ -373,6 +383,7 @@
 /* #undef CONFIG_POC_SUPPORT */
 #/*-\new\zhuwangbin\2020.5.23\add poc app*/
 
+/* #undef CONFIG_BUILD_LUA */
 
 #define CONFIG_BT_SUPPORT
 
@@ -469,6 +480,41 @@
  * SRAM shared memory size (8910)
  */
 #define CONFIG_APP_SRAM_SHMEM_SIZE 0x1000
+
+/**
+ * whether to enable blue screen backup
+ */
+/* #undef CONFIG_BSCORE_ENABLE */
+
+/**
+ * whether blue screen backup located on sram
+ */
+/* #undef CONFIG_BSCORE_ON_SRAM */
+
+/**
+ * blue screen core total size
+ */
+/* #undef CONFIG_BSCORE_SIZE */
+
+/**
+ * blue screen core stack dump ahead offset
+ */
+/* #undef CONFIG_BSCORE_STACK_EXTRA */
+
+/**
+ * blue screen core stack dump size
+ */
+/* #undef CONFIG_BSCORE_STACK_SIZE */
+
+/**
+ * blue screen core cp stack dump size
+ */
+/* #undef CONFIG_BSCORE_CP_STACK_SIZE */
+
+/**
+ * blue screen core profile size
+ */
+/* #undef CONFIG_BSCORE_PROFILE_SIZE */
 
 /**
  * BBSRAM physical address (8955, 8909)
@@ -897,5 +943,20 @@
  *
  */
 #define CONFIG_GPIO_X_USED_FOR_VBAT_RF 8
+
+/**
+ * whether to enable sys_wdt
+ */
+/* #undef CONFIG_SYS_WDT_ENABLE */
+
+/**
+ * sys_wdt timeout
+ */
+#define CONFIG_SYS_WDT_TIMEOUT 10000
+
+/**
+ * sys_wdt feed interval
+ */
+#define CONFIG_SYS_WDT_FEED_INTERVAL 5000
 
 #endif

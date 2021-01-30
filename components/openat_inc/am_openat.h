@@ -519,6 +519,9 @@ INT32 OPENAT_get_current_dir(                       /* 获取当前目录接口 */
                             UINT32 uUnicodeSize     /* 存储目录信息空间大小 */
                             );
 
+INT32 OPENAT_find_open(                       /* 检查文件接口 */
+                            char* pszFileNameUniLe/* 目录路径或文件全路径 unicode little endian */
+                            );
 
 
 INT32 OPENAT_find_first_file(                       /* 查找文件接口 */
@@ -677,7 +680,7 @@ BOOL OPENAT_close_gpio(
                       );
 /*-\BUG WM-720\rufei\2013.3.21\ 增加gpio的close接口*/
 
-
+bool OPENAT_gpioPulse(E_AMOPENAT_GPIO_PORT port, unsigned high_us, unsigned low_us, unsigned count, unsigned idle);
 
 /****************************** PMD ******************************/
 BOOL OPENAT_init_pmd(     
@@ -1569,6 +1572,13 @@ typedef enum E_AMOPENAT_CUST_INIT_RESULT_TAG
     OPENAT_CUST_INIT_RES_MAX
 }E_AMOPENAT_CUST_INIT_RESUL;
 
+/*+\BUG:3874\czm\2021.01.03\AT版本wifiscan指令，添加一个参数支持异步扫描模式，默认为同步*/
+typedef enum{
+	OPENAT_WIFI_SCAN_STOP,
+	OPENAT_WIFI_SCAN_OPEN,
+}openatWifiScanState;
+/*-\BUG:3874\czm\2021.01.03\AT版本wifiscan指令，添加一个参数支持异步扫描模式，默认为同步*/
+
 extern u16 lua_lcd_height;
 extern u16 lua_lcd_width;
 
@@ -1624,6 +1634,7 @@ OPENAT_SPKPA_TYPE_T OPENAT_getpa(void);
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
 /*+\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
 BOOL OPENAT_fs_mount_sdcard(void);
+BOOL OPENAT_fs_format_sdcard(void);
 BOOL OPENAT_fs_umount_sdcard(void);
 /*-\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
 /*+\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/

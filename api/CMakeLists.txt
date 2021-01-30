@@ -52,6 +52,7 @@ target_sources(${target} PRIVATE
 	src/iot_tts.c
 	src/iot_audio.c
 	src/iot_bluetooth.c
+	src/iot_pwm.c
 )
 
 

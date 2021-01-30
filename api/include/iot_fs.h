@@ -218,6 +218,22 @@ BOOL iot_fs_unmount(T_AMOPENAT_USER_FSMOUNT * param);
 **/
 BOOL iot_fs_format(T_AMOPENAT_USER_FSMOUNT * param);
 
+/**SD上面mount fat文件系统
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/
+BOOL iot_fs_mount_sdcard(void);
+
+/**umount SD上面的fat文件系统
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/
+BOOL iot_fs_umount_sdcard(void);
+
+/**format SD上面的文件系统
+*@return	BOOL: TRUE-成功 FALSE-失败
+**/
+BOOL iot_fs_format_sdcard(void);
+
+
 /** @}*/
 
 #endif

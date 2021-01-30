@@ -15,7 +15,7 @@
 
 /* C99 formats support (such as %a, %zu, ...) in IO functions like
  * printf/scanf enabled */
-/* #undef _WANT_IO_C99_FORMATS */
+#define _WANT_IO_C99_FORMATS 1
 
 /* long long type support in IO functions like printf/scanf enabled */
 #define _WANT_IO_LONG_LONG 1

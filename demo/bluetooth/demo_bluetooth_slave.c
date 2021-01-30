@@ -21,6 +21,18 @@
 #define ATT_CHARA_PROP_ASW          0x40    // ASW short for "Authenticated signed write"
 #define ATT_CHARA_PROP_EX_PROP      0x80
 
+#define ATT_PM_READABLE                    0x0001
+#define ATT_PM_WRITEABLE                   0x0002
+#define ATT_PM_R_AUTHENT_REQUIRED          0x0004
+#define ATT_PM_R_AUTHORIZE_REQUIRED        0x0008
+#define ATT_PM_R_ENCRYPTION_REQUIRED       0x0010
+#define ATT_PM_R_AUTHENT_MITM_REQUERED     0x0020
+#define ATT_PM_W_AUTHENT_REQUIRED          0x0040
+#define ATT_PM_W_AUTHORIZE_REQUIRED        0x0080
+#define ATT_PM_W_ENCRYPTION_REQUIRED       0x0100
+#define ATT_PM_W_AUTHENT_MITM_REQUERED     0x0200
+#define ATT_PM_BR_ACCESS_ONLY              0x0400
+
 //GATT Characteristic Descriptors
 #define ATT_UUID_CHAR_EXT           0x2900
 #define ATT_UUID_CHAR_USER      0x2901
@@ -28,8 +40,6 @@
 #define ATT_UUID_SERVER         0x2903
 #define ATT_UUID_CHAR_FORMAT        0x2904
 #define ATT_UUID_CHAR_AGGREGATE 0x2905
-#define ATT_UUID_EXTERNAL_REF       0x2907
-#define ATT_UUID_REPORT_RE      0x2908
 
 HANDLE ble_test_handle = NULL;
 
@@ -45,15 +55,14 @@ typedef struct ble_report_info
     UINT8 uuid_flag;
 } ble_report_info_t;
 
-
-typedef struct Ble_add_characteristic
+typedef struct ble_add_characteristic
 {
-    UINT8 *uuid_c; //特征uuid  
-    UINT8 uuid_len;//uuid长度
-    UINT8  type; //特征属性
-    UINT16 *descriptor; //特征描述
+    T_OPENAT_BLE_CHARACTERISTIC_PARAM uuid_c; //特征uuid  
+    T_OPENAT_BLE_DESCRIPTOR_PARAM *uuid_d; //特征描述
     UINT8 count;//描述数量
 } ble_add_characteristic_t;
+
+
 
 UINT16 connect_handle = 0xff;//连接句柄
 
@@ -142,23 +151,56 @@ BOOL ble_poweron(VOID)
 BOOL AddService()
 {
     int i,j;
-    UINT8 bt_tp_data_uuid[BLE_LONG_UUID_FLAG] = {BT_8910_TP_UUID >> 8, BT_8910_TP_UUID & 0xff};//服务uuid
-    UINT8 bt_tp_data_char[BLE_LONG_UUID_FLAG] = {BT_8910_TP_UUID_CHAR >> 8, BT_8910_TP_UUID_CHAR & 0xff};//特征uuid
-    UINT8 bt_feedback_data_char[BLE_LONG_UUID_FLAG] = {BT_8910_FEEDBACK_CHAR >> 8, BT_8910_FEEDBACK_CHAR & 0xff};//特征uuid
-    UINT16 bt_descriptor[1] = {ATT_UUID_CLIENT};//特征描述
-    ble_add_characteristic_t param[2] = {{bt_tp_data_char,2,ATT_CHARA_PROP_READ | ATT_CHARA_PROP_WRITE,NULL,0},
-                                        {bt_feedback_data_char,2,ATT_CHARA_PROP_READ | ATT_CHARA_PROP_NOTIFY | ATT_CHARA_PROP_INDICATE,bt_descriptor,1}};   
+    U_OPENAT_BT_IOTCTL_PARAM  param1 = {0};
+    U_OPENAT_BT_IOTCTL_PARAM  param2 = {0};
+    U_OPENAT_BT_IOTCTL_PARAM  param3 = {0};
+    T_OPENAT_BLE_UUID uuid = {0};
+    T_OPENAT_BLE_CHARACTERISTIC_PARAM uuid_c1 = {0};
+    T_OPENAT_BLE_CHARACTERISTIC_PARAM uuid_c2 = {0};
+    T_OPENAT_BLE_DESCRIPTOR_PARAM uuid_d1 = {0};
+    T_OPENAT_BLE_DESCRIPTOR_PARAM uuid_d2 = {0};
+    uuid.uuid_short = BT_8910_TP_UUID;//服务uuid
+    uuid.uuid_type = UUID_SHORT;
+    uuid_c1.uuid.uuid_short = BT_8910_TP_UUID_CHAR;//特征uuid
+    uuid_c1.uuid.uuid_type = UUID_SHORT;
+    uuid_c1.attvalue = ATT_CHARA_PROP_READ | ATT_CHARA_PROP_WRITE;//特征属性
+    uuid_c1.permisssion = ATT_PM_READABLE|ATT_PM_WRITEABLE;//特征权限
+    uuid_c2.uuid.uuid_short = BT_8910_FEEDBACK_CHAR;//特征uuid
+    uuid_c2.uuid.uuid_type = UUID_SHORT;
+    uuid_c2.attvalue = ATT_CHARA_PROP_READ | ATT_CHARA_PROP_NOTIFY | ATT_CHARA_PROP_INDICATE;//特征属性
+    uuid_c2.permisssion = ATT_PM_READABLE;//特征权限
     
-    iot_ble_iotctl(BLE_ADD_SERVICE,(U_OPENAT_BT_IOTCTL_PARM*)bt_tp_data_uuid,strlen(bt_tp_data_uuid),0);//添加服务
-    for(i = 0;i < sizeof(param)/sizeof(ble_add_characteristic_t);i ++)
+    T_OPENAT_BLE_DESCRIPTOR_PARAM bt_descriptor[2] = {0};//特征描述
+    bt_descriptor[0].uuid.uuid_short = ATT_UUID_CHAR_USER;//描述uuid
+    bt_descriptor[0].uuid.uuid_type = UUID_SHORT;
+    memcpy(bt_descriptor[0].value,"123456789",strlen("123456789"));//描述属性
+    bt_descriptor[1].uuid.uuid_short = ATT_UUID_CLIENT;//描述uuid
+    bt_descriptor[1].uuid.uuid_type = UUID_SHORT;
+    bt_descriptor[1].configurationBits = 1;//描述属性
+    ble_add_characteristic_t service_param[2] = {{uuid_c1,NULL,0},
+                                        {uuid_c2,bt_descriptor,2}}; 
+
+    param1.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
+    memcpy(param1.uuid,&uuid,sizeof(T_OPENAT_BLE_UUID));
+    iot_ble_iotctl(0,BLE_ADD_SERVICE,param1);//添加服务
+    iot_os_free(param1.uuid);
+    param1.data = NULL;
+    for(i = 0;i < sizeof(service_param)/sizeof(ble_add_characteristic_t);i ++)
     {
-        iot_ble_iotctl(BLE_ADD_CHARACTERISTIC,(U_OPENAT_BT_IOTCTL_PARM*)param[i].uuid_c,param[i].uuid_len,param[i].type);//添加特征
-        if(param[i].descriptor != NULL)
+        param2.characteristicparam = iot_os_malloc(sizeof(T_OPENAT_BLE_CHARACTERISTIC_PARAM));
+        memcpy(param2.characteristicparam,&service_param[i].uuid_c,sizeof(T_OPENAT_BLE_CHARACTERISTIC_PARAM));
+        iot_ble_iotctl(0,BLE_ADD_CHARACTERISTIC,param2);//添加特征
+        iot_os_free(param2.characteristicparam);
+        param2.characteristicparam = NULL;
+        if(service_param[i].count != 0)
         {
-            for(j = 0;j < param[i].count;j ++)
+            for(j = 0;j < service_param[i].count;j ++)
             {
-                UINT8 ble_descriptor[2] = {param[i].descriptor[j] >> 8, param[i].descriptor[j] & 0xff};
-                iot_ble_iotctl(BLE_ADD_DESCRIPTOR,(U_OPENAT_BT_IOTCTL_PARM*)ble_descriptor,0,0);//添加描述
+                param3.descriptorparam = iot_os_malloc(sizeof(T_OPENAT_BLE_DESCRIPTOR_PARAM));
+                memcpy(param3.descriptorparam,&bt_descriptor[j],sizeof(T_OPENAT_BLE_DESCRIPTOR_PARAM));
+                iot_ble_iotctl(0,BLE_ADD_DESCRIPTOR,param3);//添加描述
+                iot_os_free(param3.descriptorparam);
+                param3.descriptorparam = NULL;
             }
         }
     }
@@ -168,15 +210,50 @@ BOOL AddService()
 
 BOOL advertising(VOID)
 {
-    //UINT8 advdata[BLE_MAX_ADV_MUBER] = {0x02,0x01,0x06,0x04,0xff,0x01,0x02,0x03};//广播包数据
-    //UINT8 scanrspdata[BLE_MAX_ADV_MUBER] = {0x02,0x0a,0x04};//响应包数据
+    U_OPENAT_BT_IOTCTL_PARAM  param1;
+    //U_OPENAT_BT_IOTCTL_PARAM  param2;
+    //U_OPENAT_BT_IOTCTL_PARAM  param3;
+    //U_OPENAT_BT_IOTCTL_PARAM  param4;
+    U_OPENAT_BT_IOTCTL_PARAM  param5;
+    //T_OPENAT_BLE_ADV_DATA advdata;
+    //T_OPENAT_BLE_ADV_DATA scanrspdata;
+    //UINT8 data1[BLE_MAX_ADV_MUBER] = {0x02,0x01,0x06,0x04,0xff,0x01,0x02,0x03};//广播包数据
+    //UINT8 data2[BLE_MAX_ADV_MUBER] = {0x02,0x0a,0x04};//响应包数据
+    //memcpy(advdata.data,data1,BLE_MAX_ADV_MUBER);
+    //advdata.len = strlen(data1);
+    //memcpy(scanrspdata.data,data2,BLE_MAX_ADV_MUBER);
+    //scanrspdata.len = strlen(data2);
+    //T_OPENAT_BLE_ADV_PARAM advparam = {0x80,0xa0,0,0,0,"11:22:33:44:55:66",0x07,0};//广播参数
     iot_debug_print("[bluetooth]bt advertising");
-    iot_ble_iotctl(BLE_SET_NAME,(U_OPENAT_BT_IOTCTL_PARM*)"Luat_Air724UG",strlen("Luat_Air724UG"),0);//设置广播名称
-    //iot_ble_iotctl(BLE_SET_ADV_DATA,(U_OPENAT_BT_IOTCTL_PARM*)advdata,strlen(advdata),0);//设置广播包数据
-    //iot_ble_iotctl(BLE_SET_SCANRSP_DATA,(U_OPENAT_BT_IOTCTL_PARM*)scanrspdata,strlen(scanrspdata),0);//设置响应包数据
+    param1.data = iot_os_malloc(strlen("Luat_Air724UG"));
+    memcpy(param1.data,"Luat_Air724UG",strlen("Luat_Air724UG"));
+    iot_ble_iotctl(0,BLE_SET_NAME,param1);//设置广播名称
+    iot_os_free(param1.data);
+    param1.data = NULL;
+/*
+    param2.advdata = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_DATA));
+    memcpy(param2.advdata,&advdata,sizeof(T_OPENAT_BLE_ADV_DATA));
+    iot_ble_iotctl(0,BLE_SET_ADV_DATA,param2);//设置广播包数据
+    iot_os_free(param2.advdata);
+    param2.advdata = NULL;
+
+    param3.advdata = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_DATA));
+    memcpy(param3.advdata,&scanrspdata,sizeof(T_OPENAT_BLE_ADV_DATA));
+    iot_ble_iotctl(0,BLE_SET_SCANRSP_DATA,param3);//设置响应包数据
+    iot_os_free(param3.advdata);
+    param3.advdata = NULL;
+
     //AddService();//添加自定义蓝牙服务
+
+    param4.advparam = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_PARAM));
+    memcpy(param4.advparam,&advparam,sizeof(T_OPENAT_BLE_ADV_PARAM));
+    iot_ble_iotctl(0,BLE_SET_ADV_PARAM,param4);//设置广播参数
+    iot_os_free(param4.advparam);
+    param4.advparam = NULL;
+*/
     iot_os_sleep(1000);
-    iot_ble_iotctl(BLE_SET_ADV_ENABLE,(U_OPENAT_BT_IOTCTL_PARM*)1,0,0);//打开广播
+    param5.advEnable = 1;
+    iot_ble_iotctl(0,BLE_SET_ADV_ENABLE,param5);//打开广播  
     return TRUE;
 }
 
@@ -245,7 +322,7 @@ VOID ble_test(VOID)
 int appimg_enter(void *param)
 {
     iot_debug_print("[bluetooth]appimg_enter");
-    ble_test_handle = iot_os_create_task(ble_test, NULL, 4096, 24, OPENAT_OS_CREATE_DEFAULT, "bluetooth");
+    ble_test_handle = iot_os_create_task(ble_test, NULL, 4096, 1, OPENAT_OS_CREATE_DEFAULT, "bluetooth");
     return 0;
 }
 

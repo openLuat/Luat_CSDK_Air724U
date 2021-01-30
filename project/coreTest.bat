@@ -4,7 +4,7 @@ set CSDK_PRO=coreTest
 set FOTA_FLAG=%1
 set FOTA_TYPE=%2
 set AM_MODEL=iot_SDK_720U_BT_TTS_VOLTE
-call ..\tools\core_launch.bat coreTest
+call ..\tools\core_launch.bat %CSDK_PRO%
 
 cd %PROJECT_OUT%
 cmake ..\.. -G Ninja ^

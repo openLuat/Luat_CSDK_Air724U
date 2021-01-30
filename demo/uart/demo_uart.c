@@ -47,7 +47,8 @@ void uart_recv_handle(T_AMOPENAT_UART_MESSAGE* evt)
     int32 dataLen = evt->param.dataLen;
 	if(dataLen)
 	{
-		recv_buff = iot_os_malloc(dataLen);
+		recv_buff = iot_os_malloc(dataLen + 1);
+		memset(recv_buff, 0, dataLen + 1);
 		if(recv_buff == NULL)
 		{
 			iot_debug_print("uart_recv_handle_0 recv_buff malloc fail %d", dataLen);
