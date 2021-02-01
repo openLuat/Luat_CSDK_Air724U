@@ -20,7 +20,7 @@
 
 #define GMI_ID "CSDK"
 #define GMM_ID "CSDK_720U"
-#define GMR_ID "CSDK_V302038_RDA8910_FS"
+#define GMR_ID "CSDK_V302063_RDA8910_FS"
 
 /**
  * Whether to support coap AT commands
@@ -156,6 +156,9 @@
 
 
 #endif
+
+#define CONFIG_AT_GPRS_DEFAULT_LTE_CID 5
+
 /*-\new\task_183\rww\2020.4.1\添加libat版本号*/
 
 /**
@@ -174,3 +177,4 @@
 /**-\new\zhuwangbin\2020.5.26\添加mqtt 3GPP宏控制mqtt 3GPP的at指令，方便裁剪 **/
 
 #endif
+

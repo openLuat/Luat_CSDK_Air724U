@@ -62,7 +62,7 @@ int appimg_enter(void *param)
 		fortest(socketTest, 1, 200, "UDP");
 		fortest(socketTest, 1, 200, "TCP");
 		fortest(vatTest, 1, 200);
-		fortest(ttsTest, 1, 200, "1", sizeof("1"));
+		//fortest(ttsTest, 1, 200, "1", sizeof("1"));
 	}
 	return 0;
 }

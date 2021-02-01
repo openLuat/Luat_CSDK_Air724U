@@ -18,8 +18,8 @@
 // Auto generated. Don't edit it manually!
 
 /*+\bug:4332\czm\2021.01.26\（中云）关掉RNDIS后出一个版本给商雅达*/
-/* #undef CONFIG_BUILD_CUSTOMIZE_CSDK_FS */
-#define CONFIG_BUILD_CUSTOMIZE_CSDK
+#define CONFIG_BUILD_CUSTOMIZE_CSDK_FS
+/* #undef CONFIG_BUILD_CUSTOMIZE_CSDK */
 /*-\bug:4332\czm\2021.01.26\（中云）关掉RNDIS后出一个版本给商雅达*/
 /**
  * whether enable sysnv mechanism

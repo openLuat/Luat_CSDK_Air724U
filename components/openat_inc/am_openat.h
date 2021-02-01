@@ -519,6 +519,9 @@ INT32 OPENAT_get_current_dir(                       /* 获取当前目录接口 */
                             UINT32 uUnicodeSize     /* 存储目录信息空间大小 */
                             );
 
+INT32 OPENAT_find_open(                       /* 检查文件接口 */
+                            char* pszFileNameUniLe/* 目录路径或文件全路径 unicode little endian */
+                            );
 
 
 INT32 OPENAT_find_first_file(                       /* 查找文件接口 */
@@ -1631,6 +1634,7 @@ OPENAT_SPKPA_TYPE_T OPENAT_getpa(void);
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
 /*+\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
 BOOL OPENAT_fs_mount_sdcard(void);
+BOOL OPENAT_fs_format_sdcard(void);
 BOOL OPENAT_fs_umount_sdcard(void);
 /*-\BUG\wnagyuan\2020.06.10\BUG_1930:Lua需要sd卡默认关闭,需要时由Lua脚本决定开启sd卡功能*/
 /*+\BUG\wangyuan\2020.07.29\BUG_2663:普玄：请参考2G CSDK开发iot_debug_set_fault_mode接口*/

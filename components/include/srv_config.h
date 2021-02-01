@@ -68,11 +68,11 @@
 /**
  * minimal power on voltage
  */
-#define CONFIG_SRV_POWER_ON_VOLTAGE 3250
+#define CONFIG_SRV_POWER_ON_VOLTAGE 3200
 
 /**
  * power off voltage threshold
  */
-#define CONFIG_SRV_POWER_OFF_VOLTAGE 3250
+#define CONFIG_SRV_POWER_OFF_VOLTAGE 3200
 
 #endif

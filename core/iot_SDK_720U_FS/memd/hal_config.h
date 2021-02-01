@@ -23,7 +23,7 @@
 /**
  * Build identify string
  */
-#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CUSTOMIZE_CSDK_FS-debug-DEVEL-svn2038"
+#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CUSTOMIZE_CSDK_FS-debug-DEVEL-svn2063"
 
 /**
  * whether it is 8910 series
