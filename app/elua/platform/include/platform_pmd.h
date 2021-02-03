@@ -24,7 +24,19 @@ typedef enum PlatformLdoIdTag
 	PLATFORM_LDO_VCAMA,
 	PLATFORM_LDO_VCAMD,
 	/*-\new\shenyuanyuan\2020.5.21\模块无VCAM输出*/
+	/*+\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+	PLATFORM_LDO_VIBR,
+	/*-\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+	/*+\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
+	PLATFORM_LDO_VBACKLIGHT_R,
+	PLATFORM_LDO_VBACKLIGHT_G,
+	PLATFORM_LDO_VBACKLIGHT_B,
+	PLATFORM_LDO_VBACKLIGHT_W,
+	/*-\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
 	
+	/*+\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
+	PLATFORM_LDO_POWER_HMICBIAS,
+	/*-\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
     PLATFORM_LDO_QTY
 }PlatformLdoId;
 

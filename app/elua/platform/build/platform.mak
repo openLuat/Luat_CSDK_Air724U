@@ -1,5 +1,5 @@
 #------------------------------------------------------------
-# (C) Copyright [2006-2008] openat International Ltd.
+# (C) Copyright [2006-2008] Marvell International Ltd.
 # All Rights Reserved
 #------------------------------------------------------------
 
@@ -33,11 +33,11 @@ PACKAGE_PATH     = $(BUILD_ROOT)/$(PACKAGE_BASE)/$(PACKAGE_NAME)
 
 # The path locations of source and include file directories.
 PACKAGE_SRC_PATH    = $(PACKAGE_PATH)/src \
-					  $(PACKAGE_PATH)/openat/src
+					  $(PACKAGE_PATH)/marvell/src
 
 PACKAGE_INC_PATHS   = $(BUILD_ROOT)/pcac/atcmdsrv/mifi/inc
 LOCAL_INC_PATHS     = $(PACKAGE_PATH)/include \
-					  $(PACKAGE_PATH)/openat/include \
+					  $(PACKAGE_PATH)/marvell/include \
 
 
 #PACKAGE_SRC_FILES += $(wildcard *.c)

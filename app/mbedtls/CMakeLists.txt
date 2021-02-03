@@ -17,6 +17,10 @@
 #add_library(${target} STATIC)
 #set_target_properties(${target} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${out_lib_dir})
 #target_compile_definitions(${target} PRIVATE AT_MQTTSN_SUPPORT=1)
+
+
+
+
 target_include_directories(${target} PUBLIC include)
 target_include_directories(${target} PUBLIC include/mbedtls)
 target_include_directories(${target} PRIVATE ../../components/include)

@@ -1,13 +1,13 @@
 #------------------------------------------------------------
-# (C) Copyright [2006-2008] openat International Ltd.
+# (C) Copyright [2006-2008] Marvell International Ltd.
 # All Rights Reserved
 #------------------------------------------------------------
 
 #=========================================================================
-# File Name      : openat.mak
-# Description    : Main make file for the /openat package.
+# File Name      : marvell.mak
+# Description    : Main make file for the /marvell package.
 #
-# Usage          : make [-s] -f openat.mak OPT_FILE=<path>/<opt_file>
+# Usage          : make [-s] -f marvell.mak OPT_FILE=<path>/<opt_file>
 #
 # Notes          : The options file defines macro values defined
 #                  by the environment, target, and groups. It
@@ -26,9 +26,9 @@ GEN_PACK_MAKEFILE = $(BUILD_ROOT)/env/$(HOST)/build/package.mak
 
 # Define Package ---------------------------------------
 
-PACKAGE_NAME     = openat
+PACKAGE_NAME     = marvell
 PACKAGE_BASE     = luat
-PACKAGE_DEP_FILE = openat_dep.mak
+PACKAGE_DEP_FILE = marvell_dep.mak
 PACKAGE_PATH     = $(BUILD_ROOT)/$(PACKAGE_BASE)/elua/platform/$(PACKAGE_NAME)
 
 # The path locations of source and include file directories.
@@ -66,7 +66,7 @@ PACKAGE_SRC_FILES += ctype.c                    \
                      platform_spi.c
 
 
-# These are the tool flags specific to the openat package only.
+# These are the tool flags specific to the marvell package only.
 # The environment, target, and group also set flags.
 
 PACKAGE_CFLAGS   =

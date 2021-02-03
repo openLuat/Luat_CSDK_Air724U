@@ -24,8 +24,6 @@
 #include "am_openat.h"
 
 
-
-
 static int decodeFile(const u8 *pData, DbFileInfo *pFileInfo, u32 *pOffset);
 static int decodeHeadInfo(const u8 *pData, DbHeadInfo *pHeadInfo, u32 *pOffset);
 #ifdef WIN32
@@ -275,7 +273,7 @@ FILE *fopen_ext(const char *file, const char *mode)
         fp->_type = LUA_UNCOMPRESS_FILE;
 
     #ifdef AM_LUA_CRYPTO_SUPPORT
-        if(strncmp(&file[fileNameLen - 5],".luac", 5) == 0)
+        if(strncmp(&file[fileNameLen - 5],".luae", 5) == 0)
         {
             fp->_type |= ENC_FILE;
         }
@@ -382,8 +380,7 @@ static int decode_file(void *buf, size_t size, size_t count, FILE *fp)
 
     act_low_boundary = (offset & 0xFFFFFE00);
     act_up_boundary = ((offset + resid + DEC_BUFF_SIZE - 1) & 0xFFFFFE00);
-    read_count = act_up_boundary - act_low_boundary; 
-
+    read_count = act_up_boundary - act_low_boundary; 
 
     /*多申请8个字节的内存，以保证能4字节对齐*/
     data = (unsigned int*)L_MALLOC(4 + read_count + 4);
@@ -429,11 +426,11 @@ static int decode_file(void *buf, size_t size, size_t count, FILE *fp)
 
     while(i < decCount)
     {
-        btea((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((DEC_BUFF_SIZE) / 4), enc_code);
+        platform_decode((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((DEC_BUFF_SIZE) / 4));
         i++;
     }
 
-    btea((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((len % DEC_BUFF_SIZE) / 4), enc_code);
+    platform_decode((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((len % DEC_BUFF_SIZE) / 4));
     
     memcpy(buf, &temp[offset - act_low_boundary], act_count);
     L_FREE(data);
@@ -880,8 +877,7 @@ typedef enum LUADB_SECTION_FILE_TYPE_type
 #endif
 
 #define IN_BUFF_SIZE (120*1024)
-
-#define OUT_BUFF_SIZE (240*1024)
+#define OUT_BUFF_SIZE (240*1024)
 
 #define BL_VERSION_LEN 24
 
@@ -1492,7 +1488,7 @@ decode_head_exit:
 }
 
 
-int parse_luadb_data(const u8 *pData, u32 length, BOOL override, E_LUA_SCRIPT_TABLE_SECTION section, BOOL *pRestart)
+int parse_luadb_data(const u8 *pData, u32 length, BOOL *override, E_LUA_SCRIPT_TABLE_SECTION section, BOOL *pRestart)
 {
 #define LUA_UPDATE_FILE "/luazip/update.bin"
     int err;
@@ -1502,6 +1498,8 @@ int parse_luadb_data(const u8 *pData, u32 length, BOOL override, E_LUA_SCRIPT_TA
     DbFileInfo *pFileInfo = NULL;
     char filename[256];
     int lzmaRet = 0;
+	UINT32 writenSize;
+	OPENAT_print("[parse_luadb_data]: luadb  start\n");
 
     E_LUA_SCRIPT_TABLE_SECTION nSection = LUA_SCRIPT_TABLE_MAX_SECTION;
     T_UNCOMPRESS_FILE_TABLE_ITEM *pItem = NULL;
@@ -1545,7 +1543,7 @@ int parse_luadb_data(const u8 *pData, u32 length, BOOL override, E_LUA_SCRIPT_TA
         goto decode_exit;
     }
 
-    OPENAT_print("[parse_luadb_data]:section %d, override %d  %d\n", section, override, headInfo.filecount);
+    OPENAT_print("[parse_luadb_data]:section %d, %d\n", section, headInfo.filecount);
 
 
     switch(section)
@@ -1573,6 +1571,35 @@ int parse_luadb_data(const u8 *pData, u32 length, BOOL override, E_LUA_SCRIPT_TA
                 
             }
             break;
+#ifdef  AM_LUA_POC_SUPPORT
+          case  LUA_SCRIPT_TABLE_POC_SECTION :
+          {
+          	  #define blockSize (0X10000)
+		  	  const void *flash_img_address = (const void *)( LUA_APPIMG_FLASH_OFFSET);
+			  for(fileIndex = 0; fileIndex < headInfo.filecount; fileIndex++)
+                {   
+                	
+					OPENAT_print("[parse_luadb_data]: luadb LUA_SCRIPT_TABLE_POC_SECTION name:%s  size:%d \n", pFileInfo[fileIndex].name,pFileInfo[fileIndex].length);
+                    if(memcmp(pFileInfo[fileIndex].name ,SCRIPT_POC_FLAG,strlen(SCRIPT_POC_FLAG)) == 0) 
+                    {       	
+						OPENAT_print("[parse_luadb_data]: luadb LUA_SCRIPT_TABLE_POC_SECTION  OK name:%s  size:%d flash_img_address:%p\n", pFileInfo[fileIndex].name,pFileInfo[fileIndex].length,flash_img_address);
+						OPENAT_flash_erase(flash_img_address, flash_img_address+LUA_APPIMG_FLASH_SIZE);
+						
+						OPENAT_print("[parse_luadb_data]: luadb   %x %x %x %x %x %x %x %x\n", *(pFileInfo[fileIndex].data),*(pFileInfo[fileIndex].data+1),*(pFileInfo[fileIndex].data+2),*(pFileInfo[fileIndex].data+3),*(pFileInfo[fileIndex].data+4),*(pFileInfo[fileIndex].data+5),*(pFileInfo[fileIndex].data+6),*(pFileInfo[fileIndex].data+7));
+						OPENAT_flash_write(flash_img_address,pFileInfo[fileIndex].length  , &writenSize, pFileInfo[fileIndex].data);
+
+						if (writenSize == 0)
+							{
+									OPENAT_assert(0, __func__, 0);
+							}
+						*override = TRUE;
+
+
+                    }
+                }          
+          }
+          break;
+#endif
         default:
             break;
     }

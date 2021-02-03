@@ -14,7 +14,7 @@
 #include "am_openat.h"
 #include "devman.h"
 #include "assert.h"
-
+#include "platform_fs.h"
 
 
 
@@ -129,23 +129,187 @@ const DM_DEVICE* platform_fs_init(void)
 {
     return &platform_fs_device;
 }
+/*+\new\wj\2020.9.1\完善mount，unmount，format接口*/
+BOOL platform_fs_mount(PLATFORM_FS_MOUNT_PARAM *param)
+{
+	OPENAT_print("platform_fs_mount %s",param->path);
+	T_AMOPENAT_USER_FSMOUNT mount_param;
+	memset(&mount_param,0,sizeof(T_AMOPENAT_USER_FSMOUNT));
+	mount_param.clkDiv = param->clkDiv;
+	mount_param.exFlash = param->exFlash;
+	mount_param.offset = param->offset;
+	mount_param.path = param->path;
+	mount_param.size = param->size;
+	return OPENAT_fs_mount(&mount_param);
+}
+
+BOOL platform_fs_format(PLATFORM_FS_MOUNT_PARAM *param)
+{
+	OPENAT_print("platform_fs_mount %s",param->path);
+	T_AMOPENAT_USER_FSMOUNT mount_param;
+	memset(&mount_param,0,sizeof(T_AMOPENAT_USER_FSMOUNT));
+	mount_param.clkDiv = param->clkDiv;
+	mount_param.exFlash = param->exFlash;
+	mount_param.offset = param->offset;
+	mount_param.path = param->path;
+	mount_param.size = param->size;
+	return OPENAT_fs_format(&mount_param);
+}
+
+BOOL platform_fs_unmount(PLATFORM_FS_MOUNT_PARAM *param)
+{	
+	OPENAT_print("platform_fs_unmount %s",param->path);
+	T_AMOPENAT_USER_FSMOUNT mount_param;
+	memset(&mount_param,0,sizeof(T_AMOPENAT_USER_FSMOUNT));
+	mount_param.clkDiv = param->clkDiv;
+	mount_param.exFlash = param->exFlash;
+	mount_param.offset = param->offset;
+	mount_param.path = param->path;
+	mount_param.size = param->size;
+	return OPENAT_fs_unmount(&mount_param);
+}
 
 /*+\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
 #ifdef  LUA_SDCARD_SUPPORT
-int platformfs_Mount_sdcard(void)
+BOOL platformfs_Mount_sdcard(void)
 {
 	return IVTBL(fs_mount_sdcard)();
 }
 
-int platformfs_uMount_sdcard(void)
+BOOL platformfs_uMount_sdcard(void)
 {
 	return IVTBL(fs_umount_sdcard)();
 }
 
-int platformfs_Format_sdcard(void)
+BOOL platformfs_Format_sdcard(void)
 {
 	return IVTBL(fs_format_sdcard)();
 }
 #endif
 /*-\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
+/*-\new\wj\2020.9.1\完善mount，unmount，format接口*/
+
+
+/*+\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
+#define OTP_BLOCK_SIZE (0x400)
+#define OTP_BLOCK_COUNT (2)
+#define OTP_BASE_BLOCK (2)
+#define OTP_END (OTP_BLOCK_SIZE*OTP_BLOCK_COUNT)
+BOOL platformfs_otp_erase(UINT16 address, UINT16 size)
+{
+	UINT8 num, cur, end;
+
+	/*判断擦的地址是否超过OTP区域*/
+	if (address > OTP_END)
+	{
+		return FALSE;
+	}
+
+	cur = address / OTP_BLOCK_SIZE;
+	end = (address + size -1) / OTP_BLOCK_SIZE;
+
+	/*擦当前区域*/
+	openat_flash_eraseSecurity(cur+OTP_BASE_BLOCK);
+
+	/*擦区域是否在不同block中*/
+	if (cur != end)
+	{
+		openat_flash_eraseSecurity(end+OTP_BASE_BLOCK);
+	}
+
+	return TRUE;
+}
+
+BOOL platformfs_otp_lock(UINT16 address, UINT16 size)
+{
+	UINT8 num, cur, end;
+
+	/*判断锁的地址是否超过OTP区域*/
+	if ((address+size-1) > OTP_END)
+	{
+		return FALSE;
+	}
+	
+	cur = address / OTP_BLOCK_SIZE;
+	end = (address + size -1) / OTP_BLOCK_SIZE;
+
+	/*锁住当前区域*/
+	openat_flash_lockSecurity(cur+OTP_BASE_BLOCK);
+
+	/*锁区域是否在不同block中*/
+	if (cur != end)
+	{
+		openat_flash_lockSecurity(end+OTP_BASE_BLOCK);
+	}
+
+	return TRUE;
+}
+
+
+BOOL platformfs_otp_write(UINT16 address, char * data, UINT32 size)
+{
+	UINT8 num, cur, end;
+	UINT16 offset,len;
+
+	/*判断写的区域是否超过otp区域*/
+	if ((address + size) > OTP_END)
+	{
+		return FALSE;
+	}
+	
+	cur = address / OTP_BLOCK_SIZE;
+	end = (address + size -1) / OTP_BLOCK_SIZE;
+
+	/*写区域是否在不同block中*/
+	if (cur != end)
+	{
+		offset = address % OTP_BLOCK_SIZE;
+		len = OTP_BLOCK_SIZE-offset;
+		openat_flash_writeSecurity(cur+OTP_BASE_BLOCK, offset, data, len);
+		offset = 0;
+		openat_flash_writeSecurity(end+OTP_BASE_BLOCK, offset, &data[len], size-len);
+	}
+	/*写区域在一个BLOCK中*/
+	else 
+	{
+		offset = address % OTP_BLOCK_SIZE;
+		openat_flash_writeSecurity(cur+OTP_BASE_BLOCK, offset, data, size);
+	}
+
+	return TRUE;
+}
+
+BOOL platformfs_otp_read(UINT16 address, char * data, UINT32 size)
+{
+	UINT8 num, cur, end;
+	UINT16 offset,len;
+
+	/*判断读的区域是否超过otp区域*/
+	if ((address + size) > OTP_END)
+	{
+		return FALSE;
+	}
+	
+	cur = address / OTP_BLOCK_SIZE;
+	end = (address + size -1) / OTP_BLOCK_SIZE;
+
+	/*读区域是否在不同block中*/
+	if (cur != end)
+	{
+		offset = address % OTP_BLOCK_SIZE;
+		len = OTP_BLOCK_SIZE-offset;
+		openat_flash_readSecurity(cur+OTP_BASE_BLOCK, offset, data, len);
+		offset = 0;
+		openat_flash_readSecurity(end+OTP_BASE_BLOCK, offset, &data[len], size-len);
+	}
+	/*读区域在一个BLOCK中*/
+	else 
+	{
+		offset = address % OTP_BLOCK_SIZE;
+		openat_flash_readSecurity(cur+OTP_BASE_BLOCK, offset, data, size);
+	}
+
+	return TRUE;
+}
+/*-\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
 

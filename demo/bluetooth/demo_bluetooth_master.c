@@ -167,7 +167,7 @@ void bluetooth_callback(T_OPENAT_BLE_EVENT_PARAM *result)
 BOOL ble_poweron(VOID)
 {
     iot_debug_print("[bluetooth]bt poweron");
-    ret = iot_bt_open(BLE_MASTER);//打开蓝牙
+    iot_bt_open(BLE_MASTER);//打开蓝牙
     return TRUE;
 }
 
@@ -186,18 +186,21 @@ BOOL scan(VOID)
     param1.scanparam = iot_os_malloc(sizeof(T_OPENAT_BLE_SCAN_PARAM));
     memcpy(param1.scanparam,&scanparam,sizeof(T_OPENAT_BLE_SCAN_PARAM));
     iot_ble_iotctl(0,BLE_SET_SCAN_PARAM,param1);//设置广播参数
-    iot_os_free(param1.scanparam);
+    if(param1.scanparam != NULL)
+        iot_os_free(param1.scanparam);
     param1.scanparam = NULL;
 */
     iot_ble_iotctl(0,BLE_SET_SCAN_ENABLE,param2);//打开扫描
     iot_os_wait_message(ble_test_handle,&msg);
     if(msg->eventid != OPENAT_BLE_SET_SCAN_ENABLE)//等待扫描使能成功
     {
-        iot_os_free(msg);
+        if(msg != NULL)
+            iot_os_free(msg);
         msg = NULL;
         return FALSE;
     }
-    iot_os_free(msg);
+    if(msg != NULL)
+        iot_os_free(msg);
     msg = NULL;
     return TRUE;
 }
@@ -230,21 +233,25 @@ BOOL ble_data_trans(VOID)
     param2.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
     memcpy(param2.uuid,&uuid_s,sizeof(T_OPENAT_BLE_UUID));
     iot_ble_iotctl(connect_handle,BLE_FIND_CHARACTERISTIC,param2);//发现服务内的特征
-    iot_os_free(param2.uuid);
+    if(param2.uuid != NULL)
+        iot_os_free(param2.uuid);
     param2.uuid = NULL;
     iot_os_wait_message(ble_test_handle,&msg);
     if(msg->eventid != OPENAT_BLE_FIND_CHARACTERISTIC_IND)//等待发现特征成功
     {
-        iot_os_free(msg);
+        if(msg != NULL)
+            iot_os_free(msg);
         msg = NULL;
         return FALSE;
     }
-    iot_os_free(msg);
+    if(msg != NULL)
+        iot_os_free(msg);
     msg = NULL;
     param3.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
     memcpy(param3.uuid,&uuid_c,sizeof(T_OPENAT_BLE_UUID));
     iot_ble_iotctl(connect_handle,BLE_OPEN_NOTIFICATION,param3);//打开通知
-    iot_os_free(param3.uuid);
+    if(param3.uuid != NULL)
+        iot_os_free(param3.uuid);
     param3.uuid = NULL;
     while(1)
     {
@@ -260,10 +267,11 @@ BOOL ble_data_trans(VOID)
             AppConvertBinToHex(msg->bleRcvBuffer,msg->len,bleRcvBuffer);
             bleRcvBuffer[msg->len*2] = '\0';
             iot_debug_print("[bluetooth]bt recv data %s",bleRcvBuffer);
-
-            iot_os_free(bleRcvBuffer);
+            if(bleRcvBuffer != NULL)
+                iot_os_free(bleRcvBuffer);
             bleRcvBuffer = NULL;
-            iot_os_free(msg);
+            if(msg != NULL)
+                iot_os_free(msg);
             msg = NULL;
         }
     }
@@ -278,7 +286,8 @@ VOID ble_test(VOID)
     iot_os_wait_message(ble_test_handle,&msg);//等待蓝牙打开
     if(msg->eventid == OPENAT_BT_ME_ON_CNF)
     {
-        iot_os_free(msg);
+        if(msg != NULL)
+            iot_os_free(msg);
         msg = NULL;
         //2.扫描蓝牙
         scan();
@@ -287,7 +296,8 @@ VOID ble_test(VOID)
         { 
             //3. 数据传输
             connect_handle = msg->handle;//连接句柄
-            iot_os_free(msg);
+            if(msg != NULL)
+                iot_os_free(msg);
             msg = NULL;
             ble_data_trans();
         }

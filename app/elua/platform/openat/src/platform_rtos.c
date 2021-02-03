@@ -54,7 +54,13 @@ int platform_rtos_send(platform_msg_type msg_id, PlatformMsgData* pMsg)
     //OPENAT_print("platform_rtos_send msg end", msg_id);
     return PLATFORM_OK;
 }
-
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+kal_bool platform_rtos_send_high_priority(platform_msg_type msg_id, PlatformMsgData* pMsg)
+{
+    OPENAT_print("platform_rtos_send_high_priority msg %d", msg_id);
+    return OPENAT_SendHighPriorityMessage(g_LuaShellTaskHandle, msg_id, pMsg, sizeof(PlatformMsgData));
+}
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 int platform_rtos_receive(platform_msg_type* msg_id, void **ppMessage, u32 timeout)
 {
     BOOL ret;
@@ -517,27 +523,38 @@ void platform_poweron_try(void)
 }
 /*-\NEW\liweiqiang\2013.12.12\增加充电开机时由用户自行决定是否启动系统 */
 
-int platform_rtos_poweroff(void)
+/*+\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
+#ifdef AM_LUA_SUPPORT
+int platform_rtos_poweroff(int type)
 {
-    OPENAT_print("platform_rtos_poweroff");
+    OPENAT_print("platform_rtos_poweroff type %d", type);
     OPENAT_sleep(10);
 
-    /*+\NEW\zhuth\2014.2.14\充电开机并且用户没有启动协议栈的情况下使用shutdown关机，其余情况使用poweroff_system关机*/
-    if((platform_get_poweron_reason() == OPENAT_PM_POWERON_BY_CHARGER)
-        && !cust_sys_flag)
+	if (type)
+	{
+		//OPENAT_shutdown_charger();
+	}
+	else
     {
-        OPENAT_shut_down();
-    }
-    else
-    {
-        OPENAT_poweroff_system();
-    }
-    /*-\NEW\zhuth\2014.2.14\充电开机并且用户没有启动协议栈的情况下使用shutdown关机，其余情况使用poweroff_system关机*/
-
+	    /*+\NEW\zhuth\2014.2.14\充电开机并且用户没有启动协议栈的情况下使用shutdown关机，其余情况使用poweroff_system关机*/
+	    if((platform_get_poweron_reason() == OPENAT_PM_POWERON_BY_CHARGER)
+	        && !cust_sys_flag)
+	    {
+	        OPENAT_shut_down();
+	    }
+	    else
+	    {
+	        OPENAT_poweroff_system();
+	    }
+    	/*-\NEW\zhuth\2014.2.14\充电开机并且用户没有启动协议栈的情况下使用shutdown关机，其余情况使用poweroff_system关机*/
+	}
+	
     platform_lua_dead_loop();
     
     return PLATFORM_OK;
 }
+/*+\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
+#endif
 
 /*+\NEW\liweiqiang\2013.9.7\增加rtos.restart接口*/
 int platform_rtos_restart(void)
@@ -748,12 +765,25 @@ void platform_sim_status_ind(int insert)
 }
 /*+:\NEW\brezen\2016.10.13\支持SIM卡切换*/
 /*+\add\liangjian\2020.06.22\增加SD 卡显示范围*/
-UINT32 platform_fs_get_free_size(int isSD, unsigned int type)
+UINT32 platform_fs_get_free_size(int isSD,unsigned int type)
 {
     T_AMOPENAT_FILE_INFO info = {0};
-    if (IVTBL(get_fs_info)(E_AMOPENAT_FS_INTERNAL, &info, isSD, type) == 0)
+	
+	/*+:\NEW\zhuwangbin\2020.8.8\修改文件系统的信息的获取*/
+	char *path;
+	
+	if (isSD)
+	{
+		path = "/sdcard0";
+	}
+	else
+	{
+		path = "/";
+	}
+	
+    if(IVTBL(get_fs_info)(E_AMOPENAT_FS_INTERNAL,&info,path,type)==0)
     {
-        UINT32 freeSize = info.totalSize - info.usedSize;
+        UINT32 freeSize = info.totalSize-info.usedSize;
         //DEBUG_RTOS_TRACE("platform_fs_get_free_size %l %l %l\n", info.totalSize, info.usedSize, freeSize);
         return freeSize;
     }
@@ -761,15 +791,28 @@ UINT32 platform_fs_get_free_size(int isSD, unsigned int type)
     {
         return 0;
     }
+	/*-:\NEW\zhuwangbin\2020.8.8\修改文件系统的信息的获取*/
 }
 /*end\NEW\zhutianhua\2017.9.5 31:2\增加get_fs_free_size接口*/
 
 /*+:\NEW\liangjian\2020.6.16\增加获取文件空间大小接口*/
 
-UINT32 platform_fs_get_total_size(int isSD, unsigned int type)
+UINT32 platform_fs_get_total_size(int isSD,unsigned int type)
 {
-    T_AMOPENAT_FILE_INFO info = {0};
-    if (IVTBL(get_fs_info)(E_AMOPENAT_FS_INTERNAL, &info, isSD, type) == 0)
+	T_AMOPENAT_FILE_INFO info = {0};
+	
+	/*+:\NEW\zhuwangbin\2020.8.8\修改文件系统的信息的获取*/
+	char *path;
+	
+	if (isSD)
+	{
+		path = "/sdcard0";
+	}
+	else
+	{
+		path = "/";
+	}
+    if(IVTBL(get_fs_info)(E_AMOPENAT_FS_INTERNAL,&info ,path,type)==0)
     {
         return info.totalSize;
     }
@@ -777,6 +820,7 @@ UINT32 platform_fs_get_total_size(int isSD, unsigned int type)
     {
         return 0;
     }
+	/*-:\NEW\zhuwangbin\2020.8.8\修改文件系统的信息的获取*/
 }
 /*end\NEW\liangjian\2020.6.16\增加获取文件空间大小接口*/
 /*-\bug\add\2020.06.22\增加SD 卡显示范围*/
@@ -941,7 +985,84 @@ BOOL platform_rtos_close_SoftDog(void)
 	OPENAT_rtos_close_SoftDog(); 
 	return 0;
 }
+
 /*-\NEW\hedonghao\2020.4.10\添加LUA软狗接口*/
+/*+\BUG\wangyuan\2020.07.28\BUG_2640:8910平台LUA版本增加读取客户版本号的AT指令，兼容之前1802平台的“AT+LUAINFO?”*/
+int platform_rtos_set_luainfo(char *src)
+{
+   OPENAT_rtos_set_luainfo(src);   
+   return 0; 
+}
+/*-\BUG\wangyuan\2020.07.28\BUG_2640:8910平台LUA版本增加读取客户版本号的AT指令，兼容之前1802平台的“AT+LUAINFO?”*/
+/*+\new\wj\lua添加热插拔接口*/
+void platform_rtos_notify_sim_detect(int simNum,BOOL connect) 
+{
+	/*目前sim卡num固定为1卡，后面再优化*/
+	OPENAT_notify_sim_detect(simNum,connect);
+}
+
+/*-\new\wj\lua添加热插拔接口*/
 
 
+/*+\BUG3109\zhuwangbin\2020.9.21\对讲机需要在开机状态下通过串口或者USB串口进行POC小包下载和写号*/
+#ifdef AM_LUA_POC_SUPPORT
+BOOL platform_rtos_poc_ota(void)
+{
+	extern BOOL openat_pocImageIsVaild(void);
+	
+	return openat_pocImageIsVaild(); 
+}
 
+int platform_rtos_poc_flash_erase(void)
+{
+	return OPENAT_flash_erase(CONFIG_PLATFORM_FLASH_OFFSET, CONFIG_PLATFORM_FLASH_OFFSET+CONFIG_PLATFORM_FLASH_SIZE);
+}
+
+int platform_rtos_poc_flash_read(UINT32 offset, UINT32 size, UINT8 * buf)
+{
+	UINT32 readSize;
+	return OPENAT_flash_read(CONFIG_PLATFORM_FLASH_OFFSET+offset, size, &readSize, (CONST UINT8* )buf);
+}
+
+int platform_rtos_poc_flash_write(UINT32 offset, UINT32 size, UINT8 * buf)
+{
+	UINT32 writenSize;
+	return OPENAT_flash_write(CONFIG_PLATFORM_FLASH_OFFSET+offset, size, &writenSize, (CONST UINT8* )buf);
+}
+
+#endif
+/*-\BUG3109\zhuwangbin\2020.9.21\对讲机需要在开机状态下通过串口或者USB串口进行POC小包下载和写号*/
+
+/*+\bug\rww\2020.9.22\添加rtos.setTransData*/
+// typedef struct
+// {
+//     int len;
+//     char *data;
+// } trans_data_t;
+
+// static void _set_trans_data(void *ctx)
+// {
+//     extern int trans_data_len;
+//     extern char *trans_data;
+//     trans_data_t *td = (trans_data_t *)ctx; 
+//     if (trans_data != NULL)
+//     {
+//         free(trans_data);
+//     }
+//     trans_data_len = td->len;
+//     trans_data = td->data;
+//     free(td);
+// }
+
+// platform_rtos_set_trans_data(int len, char *buf)
+// {
+//     trans_data_t *td = (trans_data_t *)malloc(sizeof(trans_data_t));
+//     td->len = len;
+//     td->data = buf;
+//     if (!osiThreadCallback(atEngineGetThreadId(), _set_trans_data, td))
+//     {
+//         free(buf);
+//         free(td);
+//     }
+// }
+/*-\bug\rww\2020.9.22\添加rtos.setTransData*/

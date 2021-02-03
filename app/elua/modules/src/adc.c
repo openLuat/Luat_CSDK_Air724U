@@ -21,18 +21,21 @@
 #include "platform_pmd.h"
 
 // adc.open(id)
+/*+\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
 static int adc_open(lua_State *L) {
     int id = luaL_checkinteger(L, 1);
+	int scale =  luaL_optinteger(L, 2, 0);
     int ret;
-
+	
     MOD_CHECK_ID(adc, id);
 
-    ret = platform_adc_open(id,0);
+    ret = platform_adc_open(id, 0, scale);
 
     lua_pushinteger(L, ret);
 
     return 1; 
 }
+/*-\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
 
 // adc.read(id)
 static int adc_read(lua_State *L) {    
@@ -79,5 +82,12 @@ LUALIB_API int luaopen_adc( lua_State *L )
 {
     luaL_register( L, AUXLIB_ADC, adc_map );
 
+	/*+\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+	MOD_REG_NUMBER(L, "SCALE_1V250", PLATFORM_ADC_SCALE_1V250);
+    MOD_REG_NUMBER(L, "SCALE_2V444", PLATFORM_ADC_SCALE_2V444);
+    MOD_REG_NUMBER(L, "SCALE_3V233", PLATFORM_ADC_SCALE_3V233);
+    MOD_REG_NUMBER(L, "SCALE_5V000", PLATFORM_ADC_SCALE_5V000);
+	/*-\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+	
     return 1;
 }  

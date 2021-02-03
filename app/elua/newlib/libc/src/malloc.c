@@ -14,6 +14,10 @@
 #include "string.h"
 #include "malloc.h"
 #include "reent.h"
+// extern void *_calloc_r(size_t, size_t);
+// extern void  _free_r(void *);
+// extern void *_malloc_r(size_t);
+// extern void *_realloc_r(void *, size_t);
 
 void* 
 lualibc_malloc(size_t bytes) 

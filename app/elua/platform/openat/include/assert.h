@@ -19,6 +19,8 @@ extern "C"{
 
 #define ASSERT(cOND) {if (!(cOND)) {platform_assert(__FILE__, (short)__LINE__);}}
 
+#define assert(x) ASSERT(x)
+
 void platform_assert(const char *func, int line);
 
 #ifdef __cplusplus

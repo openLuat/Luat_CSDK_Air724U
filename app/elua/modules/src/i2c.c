@@ -34,11 +34,6 @@ static int i2c_setup( lua_State *L )
     unsigned id = luaL_checkinteger( L, 1 );
     PlatformI2CParam i2cParam;
 
-    if(id == 2)
-    {
-        id = 0;
-    }
-
     i2cParam.speed = ( u32 )luaL_checkinteger( L, 2 );
     if(lua_gettop(L)==3)
     {
@@ -46,6 +41,9 @@ static int i2c_setup( lua_State *L )
     }
 
     MOD_CHECK_ID( i2c, id );
+/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     lua_pushinteger( L, platform_i2c_setup( id, &i2cParam ) );
     return 1;
 }
@@ -61,18 +59,15 @@ static int i2c_write( lua_State *L )
     u8 regAddr;
     u32 wrote = 0;
 
-    if(id == 2)
-    {
-        id = 0;
-    }
-
     if(lua_gettop(L) == 4){
         slave_addr = luaL_checkinteger(L, arg_index++);
     }
     regAddr = (u8)luaL_checkinteger(L, arg_index++);
 
     MOD_CHECK_ID( i2c, id );
-
+	/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+	/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     switch(lua_type(L, arg_index))
     {
     case LUA_TNUMBER:
@@ -134,11 +129,6 @@ static int i2c_read( lua_State *L )
     u32 size;
     luaL_Buffer b;
 
-    if(id == 2)
-    {
-        id = 0;
-    }
-
     if(lua_gettop(L) == 4){
         slave_addr = luaL_checkinteger(L, arg_index++);
     }
@@ -146,6 +136,9 @@ static int i2c_read( lua_State *L )
     size = (u32)luaL_checkinteger( L, arg_index++ );
 
     MOD_CHECK_ID( i2c, id );
+	/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+	/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     if( size == 0 )
         return 0;
     
@@ -170,14 +163,11 @@ static int i2c_send( lua_State *L )
     unsigned id = luaL_checkinteger( L, arg_index++ );
     u16 slave_addr = (u8)luaL_checkinteger(L, arg_index++) << 1;
     u32 wrote = 0;
-
-    if(id == 2)
-    {
-        id = 0;
-    }
     
     MOD_CHECK_ID( i2c, id );
-
+	/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+	/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     switch(lua_type(L, arg_index))
     {
     case LUA_TNUMBER:
@@ -235,15 +225,13 @@ static int i2c_recv( lua_State *L )
     u32 size;
 
     luaL_Buffer b={0};
-    
-    if(id == 2)
-    {
-        id = 0;
-    }
-
+   
     size = (u32)luaL_checkinteger( L, arg_index++ );
 
     MOD_CHECK_ID( i2c, id );
+	/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+	/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     if( size == 0 )
         return 0;
     
@@ -266,6 +254,9 @@ static int i2c_close( lua_State *L )
     unsigned id = luaL_checkinteger( L, 1 );
 
     MOD_CHECK_ID( i2c, id );
+	/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	id = id - 1;
+	/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     /*+\NEW\WANGJIAN\2019.4.10\打开i2c.close接口*/
     lua_pushinteger( L, platform_i2c_close( id ) );
     /*-\NEW\WANGJIAN\2019.4.10\打开i2c.close接口*/

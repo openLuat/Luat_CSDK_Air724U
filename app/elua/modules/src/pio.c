@@ -174,16 +174,16 @@ static int pio_pin_close( lua_State *L)
 /*-\NEW\liweiqiang\2013.4.11\增加pio.pin.close接口*/
 
 /*+\NEW\zhuwangbin\2020.6.7\通过gpio设置方波*/
-#ifdef AM_LUA_POC_SUPPORT
 static int pio_pin_gpioPulse( lua_State *L)
 {
-    unsigned     port        = luaL_checkinteger(L, 1);
-    unsigned int    time_us        =  luaL_optint(L, 2, 0);
-	unsigned int 	count 		= luaL_optint(L, 3, 0);
+    unsigned int 	io   = luaL_checkinteger(L, 1);
+    unsigned int    high_us        =  luaL_optint(L, 2, 0);
+	unsigned int    low_us        =  luaL_optint(L, 3, 0);
+	unsigned int    count        =  luaL_optint(L, 4, 0);
+	unsigned int 	idle 		= luaL_optint(L, 5, 0);
 
-    return platform_gpioPulse(port, time_us, count);
+    return platform_gpioPulse(io, high_us, low_us, count, idle);
 }
-#endif
 /*-\NEW\zhuwangbin\2020.6.7\通过gpio设置方波*/
 
 // Lua: pio.pin.setdir( pio.INPUT | pio.OUTPUT, pin1, pin2, ..., pinn )
@@ -393,9 +393,7 @@ static const LUA_REG_TYPE pio_pin_map[] =
   { LSTRKEY( "close" ), LFUNCVAL ( pio_pin_close ) },
 /*-\NEW\liweiqiang\2013.4.11\增加pio.pin.close接口*/
 /*+\NEW\zhuwangbin\2020.6.7\通过gpio设置方波*/
-#ifdef AM_LUA_POC_SUPPORT
-  { LSTRKEY( "gpiopulse" ), LFUNCVAL ( pio_pin_gpioPulse ) },
-#endif
+  { LSTRKEY( "plus" ), LFUNCVAL ( pio_pin_gpioPulse ) },
 /*-\NEW\zhuwangbin\2020.6.7\通过gpio设置方波*/
 
   { LNILKEY, LNILVAL }

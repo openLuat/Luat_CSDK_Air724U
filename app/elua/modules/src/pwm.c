@@ -50,9 +50,9 @@ static int pwm_set(lua_State *L) {
     int id = luaL_checkinteger(L,1);
     int param0 = luaL_checkinteger(L, 2);
     int param1 = luaL_checkinteger(L, 3);
-    
-    platform_pwm_set(id, param0, param1);
-   
+    /*+\bug3708\zhuwangbin\2020.11.26\优化pwm代码*/
+	lua_pushinteger(L, platform_pwm_set(id, param0, param1));
+	/*-\bug3708\zhuwangbin\2020.11.26\优化pwm代码*/
     return 1; 
 }
 /*-\bug\wj\2020.4.30\lua添加pwm接口*/

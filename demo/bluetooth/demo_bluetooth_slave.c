@@ -183,14 +183,16 @@ BOOL AddService()
     param1.uuid = iot_os_malloc(sizeof(T_OPENAT_BLE_UUID));
     memcpy(param1.uuid,&uuid,sizeof(T_OPENAT_BLE_UUID));
     iot_ble_iotctl(0,BLE_ADD_SERVICE,param1);//添加服务
-    iot_os_free(param1.uuid);
+    if(param1.uuid != NULL)
+        iot_os_free(param1.uuid);
     param1.data = NULL;
     for(i = 0;i < sizeof(service_param)/sizeof(ble_add_characteristic_t);i ++)
     {
         param2.characteristicparam = iot_os_malloc(sizeof(T_OPENAT_BLE_CHARACTERISTIC_PARAM));
         memcpy(param2.characteristicparam,&service_param[i].uuid_c,sizeof(T_OPENAT_BLE_CHARACTERISTIC_PARAM));
         iot_ble_iotctl(0,BLE_ADD_CHARACTERISTIC,param2);//添加特征
-        iot_os_free(param2.characteristicparam);
+        if(param2.characteristicparam != NULL)
+            iot_os_free(param2.characteristicparam);
         param2.characteristicparam = NULL;
         if(service_param[i].count != 0)
         {
@@ -199,7 +201,8 @@ BOOL AddService()
                 param3.descriptorparam = iot_os_malloc(sizeof(T_OPENAT_BLE_DESCRIPTOR_PARAM));
                 memcpy(param3.descriptorparam,&bt_descriptor[j],sizeof(T_OPENAT_BLE_DESCRIPTOR_PARAM));
                 iot_ble_iotctl(0,BLE_ADD_DESCRIPTOR,param3);//添加描述
-                iot_os_free(param3.descriptorparam);
+                if(param3.descriptorparam != NULL)
+                    iot_os_free(param3.descriptorparam);
                 param3.descriptorparam = NULL;
             }
         }
@@ -228,19 +231,22 @@ BOOL advertising(VOID)
     param1.data = iot_os_malloc(strlen("Luat_Air724UG"));
     memcpy(param1.data,"Luat_Air724UG",strlen("Luat_Air724UG"));
     iot_ble_iotctl(0,BLE_SET_NAME,param1);//设置广播名称
-    iot_os_free(param1.data);
+    if(param1.data != NULL)
+        iot_os_free(param1.data);
     param1.data = NULL;
 /*
     param2.advdata = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_DATA));
     memcpy(param2.advdata,&advdata,sizeof(T_OPENAT_BLE_ADV_DATA));
     iot_ble_iotctl(0,BLE_SET_ADV_DATA,param2);//设置广播包数据
-    iot_os_free(param2.advdata);
+    if(param2.advdata != NULL)
+        iot_os_free(param2.advdata);
     param2.advdata = NULL;
 
     param3.advdata = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_DATA));
     memcpy(param3.advdata,&scanrspdata,sizeof(T_OPENAT_BLE_ADV_DATA));
     iot_ble_iotctl(0,BLE_SET_SCANRSP_DATA,param3);//设置响应包数据
-    iot_os_free(param3.advdata);
+    if(param3.advdata != NULL)
+        iot_os_free(param3.advdata);
     param3.advdata = NULL;
 
     //AddService();//添加自定义蓝牙服务
@@ -248,7 +254,8 @@ BOOL advertising(VOID)
     param4.advparam = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_PARAM));
     memcpy(param4.advparam,&advparam,sizeof(T_OPENAT_BLE_ADV_PARAM));
     iot_ble_iotctl(0,BLE_SET_ADV_PARAM,param4);//设置广播参数
-    iot_os_free(param4.advparam);
+    if(param4.advparam != NULL)
+        iot_os_free(param4.advparam);
     param4.advparam = NULL;
 */
     iot_os_sleep(1000);
@@ -285,9 +292,11 @@ BOOL ble_data_trans(VOID)
             {
                 iot_ble_disconnect(connect_handle);
             }
-            iot_os_free(bleRcvBuffer);
+            if(bleRcvBuffer != NULL)
+                iot_os_free(bleRcvBuffer);
             bleRcvBuffer = NULL;
-            iot_os_free(msg);
+            if(msg != NULL)
+                iot_os_free(msg);
             msg = NULL;
         }
     }
@@ -302,7 +311,8 @@ VOID ble_test(VOID)
     iot_os_wait_message(ble_test_handle,&msg);//等待蓝牙打开
     if(msg->eventid == OPENAT_BT_ME_ON_CNF)
     {
-        iot_os_free(msg);
+        if(msg != NULL)
+            iot_os_free(msg);
         msg = NULL;
         //2.广播蓝牙
         advertising();
@@ -311,7 +321,8 @@ VOID ble_test(VOID)
         {     
             //3. 数据传输
             connect_handle = msg->handle;//连接句柄
-            iot_os_free(msg);
+            if(msg != NULL)
+                iot_os_free(msg);
             msg = NULL;
             ble_data_trans();
         }

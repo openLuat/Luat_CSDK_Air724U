@@ -8,14 +8,17 @@
 #include "platform_malloc.h"
 #include "platform_rtos.h"
 #include "platform_pmd.h"
-
+#include "preload.h"
 #include "osi_api.h"
-
+#include "fupdate_config.h"
 #define CUST_MAIN_TASK_PRIO     OPENAT_CUST_TASKS_PRIORITY_BASE
 #define LUA_SHELL_TASK_PRIO     (OPENAT_CUST_TASKS_PRIORITY_BASE+10)
 
 #define CUST_MAIN_TASK_STACK_SIZE       (2*1024)
 #define LUA_SHELL_TASK_STACK_SIZE       (16*1024)/*堆栈加大至16K避免载入大脚本堆栈溢出*/
+extern char malloc_buf[1180*1024];
+extern int pocFotaOta ;
+
 
 typedef enum CustMessageIdTag
 {
@@ -391,7 +394,7 @@ void cust_repoweron_system(void)
 
 char *getLuaPath(void)
 {
-    return LUA_DIR "/?.lua;" LUA_DIR "/?.luac";
+    return LUA_DIR "/?.lua;" LUA_DIR "/?.luac;" LUA_DIR "/?.luae";
 }
 
 char *getLuaDir(void)
@@ -426,15 +429,47 @@ static HANDLE luaShellSem = 0;
 #define OTA_APP_FILE_NAME "app"
 #define OTA_APP_FILE_PATH CONFIG_FS_FOTA_DATA_DIR "/" OTA_APP_FILE_NAME
 
+static UINT32 find_poc_index(UINT8 *allData, UINT32 allDataLen , UINT32 *pocAreaSize  )
+{
+	UINT32 index = 0;
+	UINT8 i=0;
+	UINT8  checkStr[5] = {0x5a,0xa5,0x5a,0xa5,0x02}  ;
+	while(index < allDataLen)
+	{
+		for(i=0;i<strlen(SCRIPT_POC_FLAG);i++)
+		{
+			if(*(allData+index+i) != *(SCRIPT_POC_FLAG+i))
+				break;	
+		}
+		if(i  == strlen(SCRIPT_POC_FLAG) )
+		{
+			if((i > 5) && (memcmp(allData+index -6,checkStr,5) == 0))
+			{
+				
+				UINT32 nameLen = 	*(allData + index - 1);
+				UINT32 pocBufSizeInedex =  index + nameLen + 2 ; 
+				UINT32 pocBufSize = (*(allData + pocBufSizeInedex) ) + (*(allData + pocBufSizeInedex +1) << 8) + (*(allData + pocBufSizeInedex+2) << 16) + (*(allData + pocBufSizeInedex+3)<< 24);
+				IVTBL(print)("find_poc_index  find nameLen %x %x %x\r\n",nameLen,pocBufSizeInedex,pocBufSize);	
+
+				*pocAreaSize = 8 + nameLen + 10 + pocBufSize;
+				return index - 8;
+			}
+		}
+		index++;
+	}
+	return 0;
+}
+
 
 static void lua_update(void)
 {
-	INT32 size, readLen;
+	INT32 size,ScriptSize, readLen,result;
 	INT32 appMaginLen = strlen(OTA_APP_MAGIN);
 	INT32 fd = OPENAT_open_file(OTA_APP_FILE_PATH, FS_O_RDONLY, 0);
 	UINT32 flash_size = LUA_SCRIPT_SIZE;
 	UINT8 appMagin[20] = {0};
-
+	BOOL update,restart2 = FALSE;
+	UINT32 pocAreaSize,writenSize;
 	IVTBL(print)("lua_update fd %d\r\n", fd);	
 	if (fd < 0)
 	{
@@ -444,14 +479,18 @@ static void lua_update(void)
 	size = OPENAT_get_file_size_h(fd);
 
 	IVTBL(print)("lua_update size %d\r\n", size);
-	if (size <= appMaginLen || size >= flash_size)
+	if (size <= appMaginLen 
+#ifndef  AM_LUA_POC_SUPPORT
+		|| size >= flash_size
+#endif
+	)
 	{
 		goto updateEnd;
 	}
-	
-	readLen = OPENAT_seek_file(fd, size-appMaginLen, 0);
 
-	IVTBL(print)("lua_update OPENAT_seek_file %d\r\n", readLen);
+	ScriptSize = OPENAT_seek_file(fd, size-appMaginLen, 0);
+
+	IVTBL(print)("lua_update OPENAT_seek_file true %d\r\n", ScriptSize);
 	
 	readLen = OPENAT_read_file(fd, appMagin, appMaginLen);
 
@@ -468,9 +507,69 @@ static void lua_update(void)
 		goto updateEnd;
 	}
 
+
+
 	readLen = OPENAT_seek_file(fd, 0, 0);
 	IVTBL(print)("lua_update OPENAT_seek_file %d\r\n", readLen);
-	{
+	
+#ifdef  AM_LUA_POC_SUPPORT
+		UINT8 *data = &malloc_buf;
+		memset((void *)data, 0 , 1180*1024);
+		if (!data)
+		{
+			IVTBL(print)("lua_update data %x\r\n", data);
+			goto updateEnd;
+		}
+		
+		OPENAT_flash_erase(LUA_SCRIPT_ADDR, LUA_SCRIPT_ADDR+flash_size);
+		readLen = OPENAT_read_file(fd, data, ScriptSize);
+		result = parse_luadb_data(data, ScriptSize, &update, LUA_SCRIPT_TABLE_POC_SECTION, &restart2);
+		
+		IVTBL(print)("liangjian lua_update LUA_SCRIPT_ADDR [%x,%x,%d]\r\n", LUA_SCRIPT_ADDR,LUA_SCRIPT_ADDR+flash_size,update);
+		if ((result == 0) && update)
+		{
+			UINT32 indexPoc = find_poc_index(data,ScriptSize,&pocAreaSize);
+			
+			IVTBL(print)("liangjian lua_update  indexPoc:%x size:%x\r\n", indexPoc,pocAreaSize);
+			if(indexPoc > 0 && pocAreaSize > 0)
+			{
+				unsigned short OldLen = (*(data + 19) << 8) + (*(data + 18));
+				*(data + 18) = (OldLen - 1) & 0x00ff;
+				*(data + 19) = (OldLen - 1) >> 8;
+
+				unsigned short OldCrc = (*(data + 23) << 8) + (*(data + 22)) ;
+				*(data + 22) = (OldCrc - 1) & 0x00ff;
+				*(data + 23) = (OldCrc - 1) >> 8;
+				
+				IVTBL(print)("liangjian lua_update	OldLen0:%x OldLen1:%x OldCrc0:%x OldCrc1:%x\r\n", *(data + 18),*(data + 19), *(data + 22),*(data + 23));
+				if(indexPoc + pocAreaSize < ScriptSize )
+				{
+					UINT32 tempIndex = pocAreaSize;
+					while(pocAreaSize --)
+					{
+						*(data + indexPoc+tempIndex-pocAreaSize-1) = *(data + ScriptSize - pocAreaSize);
+					}
+				}
+				else if(indexPoc + pocAreaSize > ScriptSize )
+				{
+					ASSERT(0);   /*if poc index size greater than total size then assert */
+				}
+				ScriptSize =  ScriptSize  - pocAreaSize;
+				
+				IVTBL(print)("liangjian lua_update	ScriptSize %d\r\n", ScriptSize);
+			}
+		}
+		OPENAT_flash_write(LUA_SCRIPT_ADDR, ScriptSize, &writenSize, data);		
+		memset((void *)data, 0 , 1180*1024);
+		OPENAT_close_file(fd);
+		OPENAT_delete_file(OTA_APP_FILE_PATH);
+		pocFotaOta = 0;
+		if (writenSize == 0)
+		{
+			ASSERT(0);
+		}
+#else
+	
 		#define blockSize (0X10000)
 		UINT8 *data = OPENAT_malloc(blockSize);
 		UINT32 addr = LUA_SCRIPT_ADDR;;
@@ -509,7 +608,9 @@ static void lua_update(void)
 				return;
 			}
 		}
-	}
+#endif
+
+
 	
 updateEnd:
 	if (fd > 0)
@@ -535,10 +636,14 @@ static VOID lua_shell_main(void *task_entry_ptr)
 	
 	/*+\NEW\zhuwangbin\2020.2.26\添加lua 远程升级 */
 	lua_update();
+	/*+\NEW\liangjian\2021.1.25\增加lua 和 csdk 升级根据标志位判断*/
+	vfs_unlink(OPENAT_UPDATE_FILE_NAME);
+
+	/*-\NEW\liangjian\2021.1.25\增加lua 和 csdk 升级根据标志位判断*/
+	
 	/*-\NEW\zhuwangbin\2020.2.26\添加lua 远程升级 */
 	/*-\BUG\wangyuan\2020.06.22\BUG_2360:coretest测试，一直打印SET_PDP_4G_WAITAPN*/
     IVTBL(print)("lua_shell_main - LUA_SYNC_MMI(OK).");
-
     #if 0
     OPENAT_print("lua_shell_main enter 111");
     if(0 == luaShellSem)

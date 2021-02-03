@@ -41,7 +41,7 @@ typedef enum
   MSG_ID_APP_MTHL_GET_HOST_BY_NAME_CNF,
   MSG_ID_APP_MTHL_CREATE_CONN_CNF,
   MSG_ID_APP_MTHL_CREATE_SOCK_IND,
-  MSG_ID_APP_MTHL_SOCK_SEND_CNF,  //19
+  MSG_ID_APP_MTHL_SOCK_SEND_CNF,  //20
   MSG_ID_APP_MTHL_SOCK_SEND_IND,
   MSG_ID_APP_MTHL_SOCK_RECV_IND,
   MSG_ID_APP_MTHL_DEACTIVATE_PDP_CNF,
@@ -73,7 +73,15 @@ typedef enum
   /*+\NEW\shenyuanyuan\2020.05.25\wifi.getinfo()接口改成异步发送消息的方式通知Lua脚本*/
   MSG_ID_RTOS_MSG_WIFI,
   /*-\NEW\shenyuanyuan\2020.05.25\wifi.getinfo()接口改成异步发送消息的方式通知Lua脚本*/
-
+  /*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+  MSG_ID_RTOS_BLUETOOTH,
+  /*-\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+  /*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+  MSG_ID_RTOS_HEADSET,
+  /*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+  /*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+  MSG_ID_RTOS_RTMP,
+  /*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
   MSG_ID_NULL,
 
   MSG_ID_MAX = 0x100,
@@ -192,6 +200,22 @@ typedef struct PlatformWifiDataTag
     CHAR* pData;
 }PlatformWifiData;
 /*-\NEW\shenyuanyuan\2020.05.25\wifi.getinfo()接口改成异步发送消息的方式通知Lua脚本*/
+/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+
+typedef struct PlatformBluetoothDataTag
+{
+    unsigned char    eventid;
+    char    state;
+    UINT8   len;
+    unsigned char * pData;
+    UINT16 uuid;
+    UINT16 handle;
+    UINT8 long_uuid[16];
+    UINT8 uuid_flag;
+}PlatformBluetoothData;
+/*-\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+
+
 
 typedef struct PlatformWearStatusDataTag
 {
@@ -276,9 +300,20 @@ typedef struct
   UINT8 socket_index;
   UINT32 length;
 }PlatformSocketSendCnf;
-
-
-
+/*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+typedef struct
+{
+	UINT8 msg_id;
+	UINT32 param;
+}PlatformHeadsetData;
+/*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+typedef struct
+{
+	BOOL result;
+	UINT8 result_code;
+}PlatformRtmpData;
+/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
 typedef union PlatformMsgDataTag
 {
     int                 timer_id;
@@ -321,6 +356,15 @@ typedef union PlatformMsgDataTag
 	/*+\NEW\shenyuanyuan\2020.05.25\wifi.getinfo()接口改成异步发送消息的方式通知Lua脚本*/
 	PlatformWifiData      wifiData;
 	/*-\NEW\shenyuanyuan\2020.05.25\wifi.getinfo()接口改成异步发送消息的方式通知Lua脚本*/
+	/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+	PlatformBluetoothData      blueData;
+	/*-\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+	/*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+	PlatformHeadsetData headsetData;
+	/*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+	/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+	PlatformRtmpData	  rtmpData;
+	/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
 }PlatformMsgData;
 
 /*必须要建立这么一个结构，以LOCAL_PARA_HDR，因为construct_local_para时都是必须要带上LOCAL_PARA_HDR的*/
@@ -358,7 +402,9 @@ typedef struct PlatformSetAlarmParamTag
 /*-\NEW\rufei\2015.3.13\增加闹钟消息 */
 int platform_rtos_init(void);
 
-int platform_rtos_poweroff(void);
+/*+\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
+int platform_rtos_poweroff(int type);
+/*-\BUG3096\zhuwangbin\2020.9.17\添加关机充电功能*/
 
 /*+\NEW\liweiqiang\2013.9.7\增加rtos.restart接口*/
 int platform_rtos_restart(void);
@@ -419,6 +465,8 @@ u8 platform_rtos_get_trace_port(void);
 /*+\NEW\shenyuanyuan\2019.4.19\开发AT+TRANSDATA命令*/
 int platform_rtos_sendok(char *src);
 /*-\NEW\shenyuanyuan\2019.4.19\开发AT+TRANSDATA命令*/
-
+/*+\BUG\wangyuan\2020.07.28\BUG_2640:8910平台LUA版本增加读取客户版本号的AT指令，兼容之前1802平台的“AT+LUAINFO?”*/
+int platform_rtos_set_luainfo(char *src);
+/*-\BUG\wangyuan\2020.07.28\BUG_2640:8910平台LUA版本增加读取客户版本号的AT指令，兼容之前1802平台的“AT+LUAINFO?”*/
 #endif //__PLATFORM_RTOS_H__
 

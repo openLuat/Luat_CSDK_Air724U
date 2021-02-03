@@ -9,6 +9,7 @@
 #include "platform_conf.h"
 #include "platform_fs.h"
 #include "platform_rtos.h"
+#include "platform_factory.h"
 
 /*+\NEW\liweiqiang\2013.5.11\开机自解压luazip目录下文件支持,压缩算法lzma*/
 #if defined(AM_LZMA_SUPPORT)
@@ -26,6 +27,8 @@
 
 #define LUAC_ENTRY_FILENAME "main.luac"
 #define LUAC_ENTRY_FILE "/lua/" LUAC_ENTRY_FILENAME
+#define LUAE_ENTRY_FILENAME "main.luae"
+#define LUAE_ENTRY_FILE "/lua/" LUAE_ENTRY_FILENAME
 
 /*+\NEW\liulean\2015.8.5\解决产线概率性MP3播放无声音的问题*/
 #define LUA_CHECK_INTEGRITY_FILE "/integrity.bin"
@@ -36,6 +39,7 @@
 #define LUA_ENTRY_FILE_ZIP "/luazip/" LUA_ENTRY_FILENAME ".zip"
 /*-\NEW\liweiqiang\2013.5.11\开机自解压luazip目录下文件支持,压缩算法lzma*/
 #define LUAC_ENTRY_FILE_ZIP "/luazip/" LUAC_ENTRY_FILENAME ".zip"
+#define LUAE_ENTRY_FILE_ZIP "/luazip/" LUAE_ENTRY_FILENAME ".zip"
 /*-\NEW\liweiqiang\2013.10.25\lua脚本统一放在lua目录下,预置的非lua文件统一放在ldata文件下 */
 
 #define LUA_CFG_FILENAME "amcfg.ini"
@@ -55,6 +59,7 @@ void LuaDeleteMainFile(void)
 {
     remove(LUA_ENTRY_FILE);
     remove(LUAC_ENTRY_FILENAME);
+    remove(LUAE_ENTRY_FILENAME);
 }
 /*-\NEW\rufei\2013.9.13\处理lua文件可能被破坏导致持续重启问题*/
 
@@ -173,9 +178,6 @@ static int load_luadb(void)
     }    
     update = FALSE;  
     OPENAT_print("lua load luabin...\n");
-    OPENAT_print("LUA_SCRIPT_ADDR:%x\n", LUA_SCRIPT_ADDR);
-    OPENAT_print("LUA_CUSTOMER_FILE_OFFSET:%x\n", CUSTOMER_FILE_OFFSET);
-    OPENAT_print("LUA_SCRIPT_SIZE:%x\n", LUA_SCRIPT_SIZE);
     result = parse_luadb_data(_lua_script_section_start, LUA_SCRIPT_SIZE, update, LUA_SCRIPT_TABLE_FLASH_SECTION, &restart2);
 
     OPENAT_print("lua load luabin reuslt = %d\n", result);
@@ -236,7 +238,12 @@ int LuaAppTask(void)
         NULL
     };
 
-
+    static const char *argv_luae_script_file[] =
+    {
+        "lua",
+        LUAE_ENTRY_FILE,
+        NULL
+    };
 
     OPENAT_print("%s check stack %p, %p", __FUNCTION__, &offset, &len);
 
@@ -320,6 +327,12 @@ int LuaAppTask(void)
             zipFileName = LUAC_ENTRY_FILE_ZIP;
             enterFile = LUAC_ENTRY_FILE;
         }
+        else if(file_exist(LUAE_ENTRY_FILE_ZIP) == TRUE)
+        {
+            exitZipFile = TRUE;
+            zipFileName = LUAE_ENTRY_FILE_ZIP;
+            enterFile = LUAE_ENTRY_FILE;
+        }
         if(exitZipFile)
         {
             // 只有在存在升级包文件的情况下才处理解压
@@ -377,6 +390,35 @@ int LuaAppTask(void)
             argc = sizeof(argv_luac_script_file)/sizeof(argv_luac_script_file[0]);
             argv = (char **)argv_luac_script_file;
             OPENAT_print("[lua]: main.luac exist ");
+        }
+        else if(file_exist(LUAE_ENTRY_FILE) == TRUE)
+        {
+#define platform_dump_key(k) OPENAT_print("0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", k[0], k[1], k[2], k[3], k[4], k[5])
+            argc = sizeof(argv_luae_script_file)/sizeof(argv_luae_script_file[0]);
+            argv = (char **)argv_luae_script_file;
+            OPENAT_print("[lua]: main.luae exist ");
+			int fd = vfs_open("/luat/keybin", 2/* O_RDWR */);
+			ASSERT(fd != -1);
+			UINT32 keyData[6];
+			UINT32 backup[6];
+			ssize_t readed = vfs_read(fd, keyData, sizeof(keyData));
+			platform_dump_key(keyData);
+			ASSERT(readed == sizeof(keyData));
+			memcpy(backup, keyData, sizeof(backup));
+			ASSERT(platform_set_key(keyData));
+			platform_dump_key(keyData);
+			if (backup[5] == 0xbabeface)
+			{
+				backup[5] = platform_get_uid();
+				vfs_lseek(fd, 0, 0/* SEEK_SET */);
+				size_t writed = vfs_write(fd, backup, sizeof(backup));
+				ASSERT(sizeof(backup) == writed);
+			}
+			else
+			{
+				ASSERT(backup[5] == platform_get_uid());
+			}
+			vfs_close(fd);
         }      
         else if(existLuaDB)
         {

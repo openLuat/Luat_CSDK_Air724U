@@ -72,16 +72,25 @@ LUALIB_API int ( luaopen_gpio_i2c )( lua_State *L );
 #define AUXLIB_RTOS     "rtos"
 LUALIB_API int ( luaopen_rtos )( lua_State *L );
 
+#ifdef LUA_LVGL_SUPPORT
+#define AUXLIB_LVGL     "lvgl"
+LUALIB_API int ( luaopen_lvgl )( lua_State *L );
+#endif
+
 #ifdef LUA_DISP_LIB
-#define AUXLIB_DISP     "disp"
+#define AUXLIB_DISP		"disp"
 LUALIB_API int ( luaopen_disp )( lua_State *L );
 #endif
+
 #ifndef AM_JSON_NOT_SUPPORT
 #define AUXLIB_JSON     "json"
 LUALIB_API int ( luaopen_cjson)( lua_State *L );
 #endif
+
+#ifdef AM_CRYPTO_SUPPORT
 #define AUXLIB_CRYPTO     "crypto"
 LUALIB_API int ( luaopen_crypto)( lua_State *L );
+#endif
 
 #define AUXLIB_PMD     "pmd"
 LUALIB_API int ( luaopen_pmd )( lua_State *L );
@@ -90,7 +99,12 @@ LUALIB_API int ( luaopen_pmd )( lua_State *L );
 #define AUXLIB_ICONV     "iconv"
 LUALIB_API int ( luaopen_iconv)( lua_State *L );
 /*-\NEW\liweiqiang\2013.7.16\增加iconv字符编码转换库 */
-
+/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+#ifdef LUA_BLUETOOTH_LIB
+#define AUXLIB_BLUETOOTH "btcore"
+LUALIB_API int ( luaopen_bluetooth)( lua_State *L );
+#endif
+/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
 #ifdef LUA_AUDIO_LIB
 /*+\NEW\liweiqiang\2013.11.4\增加audio.core接口库 */
 #define AUXLIB_AUDIOCORE "audiocore"
@@ -127,7 +141,7 @@ LUALIB_API int ( luaopen_factorycore )( lua_State * L );
 LUALIB_API int ( luaopen_qr_encode )( lua_State *L );
 #endif
 
-#if !defined(LUAT_TTSFLOAT_SUPPORT)
+#if defined(LUA_WIFISCAN_SUPPORT)
 #define AUXLIB_WIFI      "wifi"
 LUALIB_API int ( luaopen_wificore )( lua_State *L );
 #endif
@@ -144,8 +158,8 @@ LUALIB_API int ( luaopen_hrsensorcore )( lua_State * L );
 #define AUXLIB_TTSPLYCORE     "ttsply"
 LUALIB_API int ( luaopen_ttsplycore )( lua_State * L );
 
-#define AUXLIB_OneWire    "OneWire"
-LUALIB_API int ( luaopen_OneWire )( lua_State * L );
+#define AUXLIB_OneWire    "onewire"
+LUALIB_API int ( luaopen_onewire )( lua_State * L );
 
 
 /*+\NEW\zhutianhua\2018.3.7 14:8\支持PBC库*/

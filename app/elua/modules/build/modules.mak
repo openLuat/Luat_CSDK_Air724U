@@ -1,5 +1,5 @@
 #------------------------------------------------------------
-# (C) Copyright [2006-2008] openat International Ltd.
+# (C) Copyright [2006-2008] Marvell International Ltd.
 # All Rights Reserved
 #------------------------------------------------------------
 
@@ -36,7 +36,9 @@ PACKAGE_SRC_PATH    = $(PACKAGE_PATH)/src
 
 PACKAGE_INC_PATHS   = $(PACKAGE_PATH)/src $(PACKAGE_PATH)/includ
 
+
 #PACKAGE_SRC_FILES += $(wildcard *.c)
+#NEW liangjian  2020.09.10 add ble*/
 PACKAGE_SRC_FILES += adc.c           \
                      audio.c         \
                      bit.c           \
@@ -60,7 +62,8 @@ PACKAGE_SRC_FILES += adc.c           \
                      tcpipsock.c     \
                      ttsply.c        \
                      watchdog.c      \
-                     spi.c
+                     spi.c			\
+					 bluetooth.c
 
 
 # These are the tool flags specific to the modules package only.

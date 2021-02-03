@@ -27,7 +27,9 @@
 #include "elua_png.h"
 #endif
 /*-\NEW\zhuth\2014.2.16\支持png图片的显示*/
-
+#ifdef LUA_LVGL_SUPPORT
+#include "lvgl.h"
+#endif
 
 //#include "us_timer.h"
 //#include "qrencode.h"
@@ -354,15 +356,89 @@ PlatformLcdBus lcd_bus;
 kal_uint8 framebuffer[MAX_LCD_BUFF_SIZE];
 
 kal_uint8* workingbuffer = framebuffer;
-
+/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+int frameBufferSize = 0;
+/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
 #ifdef __MTK_TARGET__
     #pragma arm section zidata
 #endif 
 
 
-int active_layer_id = 0;
+static int active_layer_id = 0;
 OPENAT_LAYER_INFO layer_info[MAX_LAYER_SUPPORT];
 
+static platform_layer_head_t layers = SLIST_HEAD_INITIALIZER(layers);
+
+int platform_disp_create_layer(platform_layer_t *layer)
+{
+	static int id = 0;
+	layer->id = id++;
+	SLIST_INSERT_HEAD(&layers, layer, iter);
+	return layer->id;
+}
+
+int platform_disp_set_act_layer(int id)
+{
+	int retid = id;
+	platform_layer_t *l = NULL;
+    platform_layer_head_t *head = &layers;
+    SLIST_FOREACH(l, head, iter)
+    {
+        if (l->id == id)
+        {
+        	lua_lcd_bpp = l->bpp;
+			lua_lcd_width = l->width;
+			lua_lcd_height = l->height;
+			workingbuffer = l->buf;
+			retid = active_layer_id;
+			active_layer_id = id;
+            break;
+        }
+    }
+	return retid;
+}
+
+void platform_disp_destroy_layer(int id)
+{
+	if (!id)
+		return;
+	platform_layer_t *l = NULL;
+    platform_layer_head_t *head = &layers;
+    SLIST_FOREACH(l, head, iter)
+    {
+        if (l->id == id)
+        {
+            break;
+        }
+    }
+	if (l)
+	{
+		SLIST_REMOVE(head, l, platform_layer, iter);
+		if (l->destroy)
+			l->destroy(l);
+	}
+}
+
+void platform_disp_refr_act_layer(PlatformRect *area)
+{
+	platform_layer_t *l = NULL;
+    platform_layer_head_t *head = &layers;
+    SLIST_FOREACH(l, head, iter)
+    {
+        if (l->id == active_layer_id)
+        {
+            break;
+        }
+    }
+
+	if (l->update)
+		l->update(area, l);
+}
+
+static void update_default_layer(PlatformRect *area, platform_layer_t *layer)
+{
+	platform_lcd_update(area, layer->buf);
+}
 
 static void fontInit(void)
 {
@@ -392,6 +468,9 @@ static void fontInit(void)
     memset(dispFonts, 0, sizeof(dispFonts));
 
     dispFonts[0] = sansFont16;
+#ifdef LUA_LVGL_SUPPORT
+	lv_font_luat.line_height = sansFont16.height;
+#endif
     dispHzFont = &sansHzFont16;
 }
 
@@ -400,18 +479,21 @@ void platform_disp_init(PlatformDispInitParam *pParam)
     // 只支持16位色屏幕或者黑白屏
     ASSERT(pParam->bpp == 16 || pParam->bpp == 1 || pParam->bpp == 24);
 
-    lua_lcd_bpp = pParam->bpp;
-	
-	lcd_bus = pParam->bus;
+	static platform_layer_t default_layer;
 
-    lua_lcd_width = pParam->width;
-    if(lua_lcd_bpp == 1) 
+    // lua_lcd_bpp = pParam->bpp;
+    default_layer.bpp = pParam->bpp;
+
+    // lua_lcd_width = pParam->width;
+    default_layer.width = pParam->width;
+
+    if(default_layer.bpp == 1) 
     {
-        lua_lcd_height = (pParam->height%8 == 0) ? pParam->height : (pParam->height/8 + 1) * 8;
+        default_layer.height = (pParam->height%8 == 0) ? pParam->height : (pParam->height/8 + 1) * 8;
     } 
     else 
     {
-       lua_lcd_height = pParam->height;
+        default_layer.height = pParam->height;
     }
 
     // 分配显示缓冲区
@@ -421,6 +503,24 @@ void platform_disp_init(PlatformDispInitParam *pParam)
     
 /*+\NEW\2013.4.10\增加黑白屏显示支持 */
     pParam->framebuffer = workingbuffer;
+    default_layer.buf = (void *)workingbuffer;
+	default_layer.update = update_default_layer;
+/*+\czm\2020.9.11\init只初始化一次图层*/
+    static bool disp_init_one = FALSE;
+    if(disp_init_one == FALSE)
+    {
+        int l_id = platform_disp_create_layer(&default_layer);
+        ASSERT(l_id == 0);
+        disp_init_one = TRUE;
+    }
+    platform_disp_set_act_layer(0);
+/*-\czm\2020.9.11\init只初始化一次图层*/
+	/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+	frameBufferSize = lua_lcd_width*lua_lcd_height*lua_lcd_bpp/8;
+	/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+	
+	lcd_bus = pParam->bus;
+
 /*-\NEW\2013.4.10\增加黑白屏显示支持 */
 
 /*+\bug0\zhy\2014.10.14\黑白屏默认为 黑底白屏*/
@@ -432,6 +532,8 @@ void platform_disp_init(PlatformDispInitParam *pParam)
 /*+\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
         if(pParam->hwfillcolor != -1){
             lcd_hwfillcolor = pParam->hwfillcolor;
+            if(lcd_hwfillcolor > COLOR_WHITE_1)
+                lcd_hwfillcolor = COLOR_WHITE_1;
         }
 /*-\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
     }
@@ -469,10 +571,14 @@ void platform_disp_init(PlatformDispInitParam *pParam)
 
 void platform_disp_close(void)
 {
-    if(framebuffer != NULL)
-    {
-        L_FREE(framebuffer);
-    }
+/*+\bug2958\czm\2020.9.1\disp.close() 之后再执行disp.init 无提示直接重启*/
+    // if(framebuffer != NULL)
+    // {
+    //     L_FREE(framebuffer);
+    // }
+
+    platform_lcd_close();
+/*-\bug2958\czm\2020.9.1\disp.close() 之后再执行disp.init 无提示直接重启*/
 }
 
 void platform_disp_clear(void)
@@ -494,6 +600,7 @@ void platform_disp_clear(void)
     {
         u16 *pPixel16;
         u16 row,col;
+
         
         pPixel16 = (u16*)workingbuffer;
         
@@ -523,6 +630,75 @@ void platform_disp_clear(void)
     }
 }
 
+/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+void platform_disp_new(PlatformDispInitParam *pParam)
+{
+    // 只支持16位色屏幕或者黑白屏
+    ASSERT(pParam->bpp == 16 || pParam->bpp == 24 || pParam->bpp == 1);
+
+	lua_lcd_bpp = pParam->bpp;
+    lua_lcd_width = pParam->width;
+     if(lua_lcd_bpp == 1) 
+    {
+        lua_lcd_height = (pParam->height%8 == 0) ? pParam->height : (pParam->height/8 + 1) * 8;
+    } 
+    else 
+    {
+       lua_lcd_height = pParam->height;
+    }
+    
+
+#ifndef AM_LAYER_SUPPORT
+    // 分配显示缓冲区
+    //framebuffer = (u8*)((u32)malloc(lcd_width*lcd_height*lcd_bpp/8) | 0xa0000000);
+    frameBufferSize = lua_lcd_width*lua_lcd_height*lua_lcd_bpp/8;
+#endif
+
+	if(frameBufferSize > MAX_LCD_BUFF_SIZE)
+	{
+		platform_assert(__FUNCTION__, __LINE__);
+	}
+
+/*+\NEW\2013.4.10\增加黑白屏显示支持 */
+    pParam->framebuffer = workingbuffer;
+/*-\NEW\2013.4.10\增加黑白屏显示支持 */
+
+/*+\bug0\zhy\2014.10.14\黑白屏默认为 黑底白屏*/
+    if(lua_lcd_bpp == 1)
+    {
+        disp_bkcolor = COLOR_WHITE_1;
+        disp_color = COLOR_BLACK_1;
+
+/*+\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
+        if(pParam->hwfillcolor != -1){
+            lcd_hwfillcolor = pParam->hwfillcolor;
+        }
+/*-\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
+    }
+    else if(lua_lcd_bpp == 16)
+    {
+        disp_bkcolor = COLOR_WHITE_16;
+        disp_color = COLOR_BLACK_16;
+    }
+    else if(lua_lcd_bpp == 24)
+    {
+        disp_bkcolor = COLOR_WHITE_24;
+        disp_color = COLOR_BLACK_24;
+    }/*-\bug0\zhy\2014.10.14\黑白屏默认为 黑底白屏*/
+
+    fontInit();
+
+    // 初始化lcd设备
+    //platform_lcd_init(pParam);
+}
+
+int platform_disp_get()
+{
+    //buf = framebuffer;
+	return frameBufferSize;
+}
+/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+
 void platform_disp_update(void)
 {
     PlatformRect rect;
@@ -532,7 +708,7 @@ void platform_disp_update(void)
     rect.rbx = lua_lcd_width-1;
     rect.rby = lua_lcd_height-1;
     
-    platform_lcd_update(&rect, workingbuffer);
+    platform_disp_refr_act_layer(&rect);
 }
 
 /*+\NEW\2013.4.10\增加黑白屏显示支持 */
@@ -745,11 +921,14 @@ static void getHzBitmap(DispBitmap *pBitmap, u16 charcode)
             byte2 >= 0xA1 && byte2 <= 0xFE)
         {
             index = (byte1 - 0xB0)*(0xFE - 0xA1 + 1) + byte2 - 0xA1;
+			/*+\BUG\wangyuan\2020.07.24\BUG_2657：ui字库错位，显示出来的文字不正确*/
+			#if 0
             if(byte1 > 0xD7)
             {
                 index -= 5; /*D7FA-D7FE 这5个是空的*/
             }
-            
+            #endif
+			/*-\BUG\wangyuan\2020.07.24\BUG_2657：ui字库错位，显示出来的文字不正确*/
             pBitmap->data = pInfo->data + index*pInfo->size;
         }
         else
@@ -1415,7 +1594,7 @@ typedef struct _bitmap_info_header
 
 /*+\NEW\liweiqiang\2013.12.6\支持bpp16的bmp显示 */
 /*+\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
-static int put_bmp_file_buff(const u8 *bitmap_buffer, int x, int y, int transcolor, int left, int top, int right, int bottom)
+int put_bmp_file_buff(const u8 *bitmap_buffer, int x, int y, int transcolor, int left, int top, int right, int bottom, T_AMOPENAT_IMAGE_INFO *info)
 /*-\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
 {
     bitmap_file_header *p_fileHeader = (bitmap_file_header *)bitmap_buffer;
@@ -1433,28 +1612,50 @@ static int put_bmp_file_buff(const u8 *bitmap_buffer, int x, int y, int transcol
 
     u16 *buffer16 = (u16*)workingbuffer;
     u16 bmp_bpp = p_infoHeader->bits_per_pixel;
+	u16 lcd_width = lua_lcd_width;
 
-    /*+\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
-    if((left > right) || (top > bottom))
-    {
-        printf("put_bmp_buffer: rect error\n");
-        return PLATFORM_ERR;
-    }
+	if (!info)
+	{
+    	/*+\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
+    	if((left > right) || (top > bottom))
+    	{
+        	printf("put_bmp_buffer: rect error\n");
+        	return PLATFORM_ERR;
+    	}
 
-    if((left == 0) && (top == 0) && (right == 0) && (bottom == 0))
-    {
-        width = MIN(p_infoHeader->width + x, lua_lcd_width);
-        height = MIN(p_infoHeader->height + y, lua_lcd_height);  
-        bottom = p_infoHeader->height - 1;
-        real_width = MIN(p_infoHeader->width, lua_lcd_width); 
-    }
-    else
-    {
-        width = MIN(right - left + 1 + x, lua_lcd_width);
-        height = MIN(bottom - top + 1 + y, lua_lcd_height); 
-        real_width = MIN(right - left + 1, lua_lcd_width);
-    }
-    /*-\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
+    	if((left == 0) && (top == 0) && (right == 0) && (bottom == 0))
+    	{
+        	width = MIN(p_infoHeader->width + x, lua_lcd_width);
+        	height = MIN(p_infoHeader->height + y, lua_lcd_height);  
+        	bottom = p_infoHeader->height - 1;
+        	real_width = MIN(p_infoHeader->width, lua_lcd_width); 
+    	}
+    	else
+    	{
+        	width = MIN(right - left + 1 + x, lua_lcd_width);
+        	height = MIN(bottom - top + 1 + y, lua_lcd_height); 
+        	real_width = MIN(right - left + 1, lua_lcd_width);
+    	}
+    	/*-\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
+	}
+	else
+	{
+		width = p_infoHeader->width;
+		height = p_infoHeader->height;
+		info->width = width;
+		info->height = height;
+		u32 bsize = width * height * lua_lcd_bpp / 8;
+		info->buffer = L_MALLOC(bsize);
+		if (!info->buffer)
+		{
+			return PLATFORM_ERR;
+		}
+		buffer16 = info->buffer;
+		memset(buffer16, 0xff, bsize);
+		real_width = width;
+		bottom = height - 1;
+		lcd_width = width;
+	}
 
     data_buf = bitmap_buffer + p_fileHeader->bitmap_offset;
     
@@ -1543,7 +1744,7 @@ static int put_bmp_file_buff(const u8 *bitmap_buffer, int x, int y, int transcol
                 if(-1 == transcolor || rgb16 != transcolor)
     /*-\NEW\liweiqiang\2013.12.6\增加图片透明色设置 */
                 {
-                    buffer16[rowIndex*lua_lcd_width+colIndex] = rgb16;
+                    buffer16[rowIndex*lcd_width+colIndex] = rgb16;
                 }
                 /*-\NEW\liweiqiang\2013.11.12\白色区域透明显示 */
             }
@@ -1771,8 +1972,11 @@ int platform_get_png_file_resolution(const char *filename, png_uint_32* width, p
 
 /*+\NEW\zhuth\2014.2.14\支持png图片的显示*/
 #ifdef AM_LPNG_SUPPORT
-static int put_png_file_buff(const char *filename, int x, int y, int transcolor, int left, int top, int right, int bottom, int transtype, const char *dstFileName)
+int put_png_file_buff(const char *filename, int x, int y, int transcolor, int left, int top, int right, int bottom, int transtype, const char *dstFileName, T_AMOPENAT_IMAGE_INFO *info)
 {
+	if (info != NULL && lua_lcd_bpp != 16)
+		return PLATFORM_ERR;
+
     png_FILE_p fp;
     png_structp read_ptr;
     png_infop read_info_ptr;
@@ -1793,6 +1997,9 @@ static int put_png_file_buff(const char *filename, int x, int y, int transcolor,
     u32 rgb888;
     u8 *buffer24 = (u8*)workingbuffer;
     u32 layer_width = lua_lcd_width;
+	/*+\BUG\wangyuan\2020.07.23\BUG_2562:ui分辨率设置为320会重启*/
+	u32 layer_height = lua_lcd_height;
+	/*-\BUG\wangyuan\2020.07.23\BUG_2562:ui分辨率设置为320会重启*/
     u16 temp;
 
     FILE *file = NULL;
@@ -1834,6 +2041,28 @@ static int put_png_file_buff(const char *filename, int x, int y, int transcolor,
     color_type = png_get_color_type(read_ptr, read_info_ptr);
     channel = png_get_channels(read_ptr, read_info_ptr);
     row_bytes = png_get_rowbytes(read_ptr, read_info_ptr);
+
+	if (info != NULL)
+	{
+		u32 bsize = width * height * lua_lcd_bpp / 8;
+		buffer16 = L_MALLOC(bsize);
+		if (!buffer16)
+		{
+			png_free(read_ptr, row_buf);
+			row_buf = NULL;
+			png_destroy_read_struct(&read_ptr, &read_info_ptr, NULL);
+			fclose(fp);
+			return PLATFORM_ERR;
+		}
+		memset(buffer16, 0xff, bsize);
+		info->width = width;
+		info->height = height;
+		info->buffer = buffer16;
+		info->format = 0;
+
+		layer_height = height;
+		layer_width = width;
+	}
     /*if(strcmp(filename,"BAT.png") == 0)
     {
         printf("[put_png_file_buff]: width=%d,height=%d,color_type=%d,channel=%d,row_bytes=%d\n", width, height, color_type, channel,row_bytes);
@@ -1920,6 +2149,10 @@ static int put_png_file_buff(const char *filename, int x, int y, int transcolor,
 
             if(lua_lcd_bpp == 16 || dstFileName)
             {
+            	/*+\BUG\wangyuan\2020.08.19\BUG_2877:disp显示bug*/
+				if(((y+row_idx-top)*layer_width+(x+tmp_idx-left)) >= (MAX_LCD_BUFF_SIZE/2))
+					break;
+				/*-\BUG\wangyuan\2020.08.19\BUG_2877:disp显示bug*/
                 fr = row_buf[tmp_idx*channel + 2];
                 fg = row_buf[tmp_idx*channel + 1];
                 fb = row_buf[tmp_idx*channel + 0];
@@ -2102,7 +2335,7 @@ static int put_jpg_file_buff(const char *filename, int x, int y, int transcolor,
 	T_AMOPENAT_IMAGE_INFO imageinfo;
 	FILE *fp;
 	u32 len;
-	u16* buffer = (u16*)framebuffer;
+	u16* buffer = (u16*)workingbuffer;
 	u8 *buff;
 
 	/**1. 获取图片数据**/
@@ -2155,7 +2388,7 @@ static int put_jpg_file_buff(const char *filename, int x, int y, int transcolor,
 	    }
 
 		/**4. 释放. jpeg解析buff**/
-		OPENAT_ImgsDecodeJpegBuffer(NULL, &imageinfo);
+		OPENAT_ImgsFreeJpegDecodedata(&imageinfo);
 	}
 
 	L_FREE(buff);
@@ -2199,14 +2432,14 @@ int platform_disp_putimage(const char *filename, u16 x, u16 y, int transcolor, u
         fclose(fp);
     
         /*+\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
-        result = put_bmp_file_buff(buff, x, y, transcolor, left, top, right, bottom);
+        result = put_bmp_file_buff(buff, x, y, transcolor, left, top, right, bottom, NULL);
         /*-\NewReq NEW\zhutianhua\2013.12.24\显示图片的指定区域*/
         L_FREE(buff);
     }
     #ifdef AM_LPNG_SUPPORT
     else if(strstr(filename, ".png") || strstr(filename, ".PNG"))
     {
-        result = put_png_file_buff(filename, x, y, transcolor, left, top, right, bottom, transtype, NULL);
+        result = put_png_file_buff(filename, x, y, transcolor, left, top, right, bottom, transtype, NULL, NULL);
     }
     #endif
 	#ifdef AM_JPG_SUPPORT
@@ -2741,6 +2974,9 @@ int platform_disp_setfont(int id)
 
     old_font_id = curr_font_id;
     curr_font_id = id;
+#ifdef LUA_LVGL_SUPPORT
+	lv_font_luat.line_height = dispFonts[curr_font_id].height;
+#endif
     return old_font_id;
 }
 /*+NEW\brezen\2016.05.13\字体缩放*/  
@@ -3241,5 +3477,83 @@ void platform_layer_hang_stop(void)
 #endif
 #endif
 /*-\NEW\zhuwangbin\2015.2.26\lua 图层悬停改到底层做*/
+
+#ifdef LUA_LVGL_SUPPORT
+
+extern lv_font_t lv_font_roboto_16;
+
+typedef struct
+{
+	s32 code;
+	DispBitmap bitmap;
+} platform_bitmap_cache_t;
+
+static platform_bitmap_cache_t g_s_cache = 
+{
+	.code = -1,
+	.bitmap = {0}
+};
+
+static uint16_t platform_unicode_to_gb2312(uint32_t unicode)
+{
+	uint16_t ucs2 = unicode;
+	uint16_t gb = unicode_to_gb2312(ucs2);
+	// osiTracePrintf(0, "%s code %x", __FUNCTION__, gb);
+	return gb;
+}
+
+static bool platform_get_bitmap(const lv_font_t *font, DispBitmap *bitmap, u16 code)
+{
+	// osiTracePrintf(0, "%s code %x", __FUNCTION__, code);
+	platform_bitmap_cache_t *cache = (platform_bitmap_cache_t *)font->dsc;
+	if (cache->code == code)
+	{
+		*bitmap = cache->bitmap;
+		return TRUE;
+	}
+	getCharBitmap(bitmap, code);
+	if (bitmap->data != blankChar)
+	{
+		cache->code = code;
+		cache->bitmap = *bitmap;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static bool platform_get_glyph_dsc(const lv_font_t *font, lv_font_glyph_dsc_t *out, uint32_t letter, uint32_t letter_next)
+{
+	DispBitmap bitmap;
+	if (platform_get_bitmap(font, &bitmap, platform_unicode_to_gb2312(letter)))
+	{
+		out->bpp = bitmap.bpp;
+		out->adv_w = bitmap.orgWidth;
+		out->box_h = bitmap.orgHeight;
+		out->box_w = bitmap.orgWidth;
+		out->ofs_x = 0;
+		out->ofs_y = 0;
+		return TRUE;
+	}
+	return lv_font_roboto_16.get_glyph_dsc(&lv_font_roboto_16, out, letter, letter_next);
+}
+
+static const uint8_t *platform_get_glyph_bitmap(const struct lv_font_t *font, uint32_t unicode_letter)
+{
+	DispBitmap bitmap;
+	if (platform_get_bitmap(font, &bitmap, platform_unicode_to_gb2312(unicode_letter)))
+	{
+		return bitmap.data;
+	}
+	return lv_font_roboto_16.get_glyph_bitmap(&lv_font_roboto_16, unicode_letter);
+}
+
+lv_font_t lv_font_luat = {
+    .dsc = &g_s_cache,
+    .get_glyph_bitmap = platform_get_glyph_bitmap,
+    .get_glyph_dsc = platform_get_glyph_dsc,
+    .line_height = 0,
+    .base_line = 0,
+};
+#endif
 
 #endif

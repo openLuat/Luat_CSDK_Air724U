@@ -43,6 +43,21 @@ typedef enum
 
 #define OPENAT_SOCKET_SO_ERROR     0x1007    /* get error status and clear */
 #define OPENAT_SOCKET_SOL_SOCKET  0xfff    /* options for socket level */
+/*+\bug3105\lijiaodi\2020.09.22 添加Socket Options参数设置接口,lua通过设置opt实现保活功能\*/
+#define OPENAT_SOCKET_SO_REUSEADDR   0x0004 /* Allow local address reuse */
+#define OPENAT_SOCKET_SO_KEEPALIVE   0x0008 /* keep connections alive */
+
+#define OPENAT_SOCKET_IPPROTO_IP      0
+#define OPENAT_SOCKET_IPPROTO_ICMP    1
+#define OPENAT_SOCKET_IPPROTO_TCP     6
+#define OPENAT_SOCKET_IPPROTO_UDP     17
+
+#define OPENAT_SOCKET_TCP_NODELAY    0x01    /* don't delay send to coalesce packets */
+#define OPENAT_SOCKET_TCP_KEEPALIVE  0x02    /* send KEEPALIVE probes when idle for pcb->keep_idle milliseconds */
+#define OPENAT_SOCKET_TCP_KEEPIDLE   0x03    /* set pcb->keep_idle  - Same as TCP_KEEPALIVE, but use seconds for gettsockopt */
+#define OPENAT_SOCKET_TCP_KEEPINTVL  0x04    /* set pcb->keep_intvl - Use seconds for gettsockopt */
+#define OPENAT_SOCKET_TCP_KEEPCNT    0x05    /* set pcb->keep_cnt   - Use number of probes sent for gettsockopt */
+/*-\bug3105\lijiaodi\2020.09.22 添加Socket Options参数设置接口,lua通过设置opt实现保活功能\*/
 
 #define OPENAT_SOCKET_MSG_DONTWAIT (0x08)
 /*+\BUG\wj\2020.2.20\SSL连接中CIPRXGET无法得到完整数据，读协议栈剩余数据错误 */

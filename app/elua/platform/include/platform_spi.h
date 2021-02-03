@@ -1,6 +1,7 @@
 typedef enum PlatformSpiIdTag
 {
     PLATFORM_SPI_1,
+	PLATFORM_SPI_2,
     PLATFORM_SPI_QTY,
 }PlatformSpiId;
 

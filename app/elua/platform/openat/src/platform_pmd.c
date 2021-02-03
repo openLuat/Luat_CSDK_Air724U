@@ -18,6 +18,10 @@
 #include "lplatform.h"
 #include "platform_pmd.h"
 
+/*+\BUG\wangyuan\2020.04.10\BUG_1454: misc.vbatt获取的电源电压始终为4200*/
+//#include "drv_charger.h"
+/*-\BUG\wangyuan\2020.04.10\BUG_1454: misc.vbatt获取的电源电压始终为4200*/
+
 static const E_AMOPENAT_PM_LDO ldo2OpenatLdo[PLATFORM_LDO_QTY] = {
    
     OPENAT_LDO_POWER_VLCD,
@@ -30,8 +34,22 @@ static const E_AMOPENAT_PM_LDO ldo2OpenatLdo[PLATFORM_LDO_QTY] = {
 
 	/*+\new\shenyuanyuan\2020.5.21\模块无VCAM输出*/
 	OPENAT_LDO_POWER_VCAMA,
-	OPENAT_LDO_POWER_VCAMD
+	OPENAT_LDO_POWER_VCAMD,
 	/*-\new\shenyuanyuan\2020.5.21\模块无VCAM输出*/
+	/*+\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+	OPENAT_LDO_POWER_VIBR,
+	/*-\BUG\wangyuan\2020.08.22\BUG_2883:lua开发820GPS供电引脚设置*/
+
+	/*+\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
+	OPENAT_LDO_POWER_VBACKLIGHT_R,
+	OPENAT_LDO_POWER_VBACKLIGHT_G,
+	OPENAT_LDO_POWER_VBACKLIGHT_B,
+	OPENAT_LDO_POWER_VBACKLIGHT_W,
+	/*-\BUG3154\zhuwangbin\2020.10.10\添加backlight设置*/
+	
+	/*+\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
+	OPENAT_LDO_POWER_HMICBIAS
+	/*-\BUG3753\zhuwangbin\2020.12.4\添加audio hmic bias ldo设置*/
 };
 
 /*+\NEW\liweiqiang\2013.9.8\增加pmd.init设置充电电流接口 */
@@ -199,7 +217,7 @@ int platform_pmd_get_charger(void)
 {
     UINT32 chargerStatus;
     
-    //chargerStatus = IVTBL(get_chargerHwStatus)();
+    chargerStatus = IVTBL(get_chargerHwStatus)();
     return chargerStatus == OPENAT_PM_CHR_HW_STATUS_AC_ON ? 1 : 0;
 }
 /*-\NEW\liweiqiang\2014.2.13\增加pmd.charger查询充电器状态接口 */
@@ -212,14 +230,29 @@ UINT32 platform_pmd_getChargingCurrent(void)
 }
 
 int platform_pmd_get_chg_param(BOOL *battStatus, u16 *battVolt, u8 *battLevel, BOOL *chargerStatus, u32 *chargeState)
-{
-#ifdef _LUA_TODO_
-    AmGetBatInstantVolt(battVolt);
-    *battLevel = AmGetBatteryPercent(*battVolt);
+{	
+	/*+\BUG\wangyuan\2020.04.10\BUG_1454: misc.vbatt获取的电源电压始终为4200*/
+    uint8 nBcs = 0;
+    uint8 nBcl = 0;
+	uint32 nvol = 0;
 
-    //0:正在充电；1:未充电；2:充电完成
-    *chargeState = AmBatteryChargeStatus();
-#endif
+    drvChargerGetInfo(&nBcs, &nBcl);
+	drvChargerGetBatVol(&nvol);
+	if(nBcs == 0)
+	{
+		*chargeState = 0;
+	}
+	else if(nBcs == 2)
+	{
+		*chargeState = 1;	
+	}
+	else
+	{
+		*chargeState = 2;	
+	}
+    *battLevel = nBcl;
+	*battVolt = nvol;
+	/*-\BUG\wangyuan\2020.04.10\BUG_1454: misc.vbatt获取的电源电压始终为4200*/
     return PLATFORM_OK;
 }
 

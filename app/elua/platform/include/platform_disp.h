@@ -13,6 +13,8 @@
 #ifndef _PLATFORM_DISP_H_
 #define _PLATFORM_DISP_H_
 
+#include <sys/queue.h>
+
 typedef struct PlatformRectTag
 {
     u16 ltx;        //left top x y
@@ -93,9 +95,40 @@ typedef struct PlatformDispInitParamTag
     /*-\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
 /*+\NEW\2013.4.10\增加黑白屏显示支持 */
     int pin_cs; // cs pin
+/*+\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
+    int pin_rs; // rs pin
+/*-\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
+	/*+\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
+    u8 camera_preview_no_update_screen;
+	/*-\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
     u8 *framebuffer;
 /*-\NEW\2013.4.10\增加黑白屏显示支持 */
+
+    /*+\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
+    u8 Driving;//lcd_spi的驱动能力最大值为15
+    /*-\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
 }PlatformDispInitParam;
+
+typedef SLIST_ENTRY(platform_layer) platform_layer_iter_t;
+typedef SLIST_HEAD(platform_layer_head, platform_layer) platform_layer_head_t;
+
+typedef struct platform_layer
+{
+    platform_layer_iter_t iter;
+	int id;
+	int height;
+	int width;
+	int bpp;
+	void *buf;
+	void (*update) (PlatformRect *area, struct platform_layer *layer);
+    void (*destroy) (struct platform_layer *layer);
+} platform_layer_t;
+
+int platform_disp_create_layer(platform_layer_t *layer);
+
+int platform_disp_set_act_layer(int id);
+
+void platform_disp_destroy_layer(int id);
 
 void platform_disp_init(PlatformDispInitParam *pParam);
 
@@ -261,6 +294,11 @@ void platform_layer_flatten(int layer_id1, int x1, int y1,
 
 int platform_get_png_file_resolution(const char *filename, u32* width, u32* height);
 
+/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+void platform_disp_new(PlatformDispInitParam *pParam);
+
+int platform_disp_get();
+/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
 /*+\NEW\zhuwangbin\2020.05.01\添加disp camera功能*/
 #define MAX_LCD_WIDTH_SUPPORT 240
 #define MAX_LCD_HEIGH_SUPPORT 240

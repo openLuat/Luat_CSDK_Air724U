@@ -14,31 +14,31 @@
 #include "ds18b20.h"
 #include "dht11.h"
 
-#pragma GCC push_options
-#pragma GCC optimize("O0")
-static int Delay1us(lua_State *L)
-{
-    uint32 num = luaL_checkinteger(L, 1);
-    if (num >= 5 && num < 20)
-    {
-        for (volatile int i = 60 * num - 70 * 4; i > 0; i--)
-            ;
-    }
-    else if (num >= 20 && num < 100)
-    {
-        for (volatile int i = 60 * num - 90 * 4; i > 0; i--)
-            ;
-    }
-    else if (num >= 100)
-    {
-        for (volatile int i = 63 * num - 90 * 4; i > 0; i--)
-            ;
-    }
-    lua_pushinteger(L, 1);
-    return 1;
-}
-#pragma GCC pop_options
-static int GetDS18B20Data(lua_State *L)
+// #pragma GCC push_options
+// #pragma GCC optimize("O0")
+// static int Delay1us(lua_State *L)
+// {
+//     uint32 num = luaL_checkinteger(L, 1);
+//     if (num >= 5 && num < 20)
+//     {
+//         for (volatile int i = 60 * num - 70 * 4; i > 0; i--)
+//             ;
+//     }
+//     else if (num >= 20 && num < 100)
+//     {
+//         for (volatile int i = 60 * num - 90 * 4; i > 0; i--)
+//             ;
+//     }
+//     else if (num >= 100)
+//     {
+//         for (volatile int i = 63 * num - 90 * 4; i > 0; i--)
+//             ;
+//     }
+//     lua_pushinteger(L, 1);
+//     return 1;
+// }
+// #pragma GCC pop_options
+static int read_ds18b20(lua_State *L)
 {
     uint8 pin = luaL_checkinteger(L, 1);
     int TempNum = 0;
@@ -76,7 +76,7 @@ static int GetDS18B20Data(lua_State *L)
     return 2;
 }
 
-static int GetDHT11Data(lua_State *L)
+static int read_dht11(lua_State *L)
 {
     uint8 pin = luaL_checkinteger(L, 1);
 
@@ -121,49 +121,49 @@ static int GetDHT11Data(lua_State *L)
     return 4;
 }
 
-static int IOIN(lua_State *L)
-{
-    uint8 pin = luaL_checkinteger(L, 1);
-    lua_pushinteger(L, OneWire_IO_IN(pin));
-    return 1;
-}
+// static int IOIN(lua_State *L)
+// {
+//     uint8 pin = luaL_checkinteger(L, 1);
+//     lua_pushinteger(L, OneWire_IO_IN(pin));
+//     return 1;
+// }
 
-static int IOOUT(lua_State *L)
-{
-    uint8 pin = luaL_checkinteger(L, 1);
-    OneWire_IO_OUT(pin);
-    lua_pushinteger(L, 1);
-    return 1;
-}
+// static int IOOUT(lua_State *L)
+// {
+//     uint8 pin = luaL_checkinteger(L, 1);
+//     OneWire_IO_OUT(pin);
+//     lua_pushinteger(L, 1);
+//     return 1;
+// }
 
-static int DQOUT(lua_State *L)
-{
-    uint8 pin = luaL_checkinteger(L, 1);
-    uint8 level = luaL_checkinteger(L, 2);
-    OneWire_DQ_OUT(pin, level);
-    lua_pushinteger(L, 1);
-    return 1;
-}
+// static int DQOUT(lua_State *L)
+// {
+//     uint8 pin = luaL_checkinteger(L, 1);
+//     uint8 level = luaL_checkinteger(L, 2);
+//     OneWire_DQ_OUT(pin, level);
+//     lua_pushinteger(L, 1);
+//     return 1;
+// }
 
-static int DQIN(lua_State *L)
-{
-    uint8 pin = luaL_checkinteger(L, 1);
-    lua_pushinteger(L, OneWire_DQ_IN(pin));
-    return 1;
-}
+// static int DQIN(lua_State *L)
+// {
+//     uint8 pin = luaL_checkinteger(L, 1);
+//     lua_pushinteger(L, OneWire_DQ_IN(pin));
+//     return 1;
+// }
 #include "lrodefs.h"
-const LUA_REG_TYPE OneWire_map[] = {
-    {LSTRKEY("Delay1us"), LFUNCVAL(Delay1us)},
-    {LSTRKEY("IOIN"), LFUNCVAL(IOIN)},
-    {LSTRKEY("IOOUT"), LFUNCVAL(IOOUT)},
-    {LSTRKEY("DQIN"), LFUNCVAL(DQIN)},
-    {LSTRKEY("DQOUT"), LFUNCVAL(DQOUT)},
-    {LSTRKEY("GetDS18B20Data"), LFUNCVAL(GetDS18B20Data)},
-    {LSTRKEY("GetDHT11Data"), LFUNCVAL(GetDHT11Data)},
+const LUA_REG_TYPE onewire_map[] = {
+    // {LSTRKEY("Delay1us"), LFUNCVAL(Delay1us)},
+    // {LSTRKEY("IOIN"), LFUNCVAL(IOIN)},
+    // {LSTRKEY("IOOUT"), LFUNCVAL(IOOUT)},
+    // {LSTRKEY("DQIN"), LFUNCVAL(DQIN)},
+    // {LSTRKEY("DQOUT"), LFUNCVAL(DQOUT)},
+    {LSTRKEY("read_ds18b20"), LFUNCVAL(read_ds18b20)},
+    {LSTRKEY("read_dht11"), LFUNCVAL(read_dht11)},
     {LNILKEY, LNILVAL}};
 
-LUALIB_API int luaopen_OneWire(lua_State *L)
+LUALIB_API int luaopen_onewire(lua_State *L)
 {
-    luaL_register(L, AUXLIB_OneWire, OneWire_map);
+    luaL_register(L, AUXLIB_OneWire, onewire_map);
     return 1;
 }

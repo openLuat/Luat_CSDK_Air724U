@@ -1,7 +1,7 @@
 #ifndef __ONEWIRE_H
 #define __ONEWIRE_H
 
-#include "cs_types.h"
+
 #include "am_openat.h"
 
 /**

@@ -8,6 +8,8 @@
  * Description:
  *          lua.crypto¿â
  **************************************************************************/
+
+#ifdef crypto_rsa_encrypt
 #include "crypto.h"
 #include "assert.h"
 #include "openat_crypto.h"
@@ -1376,3 +1378,4 @@ int luaopen_crypto( lua_State *L )
     return 1;
 }
 
+#endif

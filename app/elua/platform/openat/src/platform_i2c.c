@@ -10,7 +10,9 @@ static const E_AMOPENAT_I2C_PORT i2cIdMap[OPENAT_I2C_QTY] =
     OPENAT_I2C_1, //id = 0
     OPENAT_I2C_2, //id = 1
     OPENAT_I2C_3,
-    OPENAT_I2C_4,
+/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+	OPENAT_I2C_QTY
+/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
 };
 
 static u16 i2cSlaveAddr[OPENAT_I2C_QTY];
@@ -83,9 +85,10 @@ void platform_i2c_gSensorParam_get(u8 id, u8 *slave_addr, u8 *slave_id)
 
 int platform_i2c_exists( unsigned id ) 
 {
-    if(id > OPENAT_I2C_4) // 仅支持I2C 2
+/*+\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
+    if((id > OPENAT_I2C_QTY) || id == 0) // 仅支持I2C 2
         return PLATFORM_ERR;
-
+/*-\BUG3555\zhuwangbin\2020.11.11\修改I2C1和I2C3不能用的问题,id 1,2,3对应I2C1,2,3*/
     return PLATFORM_OK;
 }
 

@@ -161,7 +161,7 @@ int lualibc_fflush(FILE *fp)
  * to be passed to an open() syscall through *optr.
  * Return 0 on error.
  */
-int __sflags(const char *mode, int *optr)
+int lualibc_sflags(const char *mode, int *optr)
 {
 	int ret, m, o;
 
@@ -216,7 +216,7 @@ FILE *lualibc_fopen(const char *file, const char *mode)
     }
 
     
-    if((flags = __sflags(mode, &oflags)) == 0)
+    if((flags = lualibc_sflags(mode, &oflags)) == 0)
         return (NULL);
 
 	
@@ -240,7 +240,7 @@ FILE *lualibc_fopen(const char *file, const char *mode)
     fp->_close = __sclose;
 
 #ifdef AM_LUA_CRYPTO_SUPPORT
-    if(strncmp(&file[fileNameLen - 5],".luac", 5) == 0)
+    if(strncmp(&file[fileNameLen - 5],".luae", 5) == 0)
     {
         fp->_type = ENC_FILE;
     }
@@ -356,7 +356,8 @@ size_t lualibc_fread(void *buf, size_t size, size_t count, FILE *fp)
     if(ENC_FILE == fp->_type)
     {
         act_up_boundary = ((offset + resid + DEC_BUFF_SIZE - 1) & 0xFFFFFE00);
-        read_count = act_up_boundary - act_low_boundary; 
+        read_count = act_up_boundary - act_low_boundary; 
+
 
         /*多申请8个字节的内存，以保证能4字节对齐*/
         data = (unsigned int*)L_MALLOC(4 + read_count + 4);
@@ -430,11 +431,11 @@ size_t lualibc_fread(void *buf, size_t size, size_t count, FILE *fp)
 
             while(i < decCount)
             {
-                btea((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((DEC_BUFF_SIZE) / 4), enc_code);
+                platform_decode((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((DEC_BUFF_SIZE) / 4));
                 i++;
             }
 
-            btea((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((len % DEC_BUFF_SIZE) / 4), enc_code);
+            platform_decode((unsigned int*)(temp + DEC_BUFF_SIZE * i), -((len % DEC_BUFF_SIZE) / 4));
             
             memcpy(buf, &temp[offset - act_low_boundary], act_count);
             L_FREE(data);

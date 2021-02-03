@@ -160,7 +160,7 @@ LUALIB_API int luaopen_spi( lua_State *L )
 {
   luaL_register( L, AUXLIB_SPI, spi_map );
   MOD_REG_NUMBER(L, "SPI_1", PLATFORM_SPI_1);
-  
+  MOD_REG_NUMBER(L, "SPI_2", PLATFORM_SPI_2);
   return 1;
 }  
 

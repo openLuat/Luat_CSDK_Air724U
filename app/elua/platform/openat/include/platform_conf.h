@@ -81,6 +81,12 @@
 #endif
 /*-\NEW\liweiqiang\2014.2.9\增加zlib库 */
 
+#ifdef LUA_LVGL_SUPPORT
+#define LVGL_LIB_LINE   _ROM( AUXLIB_LVGL, luaopen_lvgl, NULL )
+#else
+#define LVGL_LIB_LINE
+#endif
+
 /*+\NEW\liweiqiang, panjun\2015.04.21\AM002_LUA不支持显示接口 */
 #ifdef LUA_DISP_LIB
 #define DISP_LIB_LINE   _ROM( AUXLIB_DISP, luaopen_disp, disp_map )
@@ -90,7 +96,13 @@
 /*-\NEW\liweiqiang, panjun\2015.04.21\AM002_LUA不支持显示接口 */
 
 #define JSON_LIB_LINE   _ROM( AUXLIB_JSON, luaopen_cjson, json_map )
+
+#ifdef AM_CRYPTO_SUPPORT
 #define CRYPTO_LIB_LINE _ROM( AUXLIB_CRYPTO,luaopen_crypto, crypto_map)
+#else
+#define CRYPTO_LIB_LINE
+#endif
+
 #ifdef HRD_SENSOR_SUPPORT
 #define HRD_SENSOR_LINE   _ROM( AUXLIB_HRSENSOR, luaopen_hrsensorcore, hrsensor_map )
 #else
@@ -111,7 +123,7 @@
 #endif
 /*-\NEW\shenyuanyuan\2020.3.31\开发移植disp的二维码显示接口 */
 
-#if !defined(LUAT_TTSFLOAT_SUPPORT)
+#if defined(LUA_WIFISCAN_SUPPORT)
 #define WIFI_LIB_LINE	_ROM( AUXLIB_WIFI, luaopen_wificore, wifi_map)	 
 #else
 #define WIFI_LIB_LINE
@@ -128,6 +140,14 @@
 #else
 #define GPS_LIB_LINE
 #endif
+/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+#ifdef LUA_BLUETOOTH_LIB
+#define BLUETOOTH_LIB_LINE _ROM( AUXLIB_BLUETOOTH, luaopen_bluetooth, bluetooth_map ) 
+#else
+#define BLUETOOTH_LIB_LINE
+#endif
+/*+\NEW\liangjian\2020.09.10\lua 添加 蓝牙功能*/
+
 
 #define LUA_PLATFORM_LIBS_ROM \
     _ROM( AUXLIB_BIT, luaopen_bit, bit_map ) \
@@ -144,6 +164,7 @@
     _ROM( AUXLIB_TTSPLYCORE, luaopen_ttsplycore, ttsplycore_map) \
     _ROM( AUXLIB_AUDIOCORE, luaopen_audiocore, audiocore_map ) \
     DISP_LIB_LINE \
+    BLUETOOTH_LIB_LINE\
     ICONV_LINE \
     ZLIB_LINE \
     HRD_SENSOR_LINE \
@@ -154,11 +175,13 @@
     WIFI_LIB_LINE \
     GPIO_I2C_LINE \
     GPS_LIB_LINE \
+    LVGL_LIB_LINE \
     _ROM( AUXLIB_CPU, luaopen_cpu, cpu_map) \
     _ROM( AUXLIB_TCPIPSOCK, luaopen_tcpipsock, tcpipsock_map) \
     _ROM( AUXLIB_WATCHDOG, luaopen_watchdog, watchdog_map ) \
     _ROM( AUXLIB_FACTORY, luaopen_factorycore, factorycore_map) \
-    _ROM( AUXLIB_OneWire, luaopen_OneWire, OneWire_map) 
+    _ROM( AUXLIB_OneWire, luaopen_onewire, onewire_map) 
+ 
  
     // Interrupt queue size
 #define PLATFORM_INT_QUEUE_LOG_SIZE 5

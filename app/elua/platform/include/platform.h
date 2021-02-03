@@ -163,7 +163,9 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 /*-\NEW\zhuwangbin\2018.8.31\添加参数判断是否上报UART TXDONE*/
 /*-\NEW\liweiqiang\2013.4.22\增加uart消息提示或者轮询读取数据选择 */
 /*+\NEW\zhutianhua\2018.12.27 14:56\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
-u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel);
+/*+\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
+u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel, u32 rs485DelayTime);
+/*-\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
 /*-\NEW\zhutianhua\2018.12.27 14:56\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
 /*+\NEW\liweiqiang\2013.4.20\增加uart.close接口 */
 u32 platform_uart_close( unsigned id );

@@ -2,7 +2,9 @@
 #ifdef AM_LUA_CAMERA_SUPPORT
 #include "string.h"
 #include "malloc.h"
-
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+#include "osi_api.h"
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 #include "assert.h"
 #include "am_openat.h"
 
@@ -19,7 +21,7 @@
 #define CAM_DISP_HEIGHT (162)
 #define CAM_FUNC() OPENAT_print("[CCAM]:%s line:%d",__func__, __LINE__)
 
-extern kal_uint8 framebuffer[MAX_LCD_BUFF_SIZE];
+extern kal_uint8 *workingbuffer;
 extern int find_dm_entry( const char* name, char **pactname );
 typedef enum
 {
@@ -34,52 +36,134 @@ typedef struct
 	BOOL video_mode;
 	int nCamType;
 	BOOL bZbarScan;
-	UINT8* scannerBuff;
 	BOOL bMirror;
 	BOOL bJump;
 	int nInitCmdSize;
 	int *pInitCmd;
-	HANDLE timer;
-	char *timerParam;
 }camOpenParam_t;
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+typedef struct
+{
+	int sensorWidth;
+	int sensorHeight;
+	BOOL bZbarScan;
+}camExternParam_t;
+
+typedef struct
+{
+	osiWork_t *work;
+    osiWorkQueue_t *wq;
+	UINT8* scannerBuff;
+}camScanParan_t;
 
 typedef struct
 {
 	camOpenParam_t openParam;
 	T_AMOPENAT_CAM_PREVIEW_PARAM previewParam;
+	camScanParan_t scan;
+	camExternParam_t exCamera;
 }platCamCtx_t;
-
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 platCamCtx_t platCamCtx;
 
-#define CAM_REG_BASE_LEN (243)
-#define CAM_REG_JUMP_LEN (51)
-#define CAM_REG_MIRROR_LEN (1)
-#define CAM_REG_VGA_LEN (12)
-#define CAM_REG_INIT_LEN (CAM_REG_BASE_LEN+CAM_REG_JUMP_LEN+CAM_REG_MIRROR_LEN+CAM_REG_VGA_LEN)
-
-static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
+/*+\NEW\zhuwangbin\2020.07.16\重新整理camera寄存器和配置逻辑*/
+static AMOPENAT_CAMERA_REG prvCameraInitReg[]  =
 {
+	
+	//GC0310_OUTPUT_MODE_PACKET_DDR_2BIT
+	//VGA setting	
+	/////////////////////////////////////////////////
+	/////////////////   system reg  /////////////////
+	/////////////////////////////////////////////////
 	{0xfe,0xf0},
 	{0xfe,0xf0},
 	{0xfe,0x00},
 
-	{0xfc,0x16}, //4e 
-	{0xfc,0x16}, //4e // [0]apwd [6]regf_clk_gate 
+	{0xfc,0x16}, //4
+	{0xfc,0x16}, //4 
 	{0xf2,0x07}, //sync output
 	{0xf3,0x83}, //ff//1f//01 data output
 	{0xf5,0x07}, //sck_dely
 
-	{0xf7,0x8b}, //f8//fd   88
+	{0xf7,0x89}, //f8//fd   88
 	{0xf8,0x01},           // 00
-	{0xf9,0x4e}, //0f//01   4d
+	{0xf9,0x4f}, //0f//01   4d
 	{0xfa,0x11}, //32
 
 	{0xfc,0xce},
 	{0xfd,0x00},
+	/////////////////////////////////////////////////
+	/////////////////   CISCTL reg  /////////////////
+	/////////////////////////////////////////////////
+	{0x00,0x2f}, 
+	{0x01,0x0f}, 
+	{0x02,0x04},
 
+
+	{0x03,0x02},
+	{0x04,0x12},
+
+	{0x09,0x00}, 
+	{0x0a,0x00}, 
+	{0x0b,0x00}, 
+	{0x0c,0x04}, 
+	{0x0d,0x01}, 
+	{0x0e,0xe8}, 
+	{0x0f,0x02}, 
+	{0x10,0x88}, 
+	{0x16,0x00},
+	{0x17,0x14},
+	{0x18,0x1a}, 
+	{0x19,0x14}, 
+	{0x1b,0x48},
+	{0x1c, 0x6c},
+	{0x1e,0x6b}, 
+	{0x1f,0x28},			
+
+	{0x20,0x8b}, 
+
+	{0x21,0x49}, 
+	{0x22, 0xd0}, //b0 travis 20140929
+	{0x23,0x04}, 
+	{0x24,0xff}, 
+	{0x34,0x20}, 
 	/////////////////////////////////////////////////
+	////////////////////   BLK   ////////////////////
 	/////////////////////////////////////////////////
-	///////////////////   GAIN	 ////////////////////
+	{0x26,0x23}, //[1]dark_current_en [0]offset_en
+	{0x28,0xff}, //BLK_limie_value
+	{0x29,0x00}, //global offset
+	{0x32, 0x04},//00  travis 20140929
+	{0x33,0x10}, //offset_ratio
+	{0x37,0x20}, //dark_current_ratio
+	{0x38,0x10}, 
+	{0x47,0x80}, //a7
+	{0x4e,0x66}, //select_row
+	{0xa8,0x02}, //win_width_dark, same with crop_win_width
+	{0xa9,0x80},
+	/////////////////////////////////////////////////
+	//////////////////   ISP reg  ///////////////////
+	/////////////////////////////////////////////////
+	{0x40,0xff}, 
+	{0x41,0x21},//00//[0]curve_en
+	{0x42,0xcf},  //0a//[1]awn_en
+	{0x44,0x02}, 
+	{0x45,0xa8}, 
+	{0x46,0x02}, //03//sync
+	{0x4a,0x11}, 
+	{0x4b,0x01}, 
+	{0x4c,0x20},//00[5]pretect exp
+	{0x4d,0x05},//update gain mode
+	{0x4f,0x01}, 
+	{0x50,0x01},//crop enable
+	{0x55,0x01},//crop window height
+	{0x56,0xe0}, 
+	{0x57,0x02},//crop window width
+	{0x58,0x80}, 
+
+
+	/////////////////////////////////////////////////  
+	///////////////////   GAIN   ////////////////////
 	/////////////////////////////////////////////////
 	{0x70,0x70},
 	{0x5a,0x84},
@@ -91,13 +175,13 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 
 
 	///////////////////////////////////////////////// 
-	///////////////////   DNDD	/////////////////////
+	///////////////////   DNDD  /////////////////////
 	///////////////////////////////////////////////// 
 	{0x82,0x08},//0x14 
 	{0x83,0x0b},
 	{0x89,0xf0},
 	///////////////////////////////////////////////// 
-	//////////////////	 EEINTP  ////////////////////
+	//////////////////   EEINTP  ////////////////////
 	///////////////////////////////////////////////// 
 	{0x8f,0xaa},
 	{0x90,0x8c},
@@ -112,42 +196,80 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 	///////////////////////////////////////////////// 
 	{0xfe,0x00},
 
-	{0x9a,0x20},
-	{0x9b,0x80},
-	{0x9c,0x40},
-	{0x9d,0x80},
-	 
-	{0xa1,0x30},
-	{0xa2,0x32},
-	{0xa4,0x30},
-	{0xa5,0x30},
-	{0xaa,0x10}, 
-	{0xac,0x22},
-	 
+	{0x9a, 0x20}, 
+	{0x9b, 0x80}, 
+	{0x9c, 0x40}, 
+	{0x9d, 0x80}, 
+	{0xa1, 0x30}, 
+	{0xa2, 0x32}, 
+	{0xa4, 0x80},//30 travis 20140929
+	{0xa5, 0x28},//30 travis 20140929
+	{0xaa, 0x30},//10 travis 20140929 				
+	{0xac, 0x22}, 
 
 	/////////////////////////////////////////////////
 	///////////////////   GAMMA   ///////////////////
 	/////////////////////////////////////////////////
-	{0xfe,0x00},//default
+	{0xfe, 0x00}, 
+	{0xbf,0x08}, 
+	{0xc0,0x16}, 
+	{0xc1,0x28}, 
+	{0xc2,0x41}, 
+	{0xc3,0x5a}, 
+	{0xc4,0x6c}, 
+	{0xc5,0x7a}, 
+	{0xc6,0x96}, 
+	{0xc7,0xac}, 
+	{0xc8,0xbc}, 
+	{0xc9,0xc9}, 
+	{0xca,0xd3}, 
+	{0xcb,0xdd}, 
+	{0xcc,0xe5}, 
+	{0xcd,0xf1}, 
+	{0xce,0xfa}, 
+	{0xcf,0xff},
+	/* 
+	{0xfe,0x00},//big gamma
 	{0xbf,0x08},
-	{0xc0,0x16},
-	{0xc1,0x28},
-	{0xc2,0x41},
-	{0xc3,0x5a},
-	{0xc4,0x6c},
-	{0xc5,0x7a},
-	{0xc6,0x96},
-	{0xc7,0xac},
-	{0xc8,0xbc},
-	{0xc9,0xc9},
-	{0xca,0xd3},
-	{0xcb,0xdd},
-	{0xcc,0xe5},
-	{0xcd,0xf1},
+	{0xc0,0x1d},
+	{0xc1,0x34},
+	{0xc2,0x4b},
+	{0xc3,0x60},
+	{0xc4,0x73},
+	{0xc5,0x85},
+	{0xc6,0x9f},
+	{0xc7,0xb5},
+	{0xc8,0xc7},
+	{0xc9,0xd5},
+	{0xca,0xe0},
+	{0xcb,0xe7},
+	{0xcc,0xec},
+	{0xcd,0xf4},
 	{0xce,0xfa},
 	{0xcf,0xff},
+	*/	
 
-	/////////////////////////////////////////////////
+	/*
+	{0xfe,0x00},//small gamma
+	{0xbf,0x08},
+	{0xc0,0x18},
+	{0xc1,0x2c},
+	{0xc2,0x41},
+	{0xc3,0x59},
+	{0xc4,0x6e},
+	{0xc5,0x81},
+	{0xc6,0x9f},
+	{0xc7,0xb5},
+	{0xc8,0xc7},
+	{0xc9,0xd5},
+	{0xca,0xe0},
+	{0xcb,0xe7},
+	{0xcc,0xec},
+	{0xcd,0xf4},
+	{0xce,0xfa},
+	{0xcf,0xff},
+	*/
+				/////////////////////////////////////////////////
 	///////////////////   YCP  //////////////////////
 	/////////////////////////////////////////////////
 	{0xd0,0x40}, 
@@ -160,7 +282,7 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 	{0xdd,0x03}, 
 
 	/////////////////////////////////////////////////
-	////////////////////   AEC	 ////////////////////
+	////////////////////   AEC   ////////////////////
 	/////////////////////////////////////////////////
 	{0xfe,0x01},
 	{0x05,0x30},
@@ -174,40 +296,42 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 	{0x13,0x38},
 	{0x18,0x95},
 	{0x19,0x96},
-	{0x1f,0x20}, 
-	{0x20,0xc0}, 
+	{0x1f, 0x20}, 
+	{0x20, 0xc0}, 
 	{0x3e,0x40}, 
 	{0x3f,0x57}, 
 	{0x40,0x7d}, 
 
 	{0x03,0x60}, 
 
-	{0x44,0x02}, 
+	{0x44, 0x02}, 
 	/////////////////////////////////////////////////
-	////////////////////   AWB	 ////////////////////
+	////////////////////   AWB   ////////////////////
 	/////////////////////////////////////////////////
 	{0xfe,0x01},
-	{0x1c,0x91}, 
-	{0x21,0x15}, 
+	{0x1c,0x91},
+	{0x21,0x15},
 	{0x50,0x80},
 	{0x56,0x04},
-	{0x59,0x08}, 
+	{0x59,0x08},
 	{0x5b,0x02},
-	{0x61,0x8d}, 
-	{0x62,0xa7}, 
-	{0x63,0xd0}, 
+	{0x61,0x8d},
+	{0x62,0xa7},
+	{0x63,0xd0},
 	{0x65,0x06},
-	{0x66,0x06}, 
-	{0x67,0x84}, 
-	{0x69,0x08}, 
-	{0x6a,0x25}, 
-	{0x6b,0x01}, 
-	{0x6c,0x00}, 
-	{0x6d,0x02}, 
-	{0x6e,0xf0}, 
-	{0x6f,0x80}, 
-	{0x76,0x80}, 
-	{0x78,0xaf}, 
+	{0x66,0x06},
+	{0x67,0x84},
+	{0x69,0x08},
+	{0x6a,0x25},
+	{0x6b,0x01},
+	{0x6c,0x00},
+	{0x6d,0x02},
+	{0x6e,0xf0},
+	{0x6f,0x80},
+	{0x76,0x80},
+	{0x78,0xaf},
+
+
 	{0x79,0x75},
 	{0x7a,0x40},
 	{0x7b,0x50},
@@ -266,18 +390,74 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 	{0xb8,0xcb},
 	{0xb9,0x9b},  
 
+	/*	 
+	{0xa4,0xb9}, //default AWB
+	{0xa5,0xa0},
+	{0x90,0xc9}, 
+	{0x91,0xbe},                                 
+	{0xa6,0xb8}, 
+	{0xa7,0x95}, 
+	{0x92,0xe6}, 
+	{0x93,0xca},                                
+	{0xa9,0xbc}, 
+	{0xaa,0x95}, 
+	{0x95,0x23}, 
+	{0x96,0xe7},                                  
+	{0xab,0x9d}, 
+	{0xac,0x80},
+	{0x97,0x43}, 
+	{0x98,0x24},                                
+	{0xae,0xb7}, 
+	{0xaf,0x9e}, 
+	{0x9a,0x43},
+	{0x9b,0x24},                                 
+	{0xb0,0xc8}, 
+	{0xb1,0x97},
+	{0x9c,0xc4}, 
+	{0x9d,0x44},                               
+	{0xb3,0xb7}, 
+	{0xb4,0x7f},
+	{0x9f,0xc7},
+	{0xa0,0xc8},                               
+	{0xb5,0x00}, 
+	{0xb6,0x00},
+	{0xa1,0x00},
+	{0xa2,0x00},                         
+	{0x86,0x60},
+	{0x87,0x08},
+	{0x88,0x00},
+	{0x89,0x00},
+	{0x8b,0xde},
+	{0x8c,0x80},
+	{0x8d,0x00},
+	{0x8e,0x00},                               
+	{0x94,0x55},
+	{0x99,0xa6},
+	{0x9e,0xaa},
+	{0xa3,0x0a},
+	{0x8a,0x0a},
+	{0xa8,0x55},
+	{0xad,0x55},
+	{0xb2,0x55},
+	{0xb7,0x05},
+	{0x8f,0x05},                              
+	{0xb8,0xcc},
+	{0xb9,0x9a},
+	*/  
+
 	/////////////////////////////////////////////////
-	////////////////////  CC ////////////////////////
+	////////////////////   CC    ////////////////////
 	/////////////////////////////////////////////////
 	{0xfe,0x01},
 
-	{0xd0,0x38},//skin red
-	{0xd1,0x00},
-	{0xd2,0x02},
-	{0xd3,0x04},
-	{0xd4,0x38},
-	{0xd5,0x12},	
-	
+				//red skin
+	{0xd0, 0x38}, //red
+	{0xd1, 0x00}, 
+	{0xd2, 0x02}, 
+	{0xd3, 0x04}, 
+	{0xd4, 0x38}, 
+	{0xd5, 0x12}, 
+
 	{0xd6,0x30},
 	{0xd7,0x00},
 	{0xd8,0x0a},
@@ -285,7 +465,7 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 	{0xda,0x39},
 	{0xdb,0xf8},
 	/////////////////////////////////////////////////
-	////////////////////   LSC	 ////////////////////
+	////////////////////   LSC   ////////////////////
 	/////////////////////////////////////////////////
 	{0xfe,0x01}, 
 	{0xc1,0x3c},
@@ -304,10 +484,10 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 
 
 	/////////////////////////////////////////////////
-	///////////////////  Histogram	/////////////////
+	///////////////////  Histogram  /////////////////
 	/////////////////////////////////////////////////
 	{0x01,0x10}, 
-	{0x0b,0x31}, 
+	{0x0b, 0x31}, //11
 	{0x0e,0x50}, 
 	{0x0f,0x0f}, 
 	{0x10,0x6e}, 
@@ -318,247 +498,139 @@ static AMOPENAT_CAMERA_REG prvCameraInitReg[CAM_REG_INIT_LEN]  =
 
 
 	/////////////////////////////////////////////////
-	//////////////	 Measure Window   ///////////////
+	//////////////   Measure Window   ///////////////
 	/////////////////////////////////////////////////
-	{0xcc,0x0c}, 
+	{0xcc,0x0c},//aec window size 
 	{0xcd,0x10}, 
 	{0xce,0xa0}, 
 	{0xcf,0xe6}, 
 
 
 	/////////////////////////////////////////////////
-	/////////////////	dark sun   //////////////////
+	/////////////////   dark sun   //////////////////
 	/////////////////////////////////////////////////
 	{0x45,0xf7},
-	{0x46,0xff}, 
+	{0x46,0xff}, //f0//sun vaule th
 	{0x47,0x15},
-	{0x48,0x03}, 
-	{0x4f,0x60}, 
-								
-	/////////////////////////////////////////////////
-	///////////////////  banding  ///////////////////
-	{0xfe, 0x00}, 
+	{0x48,0x03}, //sun mode
+	{0x4f,0x60}, //sun_clamp
+
+	{0xfe,0x00},
 	{0x05, 0x01}, 
-	{0x06, 0x32}, 
+	{0x06, 0x89}, //HB
 	{0x07, 0x00}, 
-	{0x08, 0x70}, 
+	{0x08, 0x2a}, //VB
 	{0xfe, 0x01}, 
-	{0x25, 0x00}, 
-	{0x26, 0x3c}, 
-	{0x27, 0x02}, 
-	{0x28, 0x58}, 
-	{0x29, 0x02}, 
-	{0x2a, 0xd0}, 
-	{0x2b, 0x03}, 
-	{0x2c, 0x84}, 
-	{0x2d, 0x04}, 
-	{0x2e, 0xb0}, 
+	{0x25, 0x00}, //step
+	{0x26, 0x6d}, 
+	{0x27, 0x01}, //20.2fps
+	{0x28, 0xb4}, 
+	{0x29, 0x02}, //16.6fps
+	{0x2a, 0x8e}, 
+	{0x2b, 0x02}, //14.3fps
+	{0x2c, 0xfb}, 
+	{0x2d, 0x07}, //5.5fps
+	{0x2e, 0x3d}, 
+
 	{0x3c,0x20},
-	/////////////////////  SPI	 ////////////////////
-	/////////////////////////////////////////////////
-	{0xfe, 0x03},
-	{0x52, 0xba},
-	{0x53, 0x24},
-	{0x54, 0x20},
-	{0x55, 0x00},
-	{0x59, 0x1f}, // {0x59,0x10}, 20190627 scaler output error
-	{0x5a, 0x00}, //00 //yuv
-
-	{0x5b,0x40},
-	{0x5c,0x01},
-	{0x5d,0xf0},
-	{0x5e,0x00},
-
-	{0x51, 0x03},
-	{0x64, 0x04},
-	{0xfe, 0x00},
-
-	{0xfe, 0x00},
 };
 
-static AMOPENAT_CAMERA_REG prvCamQvgaReg[CAM_REG_VGA_LEN] =
+ 
+static AMOPENAT_CAMERA_REG prvCamVgaReg[] =
 {
-	{0xfe,0x00},
-	{0x43,0x30},	//[6] subsample2, [5] subsample4
+	/////////////////////  SPI   ////////////////////
+	/////////////////////////////////////////////////
 	{0x50,0x01},	// Crop en
 	{0x51,0x00},
 	{0x52,0x00},
 	{0x53,0x00},
 	{0x54,0x00},
-	{0x55,0x00}, //window height
-	{0x56,0xf0}, //window height
-	{0x57,0x01}, //window width
-	{0x58,0x40}, //window width
-	{0xfe, 0x00},
-};
-#if 0
-static AMOPENAT_CAMERA_REG prvCamQQvgaReg[CAM_REG_VGA_LEN] =
-{
+	{0x55,0x01},
+	{0x56,0xe0},
+	{0x57,0x02},
+	{0x58,0x80},
+		
+	{0xfe,0x03},
+	{0x01,0x00},
+	{0x02,0x00},
+	{0x10,0x00},
+	{0x15,0x00},
+	{0x17,0x00}, //01//03
+	{0x04,0x10},
+	{0x05,0x00},
+	{0x40,0x00},
+
+
+	{0x52,0xa0}, //a2 //a0//80//00 //22
+
+	{0x53,0x24}, //24
+	{0x54,0x20},
+	{0x55,0x20}, //QQ//01
+	{0x5a,0x00}, //00 //yuv 
+	{0x5b,0x80},
+	{0x5c,0x02},
+	{0x5d,0xe0},
+	{0x5e,0x01},
+	{0x51,0x03},
+	{0x64,0x06},
 	{0xfe,0x00},
-	{0x43,0x30},  //[6] subsample2, [5] subsample4
-	{0x50,0x01},  // Crop en
+};
+
+static AMOPENAT_CAMERA_REG prvCamQvgaReg[] =
+{
+	/////////////////////  SPI   ////////////////////
+	/////////////////////////////////////////////////
+	{0x50,0x01},	// Crop en
 	{0x51,0x00},
-	{0x52,0x00},
+	{0x52,0x78},
 	{0x53,0x00},
-	{0x54,0x00},
-	{0x55,0x00}, //window height
-	{0x56,0x78}, //window height
-	{0x57,0x00}, //window width
-	{0x58,0xa0}, //window width
+	{0x54,0xa0},
+	{0x55,0x00},
+	{0x56,0xf0},
+	{0x57,0x01},
+	{0x58,0x40},
+		
+	{0xfe,0x03},
+	{0x01,0x00},
+	{0x02,0x00},
+	{0x10,0x00},
+	{0x15,0x00},
+	{0x17,0x00}, //01//03
+	{0x04,0x10},
+	{0x05,0x00},
+	{0x40,0x00},
+
+
+	{0x52,0xa0}, //a2 //a0//80//00 //22
+
+	{0x53,0x24}, //24
+	{0x54,0x20},
+	{0x55,0x20}, //QQ//01
+	{0x5a,0x00}, //00 //yuv 
+	{0x51,0x03},
+	{0x64,0x06},
 	{0xfe,0x00},
 };
-#endif
-static AMOPENAT_CAMERA_REG prvCambJumpTReg[CAM_REG_JUMP_LEN] =
-{
-	/////////////////////////////////////////////////
-	/////////////////	CISCTL reg	/////////////////
-	/////////////////////////////////////////////////
-	{0xfe, 0x00},
-	{0x00,0x2f}, 
-	{0x01,0x0f}, 
-	{0x02,0x04},
-	{0x03,0x02},
-	{0x04,0x12},
-	{0x09,0x00}, 
-	{0x0a,0x00}, 
-	{0x0b,0x00}, 
-	{0x0c,0x02},//04 
-	{0x0d,0x01}, 
-	{0x0e,0xec},//e8 
-	{0x0f,0x02}, 
-	{0x10,0x88}, 
-	{0x16,0x00},
-	{0x17,0x14},
-	{0x18,0x6a},//1a 
-	{0x19,0x14}, 
-	{0x1b,0x48},
-	{0x1c,0x1c},
-	{0x1e,0x6b},
-	{0x1f,0x28},
-	{0x20,0x8b},//0x89 travis20140801
-	{0x21,0x49},
-	{0x22,0xb0},
-	{0x23,0x04}, 
-	{0x24,0xff}, 
-	{0x34,0x20}, 
-	/////////////////////////////////////////////////
-	////////////////////   BLK   ////////////////////
-	/////////////////////////////////////////////////
-	{0x26,0x23},
-	{0x28,0xff},
-	{0x29,0x00},
-	{0x32,0x00},
-	{0x33,0x10}, 
-	{0x37,0x20},
-	{0x38,0x10},
-	{0x47,0x80},
-	{0x4e,0x0f},//66
-	{0xa8,0x02},
-	{0xa9,0x80},
 
-
-	/////////////////////////////////////////////////
-	//////////////////   ISP reg  ///////////////////
-	/////////////////////////////////////////////////
-	{0x40,0xff},
-	{0x41,0x21},
-	{0x42,0xcf},
-	{0x44,0x02},
-	{0x45,0xa8}, 
-	{0x46,0x02}, //sync
-	{0x4a,0x11},
-	{0x4b,0x01},
-	{0x4c,0x20},
-	{0x4d,0x05},
-	{0x4f,0x01},
-	{0xfe, 0x00},
-};
-
-static AMOPENAT_CAMERA_REG prvCambJumpFReg[CAM_REG_JUMP_LEN] =
-{
-	{0xfe, 0x00},
-	{0x00,0x2f}, 
-	{0x01,0x0f}, 
-	{0x02,0x04},
-	{0x03,0x02},
-	{0x04,0x12},
-	{0x09,0x00}, 
-	{0x0a,0x00}, 
-	{0x0b,0x00}, 
-	{0x0c,0x04}, 
-	{0x0d,0x01}, 
-	{0x0e,0xe8}, 
-	{0x0f,0x02}, 
-	{0x10,0x88}, 
-	{0x16,0x00},
-	{0x17,0x14},
-	{0x18,0x1a}, 
-	{0x19,0x14}, 
-	{0x1b,0x48},
-	{0x1c,0x1c},
-	{0x1e,0x6b},
-	{0x1f,0x28},
-	{0x20,0x8b},//0x89 travis20140801
-	{0x21,0x49},
-	{0x22,0xb0},
-	{0x23,0x04}, 
-	{0x24,0xff}, 
-	{0x34,0x20}, 
-
-
-	/////////////////////////////////////////////////
-	////////////////////   BLK   ////////////////////
-	/////////////////////////////////////////////////
-	{0x26,0x23},
-	{0x28,0xff},
-	{0x29,0x00},
-	{0x32,0x00},
-	{0x33,0x10}, 
-	{0x37,0x20},
-	{0x38,0x10},
-	{0x47,0x80},
-	{0x4e,0x66},
-	{0xa8,0x02},
-	{0xa9,0x80},
-
-
-	/////////////////////////////////////////////////
-	//////////////////   ISP reg  ///////////////////
-	/////////////////////////////////////////////////
-	{0x40,0xff},
-	{0x41,0x21},
-	{0x42,0xcf},
-	{0x44,0x02},
-	{0x45,0xa8}, 
-	{0x46,0x02}, //sync
-	{0x4a,0x11},
-	{0x4b,0x01},
-	{0x4c,0x20},
-	{0x4d,0x05},
-	{0x4f,0x01},
-	{0xfe, 0x00},
-};
-
-static AMOPENAT_CAMERA_REG prvCambMirrorTReg[CAM_REG_MIRROR_LEN] =
+static AMOPENAT_CAMERA_REG prvCambMirrorTReg[] =
 {
 	{0x17, 0x15}, //bMirror = true
 };
-static AMOPENAT_CAMERA_REG prvCambMirrorFReg[CAM_REG_MIRROR_LEN] =
+static AMOPENAT_CAMERA_REG prvCambMirrorFReg[] =
 {
  	{0x17, 0x14}, //bMirror = false
 };
-
+/*-\NEW\zhuwangbin\2020.07.16\重新整理camera寄存器和配置逻辑*/
 
 
 /*提取yuv数据中的y*/
-static unsigned char * prvZbarScannerY(unsigned char *data)
+static unsigned char * prvZbarScannerY(unsigned char *data, int width, int height)
 {
-	unsigned char *src = data,*end = data + (CAM_SENSOR_WIDTH * CAM_SENSOR_HEIGHT * 2);
-	platCamCtx.openParam.scannerBuff = framebuffer;
-	unsigned char *dst = platCamCtx.openParam.scannerBuff;
+	unsigned char *src = data,*end = data + (width * height * 2);
+	unsigned char *dst = workingbuffer;
 
 	if (!src || !dst)
-		return platCamCtx.openParam.scannerBuff;
+		return NULL;
 
 	while (src < end)
 	{
@@ -568,7 +640,7 @@ static unsigned char * prvZbarScannerY(unsigned char *data)
 		dst++;
 	}//End of while;
 
-    return platCamCtx.openParam.scannerBuff;
+    return workingbuffer;
 }
 
 /*解析二维码中的数据*/
@@ -613,34 +685,112 @@ static void prvZbarScannerRun(int width, int height, int size, unsigned char *da
 		OPENAT_zbar_scanner_close(handle);
 	}
 }
-
-static void prvCmaTimerCallback(void *param)
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+static void prvCamScanProcess(void *param)
 {
-	prvZbarScannerRun(CAM_SENSOR_WIDTH, CAM_SENSOR_HEIGHT,CAM_SENSOR_HEIGHT*CAM_SENSOR_WIDTH, prvZbarScannerY((unsigned char *)platCamCtx.openParam.timerParam));
+	OPENAT_print("prvCamScanProcess scannerBuff %x", platCamCtx.scan.scannerBuff);
+	
+	CAM_FUNC();
+	if (platCamCtx.scan.scannerBuff == NULL)
+		return;
+	
+	if (platCamCtx.exCamera.bZbarScan)
+	{
+		prvZbarScannerRun(platCamCtx.exCamera.sensorWidth, platCamCtx.exCamera.sensorHeight,
+				platCamCtx.exCamera.sensorHeight*platCamCtx.exCamera.sensorWidth,
+				platCamCtx.scan.scannerBuff);
+	}
+	else
+	{
+		prvZbarScannerRun(CAM_SENSOR_WIDTH, CAM_SENSOR_HEIGHT,
+				CAM_SENSOR_WIDTH*CAM_SENSOR_HEIGHT,
+					platCamCtx.scan.scannerBuff);
+	}
 }
+
+static BOOL prvCamScanStart(void)
+{
+	osiWorkEnqueue(platCamCtx.scan.work, platCamCtx.scan.wq);
+}
+
+static BOOL prvCamScanOpen(void)
+{
+
+	if(platCamCtx.scan.wq)
+	{
+		return FALSE;
+	}
+	
+	platCamCtx.scan.wq = osiWorkQueueCreate("cam-scan", 1, OSI_PRIORITY_NORMAL, 4096);
+	if (!platCamCtx.scan.wq)
+	{
+		CAM_FUNC();
+		return FALSE;
+	}
+	platCamCtx.scan.work = osiWorkCreate(prvCamScanProcess, NULL, NULL);
+	if (!platCamCtx.scan.work)
+	{
+		CAM_FUNC();
+		osiWorkQueueDelete(platCamCtx.scan.wq);
+		platCamCtx.scan.wq = NULL;
+		return FALSE;
+	}	
+	
+	CAM_FUNC();
+	return TRUE;
+}
+
+static BOOL prvCamScanClose(void)
+{
+	/*删除work queue*/
+	if (platCamCtx.scan.wq)
+	{
+		osiWorkQueueDelete(platCamCtx.scan.wq);
+		platCamCtx.scan.wq = NULL;
+	}
+
+	/*删除rx_work*/
+	if (platCamCtx.scan.work)
+	{
+		osiWorkDelete(platCamCtx.scan.work);
+		platCamCtx.scan.work = NULL;
+	}
+
+	platCamCtx.scan.scannerBuff = NULL;
+
+	CAM_FUNC();
+	return TRUE;
+}
+
 
 /*预览回调函数, 获取预览数据*/
 static void prvCmaCallback(T_AMOPENAT_CAMERA_MESSAGE *pMsg)
 {
-
 	CAM_FUNC();
     switch(pMsg->evtId)
     {
         case OPENAT_DRV_EVT_CAMERA_DATA_IND:
         {
-            // 获取camera得到的数据， 发送到zbartask 去解析
-            if (platCamCtx.openParam.timer)
-            {
-            	platCamCtx.openParam.timerParam = (char *)pMsg->dataParam.data;
-            	OPENAT_start_timer(platCamCtx.openParam.timer, 1);
-            }
+            // 获取camera得到的数据, 先提取y向量，然后在scan work中解析
+            if (platCamCtx.exCamera.bZbarScan)
+			{
+				platCamCtx.scan.scannerBuff = prvZbarScannerY((unsigned char *)pMsg->dataParam.data, 
+							platCamCtx.exCamera.sensorWidth, platCamCtx.exCamera.sensorHeight);
+			}
+			else
+			{
+				platCamCtx.scan.scannerBuff = prvZbarScannerY((unsigned char *)pMsg->dataParam.data, 
+							CAM_SENSOR_WIDTH, CAM_SENSOR_HEIGHT);
+			}
+
+			prvCamScanStart();
 			break;
         }
         default:
             break;
     }
 }
-
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 static BOOL prvCamScannerStart(void)
 {
 	BOOL ret;
@@ -650,6 +800,10 @@ static BOOL prvCamScannerStart(void)
 	previewParam.startY = platCamCtx.previewParam.startY;
 	previewParam.endX = platCamCtx.previewParam.endX;
 	previewParam.endY = platCamCtx.previewParam.endY;
+	/*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+	previewParam.zoom = platCamCtx.previewParam.zoom;
+	previewParam.rotation = platCamCtx.previewParam.rotation;
+	/*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
 	ret = OPENAT_CameraPreviewOpen(&previewParam);
 	if (!ret)
 	{
@@ -663,6 +817,9 @@ static BOOL prvCamScannerStart(void)
 
 static BOOL prvCamScannerStop(void)
 {
+	/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+	prvCamScanClose();
+	/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 	return OPENAT_CameraPreviewClose();
 }
 
@@ -670,8 +827,6 @@ static BOOL prvCamOpen(void)
 {
 	static BOOL init = FALSE;
 	BOOL ret;
-	int sInitCmdSize = 0;
-	static AMOPENAT_CAMERA_REG* sInitCmd = NULL;
 	
 	T_AMOPENAT_CAMERA_PARAM initParam =
 	{
@@ -682,9 +837,10 @@ static BOOL prvCamOpen(void)
 		TRUE,
 		TRUE,
 		TRUE, 
-
-		CAM_SENSOR_WIDTH,
-		CAM_SENSOR_HEIGHT,
+		/*+\NEW\zhuwangbin\2020.07.16\添加VGA拍照功能，不支持VGA扫码*/
+		(platCamCtx.openParam.bJump) ? CAM_SENSOR_WIDTH : CAM_SENSOR_WIDTH *2,
+		(platCamCtx.openParam.bJump) ? CAM_SENSOR_HEIGHT : CAM_SENSOR_HEIGHT *2,
+		/*-\NEW\zhuwangbin\2020.07.16\添加VGA拍照功能，不支持VGA扫码*/
 		CAMERA_IMAGE_FORMAT_YUV422,
 		prvCameraInitReg,
         sizeof(prvCameraInitReg)/sizeof(AMOPENAT_CAMERA_REG),
@@ -694,69 +850,19 @@ static BOOL prvCamOpen(void)
 		OPENAT_SPI_MODE_MASTER2_2,
 		OPENAT_SPI_OUT_Y1_V0_Y0_U0
 	};
-
+	
+	/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 	/*是否添加扫码功能*/
 	if (platCamCtx.openParam.bZbarScan)
 	{
-		if (!platCamCtx.openParam.timer)
+		if (!prvCamScanOpen())
 		{
-			platCamCtx.openParam.timer = OPENAT_create_timerTask(prvCmaTimerCallback, platCamCtx.openParam.timerParam);
+			CAM_FUNC();
+			return FALSE;
 		}
 		initParam.messageCallback = prvCmaCallback;
 	}	
-
-	/*是否使用外部寄存器表格初始化*/
-	if(platCamCtx.openParam.nInitCmdSize/2 != 0)
-	{
-		int i;
-		if (sInitCmd)
-		{
-			platform_free((void *)sInitCmd);
-			sInitCmd = NULL;
-		}
-		
-		sInitCmd = (AMOPENAT_CAMERA_REG*)platform_malloc(sizeof(AMOPENAT_CAMERA_REG)*platCamCtx.openParam.nInitCmdSize/2);
-		if(!sInitCmd)
-		{
-			OPENAT_print("camera_poweron_gc0310_ext malloc=%d fail",sizeof(AMOPENAT_CAMERA_REG)*platCamCtx.openParam.nInitCmdSize/2);
-			return FALSE;
-		}
-		sInitCmdSize = platCamCtx.openParam.nInitCmdSize/2;
-
-		for(i=0; i<platCamCtx.openParam.nInitCmdSize; i+=2)
-		{
-			sInitCmd[i/2].addr = platCamCtx.openParam.pInitCmd[i];
-			sInitCmd[i/2].value = platCamCtx.openParam.pInitCmd[i+1];
-		}
-
-		initParam.initRegTableCount = sInitCmdSize;
-		initParam.initRegTable_p = sInitCmd;
-	}
-	else
-	{
-		/**是否使能bJump**/
-		if (platCamCtx.openParam.bJump)
-		{
-			memcpy(&prvCameraInitReg[CAM_REG_BASE_LEN], prvCambJumpTReg, sizeof(prvCambJumpTReg));
-		}
-		else
-		{
-			memcpy(&prvCameraInitReg[CAM_REG_BASE_LEN], prvCambJumpFReg, sizeof(prvCambJumpFReg));
-		}
-
-		/**是否使能bMiior**/
-		if (platCamCtx.openParam.bMirror)
-		{
-			memcpy(&prvCameraInitReg[CAM_REG_BASE_LEN+CAM_REG_MIRROR_LEN], prvCambMirrorTReg, sizeof(prvCambMirrorTReg));
-		}
-		else
-		{
-			memcpy(&prvCameraInitReg[CAM_REG_BASE_LEN+CAM_REG_MIRROR_LEN], prvCambMirrorFReg, sizeof(prvCambMirrorFReg));
-		}
-		
-		memcpy(&prvCameraInitReg[CAM_REG_BASE_LEN+CAM_REG_JUMP_LEN], prvCamQvgaReg, sizeof(prvCamQvgaReg));
-	}
-	
+	/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 	CAM_FUNC();
 
 	if(!init)
@@ -768,7 +874,7 @@ static BOOL prvCamOpen(void)
 			return FALSE;
 		}
 
-		init = TRUE;
+		//init = TRUE;
 		CAM_FUNC();
 	}
 	ret = OPENAT_CameraPoweron(FALSE);
@@ -777,22 +883,109 @@ static BOOL prvCamOpen(void)
 		CAM_FUNC();
 		return FALSE;
 	}
-
+	
+	/*+\NEW\zhuwangbin\2020.07.16\重新整理camera寄存器和配置逻辑*/
+	if (platCamCtx.openParam.bJump)
+	{
+		OPENAT_CameraWriteReg(prvCamQvgaReg, sizeof(prvCamQvgaReg)/sizeof(AMOPENAT_CAMERA_REG));
+	}
+	else
+	{
+		OPENAT_CameraWriteReg(prvCamVgaReg, sizeof(prvCamVgaReg)/sizeof(AMOPENAT_CAMERA_REG));
+	}
+	
+	/**是否使能bMiior**/
+	if (platCamCtx.openParam.bMirror)
+	{
+		OPENAT_CameraWriteReg(prvCambMirrorTReg, sizeof(prvCambMirrorTReg)/sizeof(AMOPENAT_CAMERA_REG));
+		
+	}
+	else
+	{
+		OPENAT_CameraWriteReg(prvCambMirrorFReg, sizeof(prvCambMirrorFReg)/sizeof(AMOPENAT_CAMERA_REG));
+	}
+	/*-\NEW\zhuwangbin\2020.07.16\重新整理camera寄存器和配置逻辑*/
 	CAM_FUNC();
 	return TRUE;
 }
 
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+static BOOL prvCamOpenExt(T_PLATFORM_CAMERA_PARAM *param)
+{
+	static BOOL init = FALSE;
+	BOOL ret;
+	int sInitCmdSize = 0;
+	static AMOPENAT_CAMERA_REG* sInitCmd = NULL;
+	
+	T_AMOPENAT_CAMERA_PARAM initParam =
+	{
+		NULL,
+		OPENAT_I2C_1, 
+		param->i2cSlaveAddr,
+		AMOPENAT_CAMERA_REG_ADDR_8BITS|AMOPENAT_CAMERA_REG_DATA_8BITS,
+		TRUE,
+		TRUE,
+		TRUE, 
+		param->sensorWidth,
+		param->sensorHeight,
+		CAMERA_IMAGE_FORMAT_YUV422,
+		param->initRegTable_p,
+        param->initRegTableCount,
+		{param->idReg.addr, param->idReg.value},
+		{2,3,TRUE},
+		1,
+		param->spi_mode,
+		param->spi_yuv_out,
+		FALSE,
+		param->spi_speed
+	};
+
+	CAM_FUNC();
+
+	/*是否添加扫码功能*/
+	if (platCamCtx.exCamera.bZbarScan)
+	{
+		if (!prvCamScanOpen())
+		{
+			CAM_FUNC();
+			return FALSE;
+		}
+		initParam.messageCallback = prvCmaCallback;
+	}	
+
+	if(!init)
+	{
+		ret = OPENAT_InitCamera(&initParam);
+		if (!ret)
+		{
+			CAM_FUNC();
+			return FALSE;
+		}
+
+		//init = TRUE;
+		CAM_FUNC();
+	}
+	
+	ret = OPENAT_CameraPoweron(FALSE);
+	if (!ret)
+	{
+		CAM_FUNC();
+		return FALSE;
+	}
+	
+	CAM_FUNC();
+	return TRUE;
+}
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 static BOOL prvCamClose(void)
 {
+	/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+	prvCamScanClose();
+	/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+	
 	OPENAT_CameraPreviewClose();
 	OPENAT_CameraPowerOff();
-
-	if (platCamCtx.openParam.timer)
-	{
-		OPENAT_stop_timer(platCamCtx.openParam.timer);
-		OPENAT_delete_timer(platCamCtx.openParam.timer);
-		platCamCtx.openParam.timer = NULL;
-	}
+	
 	return TRUE;
 }
 
@@ -823,6 +1016,44 @@ static BOOL prvZbarCamCtl(camType_t type)
 	return ret;
 }
 
+/*+\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+BOOL platform_CameraWriteReg(int *pInitCmd, int nInitCmdSize)
+{
+	AMOPENAT_CAMERA_REG *sInitCmd;
+	int i;
+	/*+\bug\rww\2020.11.18\修改一处内存泄漏*/
+	BOOL retval;
+	/*-\bug\rww\2020.11.18\修改一处内存泄漏*/
+
+	if (nInitCmdSize / 2 <= 0)
+	{
+		OPENAT_print("platform_CameraWriteRegList error nInitCmdSize %d", nInitCmdSize);
+		return FALSE;
+	}
+	
+	sInitCmd = (AMOPENAT_CAMERA_REG*)platform_malloc(sizeof(AMOPENAT_CAMERA_REG)*nInitCmdSize/2);
+	if(!sInitCmd)
+	{
+		OPENAT_print("camera_poweron_gc0310_ext malloc=%d fail",sizeof(AMOPENAT_CAMERA_REG)*nInitCmdSize/2);
+		return FALSE;
+	}
+
+	for(i=0; i<nInitCmdSize; i+=2)
+	{
+		sInitCmd[i/2].addr = (unsigned char)pInitCmd[i];
+		sInitCmd[i/2].value = (unsigned char)pInitCmd[i+1];
+		//OPENAT_print("platform_CameraWriteRegList %d, {%x,%x}",nInitCmdSize, sInitCmd[i/2].addr, sInitCmd[i/2].value);
+	}
+	/*+\bug\rww\2020.11.18\修改一处内存泄漏*/
+	retval = OPENAT_CameraWriteReg(sInitCmd, nInitCmdSize/2);
+
+	platform_free(sInitCmd);
+
+	return retval;
+	/*-\bug\rww\2020.11.18\修改一处内存泄漏*/
+}
+/*-\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+
 // 获取camera得到的数据， 发送到zbartask 去解析
 BOOL platform_camera_poweron(BOOL video_mode, int nCamType, BOOL bZbarScan, BOOL bMirror, BOOL bJump)
 {
@@ -832,31 +1063,31 @@ BOOL platform_camera_poweron(BOOL video_mode, int nCamType, BOOL bZbarScan, BOOL
 		OPENAT_print("[%s,%d] faile video_mode %d, nCamType %d",__FUNCTION__, __LINE__,video_mode, nCamType);
 		return FALSE;
 	}
-	platCamCtx.openParam.video_mode = video_mode;
-	platCamCtx.openParam.nCamType = nCamType;
-	platCamCtx.openParam.bZbarScan = bZbarScan;
-	platCamCtx.openParam.bMirror = bMirror;
-	platCamCtx.openParam.bJump = bJump;
-    return prvZbarCamCtl(CCAM_TYPE_OPEN);
-}
-
-BOOL platform_camera_poweron_ext(BOOL video_mode, int nCamType, BOOL bZbarScan, BOOL bMirror, BOOL bJump, int nInitCmdSize, int *pInitCmd)
-{
-	if (video_mode || (nCamType != 1))
+	
+	/*+\NEW\zhuwangbin\2020.07.16\添加VGA拍照功能，不支持VGA扫码*/
+	if (!bJump && bZbarScan)
 	{
-		OPENAT_print("[%s,%d] faile video_mode %d, nCamType %d",__FUNCTION__, __LINE__,video_mode, nCamType);
+		OPENAT_print("camera_poweron !jump & zbarScan error");
 		return FALSE;
 	}
-
+	/*-\NEW\zhuwangbin\2020.07.16\添加VGA拍照功能，不支持VGA扫码*/
 	platCamCtx.openParam.video_mode = video_mode;
 	platCamCtx.openParam.nCamType = nCamType;
 	platCamCtx.openParam.bZbarScan = bZbarScan;
 	platCamCtx.openParam.bMirror = bMirror;
 	platCamCtx.openParam.bJump = bJump;
-	platCamCtx.openParam.nInitCmdSize = nInitCmdSize;
-	platCamCtx.openParam.pInitCmd = pInitCmd;
     return prvZbarCamCtl(CCAM_TYPE_OPEN);
 }
+
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+BOOL platform_camera_poweron_ext(T_PLATFORM_CAMERA_PARAM *param, BOOL bZbarScan)
+{
+	platCamCtx.exCamera.bZbarScan = bZbarScan;
+	platCamCtx.exCamera.sensorHeight = param->sensorHeight;
+	platCamCtx.exCamera.sensorWidth = param->sensorWidth;
+    return prvCamOpenExt(param);
+}
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 
 BOOL platform_camera_poweroff(void)
 {
@@ -877,10 +1108,36 @@ BOOL platform_camera_preview_open(u16 offsetx, u16 offsety, u16 startx, u16 star
     previewParam.endX = endx;
     previewParam.endY = endy;
     previewParam.recordAudio = FALSE;
-
+	/*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+	previewParam.rotation = platCamCtx.previewParam.rotation;
+	previewParam.zoom = platCamCtx.previewParam.zoom;
+	/*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
 	memcpy(&platCamCtx.previewParam, &previewParam, sizeof(previewParam));
     return prvZbarCamCtl(CCAM_TYPE_SCANNER_START);
 }
+
+/*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+BOOL platform_camera_preview_zoom(int zoom)
+{
+	platCamCtx.previewParam.zoom = zoom;
+
+	return TRUE;
+}
+
+BOOL platform_camera_preview_rotation(int rotation)
+{
+	if (rotation != 0 && rotation != 90)
+	{
+		OPENAT_print("rotation != 0 && rotation != 90 ERROR");
+		return FALSE;
+	}
+	
+	platCamCtx.previewParam.rotation = rotation;
+
+	return TRUE;
+}
+/*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+
 
 BOOL platform_camera_preview_close(void)
 {

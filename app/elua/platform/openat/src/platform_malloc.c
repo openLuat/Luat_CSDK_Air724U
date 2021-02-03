@@ -8,9 +8,9 @@
 /*-\NEW\zhuwangbin\2019.12.10\Ìí¼Ólua ±àÒë²»¹ý*/
 #include "am_openat.h"
 
-void* platform_malloc( size_t size )
+void* platform_malloc1( size_t size, const char* fun, UINT32 line)
 {
-    return OPENAT_malloc( size );
+    return OPENAT_malloc1( size, fun, line);
 }
 
 void* platform_calloc( size_t nelem, size_t elem_size )

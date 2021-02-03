@@ -16,7 +16,9 @@
 #include "platform_disp.h"
 
 void platform_lcd_init(const PlatformDispInitParam *pParam);
-
+/*+\bug2958\czm\2020.9.1\disp.close() 之后再执行disp.init 无提示直接重启*/
+void platform_lcd_close(void);
+/*+\bug2958\czm\2020.9.1\disp.close() 之后再执行disp.init 无提示直接重启*/
 void platform_lcd_update(PlatformRect *pRect, u8 *buffer);
 
 #endif//_PLATFORM_LCD_H_

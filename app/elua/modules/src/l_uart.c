@@ -58,11 +58,11 @@ static int uart_setup( lua_State* L )
   return 1;
 }
 
-
+/*+\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
 /*+\NEW\zhutianhua\2018.12.27 14:53\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
 static int uart_set_rs485_oe( lua_State* L )
 {
-  u32 id, rs485IO, rs485ValidLevel, res;
+  u32 id, rs485IO, rs485ValidLevel, rs485DelayTime, res;
   id = luaL_checkinteger( L, 1 );
   MOD_SORT_ID( id );
   MOD_CHECK_ID( uart, id );
@@ -70,12 +70,13 @@ static int uart_set_rs485_oe( lua_State* L )
     return luaL_error( L, "uart.set_rs485_oe can't be called on virtual UARTs" );
   rs485IO = luaL_checkinteger( L, 2 );
   rs485ValidLevel = luaL_optinteger( L, 3, 1 );
+  rs485DelayTime = luaL_optinteger( L, 4, 0 );
   if(rs485ValidLevel!=0 && rs485ValidLevel!=1)
   {
       return luaL_error( L, "uart.set_rs485_oe rs485ValidLevel=%d invalid, only support 0 or 1", rs485ValidLevel);
   }
 
-  res = platform_uart_setup_rs485_oe( id, rs485IO, rs485ValidLevel);
+  res = platform_uart_setup_rs485_oe( id, rs485IO, rs485ValidLevel, rs485DelayTime);
 
   if(PLATFORM_OK != res)
   {
@@ -86,6 +87,7 @@ static int uart_set_rs485_oe( lua_State* L )
   return 1;
 }
 /*-\NEW\zhutianhua\2018.12.27 14:53\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
+/*-\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
 
 /*+\NEW\liweiqiang\2013.4.20\增加uart.close接口 */
 // Lua: res = close( id )
@@ -288,7 +290,15 @@ static int os_sleep( lua_State *L )
     
     return 0;
 }
-
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+static int uart_event_config( lua_State *L )
+{
+	int uartId = luaL_checkinteger( L, 1 );
+	int event = luaL_checkinteger( L, 1 );
+	platform_uart_config_event(uartId,event);
+	return 0;
+}
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 #ifdef BUILD_SERMUX
 
 #define MAX_VUART_NAME_LEN    6
@@ -330,6 +340,9 @@ const LUA_REG_TYPE uart_map[] =
 /*-\NEW\liweiqiang\2013.4.20\增加uart.close接口 */
   { LSTRKEY( "write" ), LFUNCVAL( uart_write ) },
   { LSTRKEY( "read" ), LFUNCVAL( uart_read ) },
+  /*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+  { LSTRKEY( "config" ),  LFUNCVAL( uart_event_config ) },
+  /*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
   { LSTRKEY( "getchar" ), LFUNCVAL( uart_getchar ) },
   { LSTRKEY( "set_buffer" ), LFUNCVAL( uart_set_buffer ) },
   { LSTRKEY( "set_flow_control" ), LFUNCVAL( uart_set_flow_control ) },

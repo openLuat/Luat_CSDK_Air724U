@@ -269,6 +269,17 @@ enum
   PLATFORM_ADC_OP_SET_CLOCK,
 };
 
+/*+\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+enum
+{
+	PLATFORM_ADC_SCALE_DEFAULT = 0,
+	PLATFORM_ADC_SCALE_1V250 = 1250, 
+    PLATFORM_ADC_SCALE_2V444 = 2400,
+    PLATFORM_ADC_SCALE_3V233 = 3233, 
+    PLATFORM_ADC_SCALE_5V000 = 5000,
+};
+/*-\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+
 // Functions requiring platform-specific implementation
 int platform_adc_update_sequence();
 int platform_adc_start_sequence();
@@ -280,7 +291,9 @@ int platform_adc_exists( unsigned id );
 int platform_adc_check_timer_id( unsigned id, unsigned timer_id );
 u32 platform_adc_op( unsigned id, int op, u32 data );
 /*+\NEW\RUFEI\2015.8.27\Add adc fuction*/
-int platform_adc_open(unsigned id, unsigned mode);
+/*+\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
+int platform_adc_open(unsigned id, unsigned mode, int value);
+/*-\bug3689\zhuwangbin\2020.11.25\adc添加可选参数scale*/
 int platform_adc_read(unsigned id, int *adc, int *volt);
 int platform_adc_close(unsigned id);
 /*-\NEW\RUFEI\2015.8.27\Add adc fuction*/

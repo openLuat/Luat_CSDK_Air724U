@@ -21,8 +21,12 @@
 #include "lrotable.h"
 #include "platform_conf.h"
 #include "platform_disp.h"
+#include "platform_camera.h"
 
 static u8 putimage_assert_fail = FALSE;
+/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+extern kal_uint8* workingbuffer;
+/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
 
 int checkFiledInt(lua_State *L, int index, const char *key)
 {
@@ -51,6 +55,67 @@ static int optFiledInt(lua_State *L, int index, const char *key, int defval)
     return d;
 }
 
+/*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+// disp.new
+static int disp_new(lua_State *L) {
+
+    PlatformDispInitParam param;
+    int cmdTableIndex;
+
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    memset(&param, 0, sizeof(param));
+
+    param.width = getFiledInt(L, 1, "width");
+    param.height = getFiledInt(L, 1, "height");
+    param.pin_cs = PLATFORM_IO_UNKNOWN_PIN;
+
+    if(param.width == 0 || param.height == 0)
+    {
+        return luaL_error(L, "disp.init: error param width(%d) height(%d)",
+                                param.width, param.height);
+    }
+
+    param.bpp = getFiledInt(L, 1, "bpp");
+
+/*+\NEW\2013.4.10\增加黑白屏显示支持 */
+    //16位色彩屏or黑白屏
+    if(!(param.bpp == 16 || param.bpp == 1 || param.bpp == 24))
+    {
+        return luaL_error(L, "disp.init: pixel depth must be 16 or 24 or 1!");
+    }
+
+    // 不设偏移则默认0
+    param.x_offset = getFiledInt(L, 1, "xoffset");
+    param.y_offset = getFiledInt(L, 1, "yoffset");
+
+    param.camera_preview_no_update_screen= optFiledInt(L, 1, "camera_preview_no_update_screen",0);
+
+    /*+\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
+    param.hwfillcolor = optFiledInt(L, 1, "hwfillcolor", -1);
+    /*-\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
+
+    platform_disp_new(&param);
+
+    return 0;
+}
+
+
+// disp.getframe
+static int disp_getframe(lua_State *L) {
+	int frameBufferSize = 0;
+
+	frameBufferSize = platform_disp_get();
+
+    if(frameBufferSize == 0)
+        return luaL_error(L, "disp.getframe: buf is null!%d",frameBufferSize);
+
+	lua_pushlstring(L, workingbuffer, frameBufferSize);
+	lua_pushnumber(L, frameBufferSize);
+
+	return 2;
+}
+/*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
 int bpp_test ;
 // disp.init
 static int disp_init(lua_State *L) {
@@ -86,28 +151,32 @@ static int disp_init(lua_State *L) {
 
     /*+\new\liweiqiang\2014.10.22\lcd不同接口信息定义 */
     // 不同传输接口定义
-    if(param.bus == PLATFORM_LCD_BUS_I2C || param.bus == PLATFORM_LCD_BUS_SPI){
-        lua_getfield(L, 1, "interface");
-        luaL_checktype(L, -1, LUA_TTABLE);
+/*+\DEL\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
+    // if(param.bus == PLATFORM_LCD_BUS_I2C || param.bus == PLATFORM_LCD_BUS_SPI){
+    //     lua_getfield(L, 1, "interface");
+    //     luaL_checktype(L, -1, LUA_TTABLE);
 
-        if(param.bus == PLATFORM_LCD_BUS_I2C){
-            param.lcd_itf.bus_i2c.bus_id = checkFiledInt(L, -1, "bus_id");
-            param.lcd_itf.bus_i2c.freq = checkFiledInt(L, -1, "freq");
-            param.lcd_itf.bus_i2c.slave_addr = checkFiledInt(L, -1, "slave_addr");
-            param.lcd_itf.bus_i2c.cmd_addr = checkFiledInt(L, -1, "cmd_addr");
-            param.lcd_itf.bus_i2c.data_addr = checkFiledInt(L, -1, "data_addr");
-        } else if(param.bus == PLATFORM_LCD_BUS_SPI){
-            param.lcd_itf.bus_spi.bus_id = checkFiledInt(L, -1, "bus_id");
-            param.lcd_itf.bus_spi.pin_rs = checkFiledInt(L, -1, "pin_rs");
-            param.lcd_itf.bus_spi.pin_cs = optFiledInt(L, -1, "pin_cs", PLATFORM_IO_UNKNOWN_PIN);
-            param.lcd_itf.bus_spi.freq = checkFiledInt(L, -1, "freq");
-        }
-    }
+    //     if(param.bus == PLATFORM_LCD_BUS_I2C){
+    //         param.lcd_itf.bus_i2c.bus_id = checkFiledInt(L, -1, "bus_id");
+    //         param.lcd_itf.bus_i2c.freq = checkFiledInt(L, -1, "freq");
+    //         param.lcd_itf.bus_i2c.slave_addr = checkFiledInt(L, -1, "slave_addr");
+    //         param.lcd_itf.bus_i2c.cmd_addr = checkFiledInt(L, -1, "cmd_addr");
+    //         param.lcd_itf.bus_i2c.data_addr = checkFiledInt(L, -1, "data_addr");
+    //     } else if(param.bus == PLATFORM_LCD_BUS_SPI){
+    //         param.lcd_itf.bus_spi.bus_id = checkFiledInt(L, -1, "bus_id");
+    //         param.lcd_itf.bus_spi.pin_rs = checkFiledInt(L, -1, "pin_rs");
+    //         param.lcd_itf.bus_spi.pin_cs = optFiledInt(L, -1, "pin_cs", PLATFORM_IO_UNKNOWN_PIN);
+    //         param.lcd_itf.bus_spi.freq = checkFiledInt(L, -1, "freq");
+    //     }
+    // }
+/*-\DEL\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
     /*-\new\liweiqiang\2014.10.22\lcd不同接口信息定义 */    
 
     // lcd rst脚必须定义
     param.pin_rst = checkFiledInt(L, 1, "pinrst");
-
+/*+\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
+    param.pin_rs = checkFiledInt(L, 1, "pinrs");
+/*-\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
     lua_getfield(L, 1, "pincs");
 
     if(lua_type(L,-1) != LUA_TNUMBER)
@@ -118,10 +187,21 @@ static int disp_init(lua_State *L) {
     // 不设偏移则默认0
     param.x_offset = getFiledInt(L, 1, "xoffset");
     param.y_offset = getFiledInt(L, 1, "yoffset");
-    
+	
+	/*+\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
+    param.camera_preview_no_update_screen = optFiledInt(L, 1, "camera_preview_no_update_screen",0);
+	/*-\bug2406\zhuwangbin\2020.6.28\摄像头扫描预览时，要支持配置是否刷屏显示功能 */
     /*+\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
     param.hwfillcolor = optFiledInt(L, 1, "hwfillcolor", -1);
     /*-\new\liweiqiang\2014.10.21\增加不同黑白屏填充色处理 */
+/*+\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用,1M */
+    param.lcd_itf.bus_spi.freq = optFiledInt(L, 1, "freq", 1000000);
+/*-\new\czm\2020.9.6\bug:2964 mono_std_spi_st7571.lua 无法正常使用 */
+
+      /*+\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
+    param.Driving = optFiledInt(L, 1, "driving", 0);
+      /*+\BUG:3316\czm\2020.10.16\LCD_SPI 驱动能力弱，希望能增强驱动能力*/  
+
 
     // .initcmd 初始化指令表
     lua_getfield(L, 1, "initcmd");
@@ -638,7 +718,9 @@ static int disp_get_lcd_info(lua_State *L)
     u16 width, height;
     u8 bpp;
 
+    int id = platform_disp_set_act_layer(0);
     platform_get_lcd_info(&width, &height, &bpp);
+	platform_disp_set_act_layer(id);
 
     lua_pushinteger(L, width);
     lua_pushinteger(L, height);
@@ -647,6 +729,20 @@ static int disp_get_lcd_info(lua_State *L)
     return 3;
 }
 /*-\BUG\shenyuanyuan\2020.04.09\BUG_1459\disp库没有完全兼容2G的disp库*/
+
+static int disp_get_layer_info(lua_State *L)
+{
+    u16 width, height;
+    u8 bpp;
+
+    platform_get_lcd_info(&width, &height, &bpp);
+
+    lua_pushinteger(L, width);
+    lua_pushinteger(L, height);
+    lua_pushinteger(L, bpp);
+
+    return 3;
+}
 
 extern int platform_disp_two(int x1, int y1, int x2, int y2);
 
@@ -691,6 +787,58 @@ int disp_camera_preview_open(lua_State *L)
     return 1;
 }
 
+/*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+int disp_camera_preview_zoom(lua_State *L)
+{
+    int zoom    = luaL_checkinteger(L, 1);
+
+    lua_pushboolean(L, platform_camera_preview_zoom(zoom));
+    return 1;
+}
+
+int disp_camera_preview_rotation(lua_State *L)
+{
+    int rotation    = luaL_checkinteger(L, 1);
+
+    lua_pushboolean(L, platform_camera_preview_rotation(rotation));
+    return 1;
+}
+/*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+
+/*+\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+int camera_write_reg(lua_State *L)
+{
+	int nInitCmdSize = 0;
+    int *pInitCmd = NULL;
+    int nIndex = 0;
+	
+	lua_getfield(L, 1, "reglist");
+    luaL_checktype(L, -1, LUA_TTABLE);
+    nInitCmdSize = luaL_getn(L, -1);
+    if(nInitCmdSize%2 != 0)
+    {
+        return luaL_error(L, "disp_camera_open_ext nInitCmdSize=%d error,must be even", nInitCmdSize);
+    }
+    pInitCmd = malloc(sizeof(int)*nInitCmdSize);
+    if(!pInitCmd)
+    {
+        return luaL_error(L, "disp_camera_open_ext malloc=%d fail", sizeof(int)*nInitCmdSize);
+    }
+    for(nIndex = 0; nIndex < nInitCmdSize; nIndex++)
+    {
+        lua_rawgeti(L, -1, nIndex+1);
+        pInitCmd[nIndex] = lua_tointeger(L, -1);
+        lua_remove(L,-1);
+    }
+
+    lua_pushboolean(L, platform_CameraWriteReg(pInitCmd, nInitCmdSize));
+
+    free(pInitCmd);
+
+	return 1;
+}
+/*-\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+
 int disp_camera_open(lua_State *L)
 {
     int nCamType = 0;
@@ -720,50 +868,80 @@ int disp_camera_open(lua_State *L)
     lua_pushboolean(L, platform_camera_poweron(FALSE, nCamType, bZbarScan,bMirror,bJump));
     return 1;
 }
-
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 int disp_camera_open_ext(lua_State *L)
 {
-    int nCamType = 1;
-    int bZbarScan = FALSE;
-    int bMirror = FALSE;
-    int bJump = FALSE;
-    int nInitCmdSize = 0;
-    int *pInitCmd = NULL;
-    int nIndex = 0;
-
+    int zbar_scan,i2c_addr,sensor_width,sensor_height,id_reg,id_value,spi_mode;
+	int spi_yuv_out,spi_speed;
+	int nInitCmdSize, nIndex;
+	int *pInitCmd;
+	T_PLATFORM_CAMERA_PARAM param;
+	PPLATFORM_CAMERA_REG initRegTable_p = NULL;
+	
     luaL_checktype(L, 1, LUA_TTABLE);
+	
+    zbar_scan = optFiledInt(L, 1, "zbar_scan", 0);
+	i2c_addr = optFiledInt(L, 1, "i2c_addr", 0);
+	sensor_width = optFiledInt(L, 1, "sensor_width", 0);
+	sensor_height = optFiledInt(L, 1, "sensor_height", 0);
+	id_reg = optFiledInt(L, 1, "id_reg", 0);
+	id_value = optFiledInt(L, 1, "id_value", 0);
+	spi_mode = optFiledInt(L, 1, "spi_mode", 0);
+	spi_yuv_out = optFiledInt(L, 1, "spi_yuv_out", 0);
+	spi_speed = optFiledInt(L, 1, "spi_speed", 0);
 
-    nCamType = optFiledInt(L, 1, "camType", 1);
-    bZbarScan = optFiledInt(L, 1, "zbarScan", 0);
-    bMirror = optFiledInt(L, 1, "mirror", 0);
-    bJump = optFiledInt(L, 1, "jump", 0);
-
-    lua_getfield(L, 1, "initCmd");
+    lua_getfield(L, 1, "init_cmd");
     luaL_checktype(L, -1, LUA_TTABLE);
     nInitCmdSize = luaL_getn(L, -1);
     if(nInitCmdSize%2 != 0)
     {
         return luaL_error(L, "disp_camera_open_ext nInitCmdSize=%d error,must be even", nInitCmdSize);
     }
-    pInitCmd = malloc(sizeof(int)*nInitCmdSize);
+
+	pInitCmd = malloc(sizeof(int)*nInitCmdSize);
     if(!pInitCmd)
     {
         return luaL_error(L, "disp_camera_open_ext malloc=%d fail", sizeof(int)*nInitCmdSize);
     }
-    for(nIndex = 0; nIndex < nInitCmdSize; nIndex++)
+
+	for(nIndex = 0; nIndex < nInitCmdSize; nIndex++)
     {
         lua_rawgeti(L, -1, nIndex+1);
         pInitCmd[nIndex] = lua_tointeger(L, -1);
         lua_remove(L,-1);
     }
 
-    lua_pushboolean(L, platform_camera_poweron_ext(FALSE, nCamType, bZbarScan,bMirror,bJump, nInitCmdSize, pInitCmd));
+	initRegTable_p = (PPLATFORM_CAMERA_REG)malloc(sizeof(PLATFORM_CAMERA_REG) * nInitCmdSize/2);
+	
+	if (!initRegTable_p)
+	{
+		return luaL_error(L, "disp_camera_open_ext malloc=%d fail", sizeof(int)*nInitCmdSize);
+	}
+	
+	for(nIndex = 0; nIndex < nInitCmdSize/2; nIndex++)
+    {
+        initRegTable_p[nIndex].addr = pInitCmd[nIndex*2];
+		initRegTable_p[nIndex].value = pInitCmd[nIndex*2+1];
+    }
+
+	param.i2cSlaveAddr = i2c_addr;
+	param.idReg.addr = id_reg;
+	param.idReg.value = id_value;
+	param.sensorHeight = sensor_height;
+	param.sensorWidth = sensor_width;
+	param.spi_mode = spi_mode;
+	param.spi_speed = spi_speed;
+	param.spi_yuv_out = spi_yuv_out;
+	param.initRegTable_p = initRegTable_p;
+	param.initRegTableCount = nInitCmdSize/2;
+    lua_pushboolean(L, platform_camera_poweron_ext(&param, zbar_scan));
 
     free(pInitCmd);
+	free(initRegTable_p);
     
     return 1;
 }
-
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
 int disp_camera_close(lua_State *L)
 {
     lua_pushboolean(L, platform_camera_poweroff());
@@ -852,6 +1030,28 @@ static int disp_getstringwidth(lua_State *L)
 }
 //==============================================================================================================================================
 
+static int disp_set_act_layer(lua_State *L)
+{
+    int id;
+
+	id = luaL_checkinteger(L, 1);
+
+	lua_pushinteger(L, platform_disp_set_act_layer(id));
+
+	return 1;
+}
+
+static int disp_destroy_layer(lua_State *L)
+{
+    int id;
+
+	id = luaL_checkinteger(L, 1);
+
+	platform_disp_destroy_layer(id);
+
+	return 0;
+}
+
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"  
 
@@ -862,6 +1062,10 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "close" ),  LFUNCVAL( disp_close ) },
   { LSTRKEY( "clear" ), LFUNCVAL( disp_clear ) },
   { LSTRKEY( "update" ), LFUNCVAL( disp_update ) },
+  /*+\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
+  { LSTRKEY( "new" ),	LFUNCVAL( disp_new ) },
+  { LSTRKEY( "getframe" ),	LFUNCVAL( disp_getframe ) },
+  /*-\BUG2739\lijiaodi\2020.08.06\添加disp.new disp.getframe接口\*/ 
   { LSTRKEY( "puttext" ), LFUNCVAL( disp_puttext ) },
 /*+\NEW\liweiqiang\2013.11.4\增加BMP图片显示支持 */
   { LSTRKEY( "putimage" ), LFUNCVAL( disp_putimage ) },
@@ -897,10 +1101,14 @@ const LUA_REG_TYPE disp_map[] =
   /*-\NewReq NEW\zhutianhua\2014.11.14\增加disp.sleep接口*/
   /*+\BUG\shenyuanyuan\2020.04.09\BUG_1459\disp库没有完全兼容2G的disp库*/
   { LSTRKEY( "getlcdinfo" ), LFUNCVAL( disp_get_lcd_info ) },
+  { LSTRKEY( "getlayerinfo" ), LFUNCVAL( disp_get_layer_info ) },
   /*-\BUG\shenyuanyuan\2020.04.09\BUG_1459\disp库没有完全兼容2G的disp库*/
   /*+\BUG\shenyuanyuan\2020.06.02\BUG_1983\添加disp.write()接口，解决刷屏不正常的问题*/
   { LSTRKEY( "write" ), LFUNCVAL( disp_write ) },
   /*-\BUG\shenyuanyuan\2020.06.02\BUG_1983\添加disp.write()接口，解决刷屏不正常的问题*/
+
+  { LSTRKEY( "setactlayer" ), LFUNCVAL( disp_set_act_layer) },
+  { LSTRKEY( "destroylayer" ), LFUNCVAL( disp_destroy_layer) },
   
 #ifdef AM_LAYER_SUPPORT
   { LSTRKEY( "createuserlayer" ), LFUNCVAL( disp_createuserlayer) },
@@ -918,10 +1126,17 @@ const LUA_REG_TYPE disp_map[] =
   { LSTRKEY( "cameraopen_ext" ),     LFUNCVAL( disp_camera_open_ext ) },
   { LSTRKEY( "cameraclose" ),     LFUNCVAL( disp_camera_close ) },
   { LSTRKEY( "camerapreview" ),  LFUNCVAL( disp_camera_preview_open ) },
+  /*+\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
+  { LSTRKEY( "camerapreviewzoom" ),  LFUNCVAL( disp_camera_preview_zoom ) },
+  { LSTRKEY( "camerapreviewrotation" ),  LFUNCVAL( disp_camera_preview_rotation ) },
+  /*-\NEW\zhuwangbin\2020.7.20\添加camera 翻转放缩功能*/
   { LSTRKEY( "camerapreviewclose" ),  LFUNCVAL( disp_camera_preview_close ) },
   { LSTRKEY( "cameracapture" ),  LFUNCVAL( disp_camera_capture ) },
   { LSTRKEY( "camerasavephoto" ),  LFUNCVAL( disp_camera_save_photo ) },
   { LSTRKEY( "encodeJpeg" ), LFUNCVAL( encodeJpegBuffer ) },
+   /*+\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
+  { LSTRKEY( "camerawritereg" ),     LFUNCVAL( camera_write_reg ) },
+  /*-\NEW\zhuwangbin\2020.7.14\添加camera sensor写寄存器接口*/
 #endif
 /*-\NEW\zhuwangbin\2020.05.01\添加disp camera功能*/
 
@@ -963,7 +1178,54 @@ LUALIB_API int luaopen_disp( lua_State *L )
   MOD_REG_NUMBER(L, "USER_LAYER2", USER_LAYER_2_ID);
   MOD_REG_NUMBER(L, "INVALID_LAYER", INVALID_LAYER_ID);
 
+/*+\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+  MOD_REG_NUMBER(L, "CAMERA_SPI_MODE_LINE1", PLATFORM_SPI_MODE_MASTER2_1);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_MODE_LINE2", PLATFORM_SPI_MODE_MASTER2_2);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_MODE_LINE4", PLATFORM_SPI_MODE_MASTER2_4);
+
+  MOD_REG_NUMBER(L, "CAMERA_SPEED_SDR", PLATFORM_SPI_SPEED_SDR);
+  MOD_REG_NUMBER(L, "CAMERA_SPEED_DDR", PLATFORM_SPI_SPEED_DDR);
+  MOD_REG_NUMBER(L, "CAMERA_SPEED_QDR", PLATFORM_SPI_SPEED_QDR);
+
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_Y0_U0_Y1_V0", PLATFORM_SPI_OUT_Y0_U0_Y1_V0);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_Y0_V0_Y1_U0", PLATFORM_SPI_OUT_Y0_V0_Y1_U0);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_U0_Y0_V0_Y1", PLATFORM_SPI_OUT_U0_Y0_V0_Y1);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_U0_Y1_V0_Y0", PLATFORM_SPI_OUT_U0_Y1_V0_Y0);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_V0_Y0_U0_Y1", PLATFORM_SPI_OUT_V0_Y0_U0_Y1);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_Y1_V0_Y0_U0", PLATFORM_SPI_OUT_Y1_V0_Y0_U0);
+  MOD_REG_NUMBER(L, "CAMERA_SPI_OUT_Y1_U0_Y0_V0", PLATFORM_SPI_OUT_Y1_U0_Y0_V0);
+/*-\NEW\zhuwangbin\2020.8.22\ lua版本的camera寄存器由脚本配置*/
+
   return 1;
-}  
+}
+
+#ifdef LUA_LVGL_SUPPORT
+#include "osi_compiler.h"
+// OSI_STRONG_ALIAS(disp_init, lv_disp_init);
+int lv_disp_init(lua_State *L)
+{
+	return disp_init(L);
+}
+// OSI_STRONG_ALIAS(disp_close, lv_disp_close);
+int lv_disp_close(lua_State *L)
+{
+	return disp_close(L);
+}
+// OSI_STRONG_ALIAS(disp_get_lcd_info, lv_disp_get_lcd_info);
+int lv_disp_get_lcd_info(lua_State *L)
+{
+	return disp_get_lcd_info(L);
+}
+// OSI_STRONG_ALIAS(disp_loadfont, lv_font_load_font);
+int lv_font_load_font(lua_State *L)
+{
+	return disp_loadfont(L);
+}
+// OSI_STRONG_ALIAS(disp_setfont, lv_font_set_font);
+int lv_font_set_font(lua_State *L)
+{
+	return disp_setfont(L);
+}
+#endif
 
 #endif

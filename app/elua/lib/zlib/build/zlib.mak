@@ -1,5 +1,5 @@
 #------------------------------------------------------------
-# (C) Copyright [2006-2008] openat International Ltd.
+# (C) Copyright [2006-2008] Marvell International Ltd.
 # All Rights Reserved
 #------------------------------------------------------------
 

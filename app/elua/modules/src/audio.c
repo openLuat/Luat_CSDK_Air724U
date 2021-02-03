@@ -24,6 +24,7 @@
 #include "lrotable.h"
 #include "platform_conf.h"
 #include "platform_audio.h"
+#include "platform_malloc.h"
 
 
 static PlatformAudioFormat l_getFileFormat(const char *filename)
@@ -137,10 +138,13 @@ static int l_audio_stop(lua_State *L) {
 
 /*+\NEW\zhuth\2014.7.25\新增设置音频通道和音量的同步接口*/
 static int l_audio_set_channel(lua_State *L) {
-    u32 channel = luaL_checkinteger(L,1);
+	/*+\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
+    u32 outchannel = luaL_checkinteger(L,1);
+	u32 inchannel = luaL_optinteger(L,2,0xff);
     u32 res;
     
-    res = platform_audio_set_channel(channel);
+    res = platform_audio_set_channel(outchannel, inchannel);
+	/*-\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
     lua_pushinteger(L, res);
     
     return 1;
@@ -174,7 +178,7 @@ static int l_audio_speaker_set_vol(lua_State *L) {
     u32 vol = luaL_checkinteger(L,1);
     u32 res;
 
-    platform_audio_set_channel(PLATFORM_AUD_CHANNEL_LOUDSPEAKER);
+    platform_audio_set_channel(PLATFORM_AUD_CHANNEL_LOUDSPEAKER, PLATFORM_AUDEV_INPUT_MAINMIC);
     res = platform_audio_set_vol(vol);
     lua_pushinteger(L, res);
     
@@ -210,8 +214,10 @@ static int l_audio_record(lua_State *L) {
     char* file_name      = (char*)luaL_checklstring(L, 1, &len);
     int     time_sec        = luaL_checkinteger(L, 2);
     int    quality        =  luaL_optint(L, 3, 0);
-	int 	type 		= luaL_optint(L, 4, 0);
-	int 	format 		= luaL_optint(L, 5, 0);
+	/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+	PlatformAudioRecordType 	type 		= luaL_optint(L, 4, 0);
+	PlatformAudioFormat 	format 		= luaL_optint(L, 5, 0);
+	/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
     int res = platform_audio_record(file_name,time_sec,quality,type,format);
     lua_pushinteger(L, res);
     
@@ -301,10 +307,16 @@ static int l_audio_streamplay(lua_State *L) {
 
 	format = luaL_checkinteger(L, 1);
     data = luaL_checklstring(L, 2, &len);
-    
-    lua_pushinteger(L, platform_audio_streamplay(format,data,len));
+	/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+	PlatformAudioPlayType type = luaL_optint(L, 3 ,PLATFORM_AUD_PLAY_TYPE_LOCAL);
+
+    lua_pushinteger(L, platform_audio_streamplay(type,format,data,len));
+	/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
     return 1;
 }
+
+
+
 /*+\bug\wj\2020.5.14\流播放问题PCM无上报，流式播放是同步阻塞接口不合适*/
 static int l_audio_get_stream_remain_dataLen(lua_State *L)
 {
@@ -337,6 +349,79 @@ static int l_audio_getpa(lua_State *L) {
 }
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
 
+/*+\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+static int l_audio_setexpa(lua_State *L) {
+	int enable=1, gpio, count = 3, us = 2, outDev;
+	
+	int n = lua_gettop(L);
+
+	if (n > 4 || n < 2)
+	{
+		return luaL_error(L, "audiocore.pa error param");
+	}
+
+    if (n >= 1)
+    {
+      gpio = luaL_checkinteger(L, 1);
+    }
+	
+    if (n >= 2)
+    {
+	  outDev = luaL_checkinteger(L, 2);
+    }
+	
+    if (n >= 3)
+    {
+      count = luaL_checkinteger(L, 3);
+    }
+	
+    if (n >= 4)
+    {
+      us = luaL_checkinteger(L, 4);
+    }
+	
+    lua_pushinteger(L, platform_setexpa(enable, gpio, count, us, outDev));
+    return 1;
+}
+/*-\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+
+/*+\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+static int l_audio_headPlug(lua_State *L) {
+	int type;
+	
+	type = luaL_checkinteger(L, 1);
+   
+    lua_pushinteger(L, platform_headPlug(type));
+    return 1;
+}
+/*-\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+/*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+static int l_audio_headsetInit(lua_State *L)
+{
+	int autoControl;
+	autoControl = luaL_checkinteger(L, 1);
+	platform_headset_init(autoControl == 0 ? FALSE : TRUE);
+
+	return 1;
+}
+/*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+static int l_audio_rtmp_open(lua_State *L)
+{
+	char *data = NULL;
+	int len = 0;
+	
+	data = luaL_checklstring(L, 1, &len);	
+	lua_pushboolean(L, platform_rtmp_open(data));
+	return 1;
+}
+
+static int l_audio_rtmp_close(lua_State *L)
+{
+	lua_pushboolean(L, platform_rtmp_close());
+	return 1;
+}
+/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
 #define MIN_OPT_LEVEL 2
 #include "lrodefs.h"  
 
@@ -370,8 +455,21 @@ const LUA_REG_TYPE audiocore_map[] =
   /*+\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
   { LSTRKEY( "setpa" ),  LFUNCVAL(l_audio_setpa)},
    { LSTRKEY( "getpa" ),  LFUNCVAL(l_audio_getpa)},
+   /*+\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+   { LSTRKEY( "pa" ),  LFUNCVAL(l_audio_setexpa)},
+   /*-\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
    /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
   /*-\new\wj\2020.5.29\通话前可以播放音频，接通后还可以正常通话*/
+	/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+	{ LSTRKEY( "rtmpopen" ),  LFUNCVAL(l_audio_rtmp_open)},
+	{ LSTRKEY( "rtmpclose" ),  LFUNCVAL(l_audio_rtmp_close)},
+	/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+  /*+\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+  { LSTRKEY( "head_plug" ),  LFUNCVAL(l_audio_headPlug)},
+  /*-\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+  /*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+  { LSTRKEY( "headsetinit" ),  LFUNCVAL(l_audio_headsetInit)},
+  /*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
   { LNILKEY, LNILVAL }
 };
 
@@ -386,6 +484,19 @@ LUALIB_API int luaopen_audiocore( lua_State *L )
 	MOD_REG_NUMBER(L, "SPX", PLATFORM_AUD_SPEEX);
 	/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
     MOD_REG_NUMBER(L, "WAV", PLATFORM_AUD_WAV);
+
+	/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+    MOD_REG_NUMBER(L, "PLAY_LOCAL", PLATFORM_AUD_PLAY_TYPE_LOCAL);
+    MOD_REG_NUMBER(L, "PLAY_VOLTE", PLATFORM_AUD_PLAY_TYPE_VOICE);
+    MOD_REG_NUMBER(L, "PLAY_POC", PLATFORM_AUD_PLAY_TYPE_POC);
+
+
+    MOD_REG_NUMBER(L, "RECORE_MIC", PLATFORM_AUD_RECORD_TYPE_MIC);
+    MOD_REG_NUMBER(L, "RECORE_VOICE", PLATFORM_AUD_RECORD_TYPE_VOICE);
+    MOD_REG_NUMBER(L, "RECORE_VOICE_DUAL", PLATFORM_AUD_RECORD_TYPE_VOICE_DUAL);
+    MOD_REG_NUMBER(L, "RECORE_POC", PLATFORM_AUD_RECORD_TYPE_POC);
+	/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+
     //MOD_REG_NUMBER(L, "MIDI", PLATFORM_AUD_MIDI);
 	/*+\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
 	MOD_REG_NUMBER(L, "CLASS_AB", PLATFORM_SPKPA_TYPE_CLASSAB);

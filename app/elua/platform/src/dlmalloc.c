@@ -839,27 +839,31 @@ extern "C" {
 #define dlindependent_comalloc independent_comalloc
 #define dlbulk_free            bulk_free
 #endif /* USE_DL_PREFIX */
-
+/*+\bug\rww\2020.9.27\增大lua总内存*/
 /*+\new\wj\2019.12.27\添加TTS功能*/
-char malloc_buf[768*1024];
+/*+\bug4026\zhuwangbin\2020.12.23\LUA_FULL_FUNCTION_SUPPORT ram空间太少，自动化测试有问题*/
+char malloc_buf[768 * 1024];
+/*-\bug4026\zhuwangbin\2020.12.23\LUA_FULL_FUNCTION_SUPPORT ram空间太少，自动化测试有问题*/
 /*-\new\wj\2019.12.27\添加TTS功能*/
 static int  malloc_index = 0;
 
 void* sbrk(size_t size)
 { 
   void* ptr = &malloc_buf[malloc_index];
-  malloc_index += size;
 
   OPENAT_print("sbrk %d %d",size,malloc_index);
   
-  if(malloc_index > 1180*1024)
+  if((malloc_index + size) >= sizeof(malloc_buf))
   {
-	  //ASSERT(malloc_index <= 800*1024);
-	  return MAX_SIZE_T;//CMFAIL;
+    //ASSERT(malloc_index <= 800*1024);
+    return MAX_SIZE_T;//CMFAIL;
   }
+
+  malloc_index += size;
 
   return ptr;
 }
+/*-\bug\rww\2020.9.27\增大lua总内存*/
 /*
   L_MALLOC(size_t n)
   Returns a pointer to a newly allocated chunk of at least n bytes, or

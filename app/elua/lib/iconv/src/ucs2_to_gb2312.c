@@ -92,8 +92,42 @@ static u16 get_ucs2_offset(u16 ucs2)
     return (u16)(-1);
 }
 
+u16 unicode_to_gb2312(u16 ucs2)
+{
+	u16 gb = 0xA1A1;
+	if(0x80 > ucs2)
+    {
+        // can be convert to ASCII char
+        gb = ucs2;
+    }
+    else
+    {
+        if((0x4E00 <= ucs2) && (0xA000 > ucs2))
+        {
+            u16 offset = get_ucs2_offset(ucs2);
+            if((u16)(-1) != offset)
+            {
+                gb = ucs2_to_gb2312_table[offset];
+            }
+        }
+        else
+        {
+            u16 u16count = sizeof(tab_UCS2_to_GBK)/4;
+            for(u16 ui=0; ui < u16count; ui++)
+            {
+                if(ucs2 == tab_UCS2_to_GBK[ui][0])
+                {
+                    gb = tab_UCS2_to_GBK[ui][1];
+                }
+            }
+                
+        }
+    }
+	return gb;
+}
+
 /*+\NEW\liweiqiang\2013.11.26\ÍêÉÆgb2312<->ucs2(ucs2be)±àÂë×ª»»*/
-size_t iconv_ucs2_to_gb2312_endian(char **_inbuf, size_t *inbytesleft, char **_outbuf, size_t *outbytesleft, int endian)
+static size_t iconv_ucs2_to_gb2312_endian(char **_inbuf, size_t *inbytesleft, char **_outbuf, size_t *outbytesleft, int endian)
 {
     u16 offset, gb2312 = 0xA1A1; 
     u16 ucs2;
@@ -118,55 +152,17 @@ size_t iconv_ucs2_to_gb2312_endian(char **_inbuf, size_t *inbytesleft, char **_o
         if(endian == 1)
             ucs2 = (ucs2<<8)|(ucs2>>8);
 
-        gb2312 = 0xA1A1;
+        gb2312 = unicode_to_gb2312(ucs2);
         //End 7205
   
-        if(0x80 > ucs2)
+        if(0x80 > gb2312)
         {
             // can be convert to ASCII char
-            *outbuf++ = (u8)ucs2;
+            *outbuf++ = (u8)gb2312;
             gb_length++;
         }
         else
         {
-            if((0x4E00 <= ucs2) && (0xA000 > ucs2))
-            {
-                offset = get_ucs2_offset(ucs2);
-                if((u16)(-1) != offset)
-                {
-                    gb2312 = ucs2_to_gb2312_table[offset];
-                }
-            }
-            else
-            {
-                u16 u16count = sizeof(tab_UCS2_to_GBK)/4;
-                u16 ui = 0;
-                for(ui=0;ui<u16count;ui++)
-                {
-                    if(ucs2 == tab_UCS2_to_GBK[ui][0])
-                    {
-                        gb2312 = tab_UCS2_to_GBK[ui][1];
-                    }
-                }
-                
-            }
-#if 0
-            else
-            {
-                // Is chinese symbol ?
-                // try search another table
-                for( offset = 0; offset < 94 * 16; offset++ )
-                {
-                    if( ucs2 == gb2312_to_ucs2_table[ offset ] )
-                    {
-                        gb2312 = offset / 94 + 0xA0;             
-                        gb2312 = (gb2312 << 8) + (offset % 94 + 0xA1);
-                        break;
-                    }
-                }
-            }
-#endif
- 
             *outbuf++ = (u8)(gb2312>>8);
             *outbuf++ = (u8)(gb2312);
             gb_length += 2;

@@ -56,7 +56,9 @@ static void audio_play_callback(E_AMOPENAT_PLAY_ERROR result)
 
 }
 /*+\new\wj\2020.4.26\实现录音接口*/
-static void audio_stream_record_cb(int event,int len)
+/*+\BUG\wangyuan\2020.07.31\BUG_2736:CSDK 大唐对讲机需求 支持流录音*/
+static void audio_stream_record_cb(int event, char* data, int len)
+/*-\BUG\wangyuan\2020.07.31\BUG_2736:CSDK 大唐对讲机需求 支持流录音*/
 {
 	PlatformMsgData rtosmsg;
 	rtosmsg.streamRecordLen = len;
@@ -119,13 +121,16 @@ static E_AMOPENAT_AUD_FORMAT getFileFormat(const char *filename)
 
 static E_AMOPENAT_PLAY_MODE getDataFormat(PlatformAudioFormat audFormat)
 {
+	#if 0
     static const E_AMOPENAT_PLAY_MODE mode[NumOfPlatformAudFormats] =
     {
-        OPENAT_AUD_FORMAT_AMRNB,
-		OPENAT_AUD_FORMAT_AMRWB,
-        OPENAT_AUD_FORMAT_MP3,
+    	/*+\BUG\wangyuan\2020.12.31\BUG_4041:3024LUA版本录音demo录音功能没有作用*/
+		OPENAT_AUD_FORMAT_MP3,
         OPENAT_AUD_FORMAT_PCM,
         OPENAT_AUD_FORMAT_WAVPCM,
+        OPENAT_AUD_FORMAT_AMRNB,
+        OPENAT_AUD_FORMAT_AMRWB,
+        /*-\BUG\wangyuan\2020.12.31\BUG_4041:3024LUA版本录音demo录音功能没有作用*/
 		/*+\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
         OPENAT_AUD_FORMAT_SPEEX,
 		/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
@@ -136,7 +141,22 @@ static E_AMOPENAT_PLAY_MODE getDataFormat(PlatformAudioFormat audFormat)
         return mode[audFormat];
     else
         return OPENAT_AUD_FORMAT_QTY;
+	#endif
+	
+	switch(audFormat)
+	{
+		case PLATFORM_AUD_MP3: return OPENAT_AUD_FORMAT_MP3;
+		case PLATFORM_AUD_PCM: return OPENAT_AUD_FORMAT_PCM; 
+		case PLATFORM_AUD_WAV: return OPENAT_AUD_FORMAT_WAVPCM;
+		case PLATFORM_AUD_AMRNB: return OPENAT_AUD_FORMAT_AMRNB;
+		case PLATFORM_AUD_AMRWB: return OPENAT_AUD_FORMAT_AMRWB;
+		/*+\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
+		case PLATFORM_AUD_SPEEX: return OPENAT_AUD_FORMAT_SPEEX;
+		/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
+		default: return OPENAT_AUD_FORMAT_QTY;
+	}
 }
+
 
 void am_pm802_pa_init(void)
 {
@@ -236,18 +256,25 @@ int platform_audio_play(AudioPlayParam *param)
     return PLATFORM_OK;
 }
 
-int platform_audio_streamplay(PlatformAudioFormat format,char* data,int len)
+/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+int platform_audio_streamplay(PlatformAudioPlayType PlayType,PlatformAudioFormat format,char* data,int len)
+/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
 {
 	E_AMOPENAT_AUD_FORMAT dataformat;
 
-	dataformat= getDataFormat(format);
+	dataformat = getDataFormat(format);
 	if(dataformat == OPENAT_AUD_FORMAT_QTY)
 	{
         PUB_TRACE("platform_audio_play:unknown format");
         return PLATFORM_ERR;
     }
-	
-	return OPENAT_streamplay(dataformat,audio_play_callback,data,len);
+	/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+    //PUB_TRACE("platform_audio_streamplay:PlatformAudioPlayType:%d PlatformAudioFormat:%d dataformat:%d" ,PlayType ,format,dataformat);	
+	if(PlayType != PLATFORM_AUD_PLAY_TYPE_POC)
+		return OPENAT_streamplay(dataformat,audio_play_callback,data,len);
+	else
+		return OPENAT_streamplayV2(PlayType,dataformat,audio_play_callback,data,len);
+	/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/	
 }
 /*+\bug\wj\2020.5.14\流播放问题PCM无上报，流式播放是同步阻塞接口不合适*/
 int platform_audio_getStreamRemainDataLen()
@@ -264,15 +291,20 @@ int platform_audio_stop(void)
 }
 
 /*+\NEW\zhuth\2014.7.25\新增设置音频通道和音量的同步接口*/
-int platform_audio_set_channel(PlatformAudioChannel channel)
+/*+\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
+int platform_audio_set_channel(PlatformAudioChannel outputchannel,PlatformMicChannel inputchannel)
 {
-    if(channel >= NumOfPlatformAudChannels)
+	if(inputchannel == 0xff)
+		inputchannel = 0;
+	
+    if(outputchannel >= NumOfPlatformAudChannels ||  inputchannel >= NumOfPlatformMicChannels)
     {
-        PUB_TRACE("platform_audio_set_channel(PLATFORM_ERR) channel=%d.", channel);
+        PUB_TRACE("platform_audio_set_channel(PLATFORM_ERR) outputchannel=%d, inputchannel=%d.", outputchannel, inputchannel);
         return PLATFORM_ERR;
     }
     
-    IVTBL(set_channel)(channel);
+    IVTBL(set_channel)(outputchannel, inputchannel);
+/*-\BUG\wangyuan\2020.11.27\BUG_3634：在Luat版本上开发“设置mic输入通道”的接口*/
     return PLATFORM_OK;
 }
 
@@ -352,7 +384,7 @@ int platform_audio_set_loopback(BOOL flag, PlatformAudioLoopback typ, BOOL setvo
 
 
 /*+\new\wj\2020.4.26\实现录音接口*/
-int platform_audio_record(char* file_name, int time_sec, int quality, int type, int format)
+int platform_audio_record(char* file_name, int time_sec, int quality, PlatformAudioRecordType type, PlatformAudioFormat format)
 {
 	E_AMOPENAT_RECORD_PARAM param;
 	E_AMOPENAT_AUD_FORMAT openat_format;
@@ -366,16 +398,23 @@ int platform_audio_record(char* file_name, int time_sec, int quality, int type, 
 	param.record_mode = OPENAT_RECORD_FILE;
 	param.quality = (E_AMOPENAT_RECORD_QUALITY)quality;
 	param.type = (E_AMOPENAT_RECORD_TYPE)type;
-	switch(format)
-	{
-		case 1: openat_format = OPENAT_AUD_FORMAT_PCM; break;
-		case 2: openat_format = OPENAT_AUD_FORMAT_WAVPCM;break;
-		case 3: openat_format = OPENAT_AUD_FORMAT_AMRNB;break;
-		/*+\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
-		case 4: openat_format = OPENAT_AUD_FORMAT_SPEEX;break;
-		/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
-		default: return PLATFORM_ERR;
-	}
+
+	/*+\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
+	PUB_TRACE("platform_audio_record type=%d format=%d" ,type ,format);
+
+	openat_format = getDataFormat(format);
+
+	// switch(format)
+	// {
+	// 	case 1: openat_format = OPENAT_AUD_FORMAT_PCM; break;
+	// 	case 2: openat_format = OPENAT_AUD_FORMAT_WAVPCM;break;
+	// 	case 3: openat_format = OPENAT_AUD_FORMAT_AMRNB;break;
+	// 	/*+\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
+	// 	case 4: openat_format = OPENAT_AUD_FORMAT_SPEEX;break;
+	// 	/*-\NEW\zhuwangbin\2020.05.15\增加speex格式的录音和播放*/
+	// 	default: return PLATFORM_ERR;
+	// }
+	/*-\NEW\czm\2020.11.13\bug:3271合并展锐降噪算法到通用版本*/
 	param.format = openat_format;
 	param.time_sec = time_sec;
 	
@@ -469,7 +508,76 @@ int platform_getpa(void)
 }
 /*-\new\zhuwangbin\2020.6.2\添加音频功放类型设置接口*/
 
+/*+\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+int platform_setexpa(BOOL enable, UINT16 gpio, UINT16 count, 
+					UINT16 us,  E_AMOPENAT_AUDIO_CHANNEL outDev)
+{
+	OPENAT_EXPA_T param;
+	param.enable = enable;
+	param.gpio = gpio;
+	param.count = count;
+	param.us = us;
+	param.outDev = outDev;
+
+	return OPENAT_ExPASet(&param);
+}
+/*-\bug2767\zhuwangbin\2020.8.5\添加外部pa设置接口*/
+
+/*+\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+void platform_rtmp_callback(E_OPENAT_RTMP_RESULT_CODE code)
+{
+	PlatformRtmpData rtmpData;
+	rtmpData.result = TRUE;
+	rtmpData.result_code = (UINT8)code;
+	platform_rtos_send(MSG_ID_RTOS_RTMP, &rtmpData);
+}
+
+BOOL platform_rtmp_open(const char* url)
+{
+	return OPENAT_rtmp_open_url(platform_rtmp_callback,url);
+}
+
+BOOL platform_rtmp_close()
+{
+
+	return OPENAT_rtmp_close();
+	
+}
+/*-\wj\new\2020.10.16\添加rtmp功能AT指令和lua使用接口*/
+/*+\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+int platform_headPlug(int type)
+{
+	if (type >= OPENAT_AUD_HEADSET_TYPE_QTY)
+	{
+		return -1;
+	}
+	
+	return OPENAT_headPlug(type);
+}
+/*-\NEW\zhuwangbin\2020.8.11\添加耳机插拔配置*/
+				
 #endif
 
 /*-\NEW\zhuth\2014.7.25\新增设置音频通道和音量的同步接口*/
+/*+\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/
+static void platform_headset_notify_cb(void *ctx, E_OPENAT_AUD_HEADSET_NOTIFY_MSG id, uint32 param)
+{
+	PlatformMsgData rtosmsg;
+	//OPENAT_print("platform_headset_notify_cb id = %d,param = %d",id,param);
 
+	rtosmsg.headsetData.msg_id = id;
+	rtosmsg.headsetData.param = param;
+
+	platform_rtos_send(MSG_ID_RTOS_HEADSET, &rtosmsg);	
+
+}
+
+void platform_headset_init(BOOL autoControl)
+{	
+	if(!autoControl)
+	{
+		OPENAT_handsetSetNotifyCustCB(platform_headset_notify_cb,NULL);
+	}
+	OPENAT_headsetInit();
+}
+/*-\new\wj\2020.9.19\lua添加耳机自动检测功能，添加开机和耳机上报消息*/

@@ -56,13 +56,15 @@ BOOL advertising(VOID)
     param1.beacondata = iot_os_malloc(sizeof(T_OPENAT_BLE_BEACON_DATA));
     memcpy(param1.beacondata,&beacondata,sizeof(T_OPENAT_BLE_BEACON_DATA));
     iot_ble_iotctl(0,BLE_SET_BEACON_DATA,param1);//设置beacon数据
-    iot_os_free(param1.beacondata);
+    if(param1.beacondata != NULL)
+        iot_os_free(param1.beacondata);
     param1.beacondata = NULL;
 /*
     param2.advparam = iot_os_malloc(sizeof(T_OPENAT_BLE_ADV_PARAM));
     memcpy(param2.advparam,&advparam,sizeof(T_OPENAT_BLE_ADV_PARAM));
     iot_ble_iotctl(0,BLE_SET_ADV_PARAM,param2);//设置广播参数
-    iot_os_free(param2.advparam);
+    if(param2.advparam != NULL)
+        iot_os_free(param2.advparam);
     param2.advparam = NULL;
 */
     iot_os_sleep(1000);
@@ -79,7 +81,8 @@ VOID ble_test(VOID)
     iot_os_wait_message(ble_test_handle,&msg);//等待蓝牙打开
     if(msg->eventid == OPENAT_BT_ME_ON_CNF)
     {
-        iot_os_free(msg);
+        if(msg != NULL)
+            iot_os_free(msg);
         msg = NULL;
         //2.广播蓝牙
         advertising();

@@ -23,7 +23,7 @@
 /**
  * Build identify string
  */
-#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CSDK-debug-DEVEL-svn2063"
+#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CSDK-debug-DEVEL-svn2070"
 
 /**
  * whether it is 8910 series
@@ -378,6 +378,10 @@
  * whether loading app image from NOR flash is enabled
  */
 #define CONFIG_APPIMG_LOAD_FLASH
+
+#/*+\new\czm\2020.5.23\add v1.3 csdk volte*/
+/* #undef CONFIG_BUILD_CSDK_VOLTE */
+#/*-\new\czm\2020.5.23\add v1.3 csdk volte*/
 
 #/*+\new\zhuwangbin\2020.5.23\add poc app*/
 /* #undef CONFIG_POC_SUPPORT */

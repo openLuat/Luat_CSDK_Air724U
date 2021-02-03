@@ -32,8 +32,10 @@ static int luaB_print (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
   int i;
   lua_getglobal(L, "tostring");
+  /*+\NEW\shenyuanyuan\2020.7.4\print接口输出日志时，某些带有%的字符串导致异常重启*/
   for (i=1; i<=n; i++) {
     const char *s;
+	const char *s2;
     lua_pushvalue(L, -1);  /* function to be called */
     lua_pushvalue(L, i);   /* value to print */
     lua_call(L, 1, 1);
@@ -42,9 +44,14 @@ static int luaB_print (lua_State *L) {
       return luaL_error(L, LUA_QL("tostring") " must return a string to "
                            LUA_QL("print"));
     if (i>1) fputs(" ", stdout);
-    fputs(s, stdout);
+	s2 = L_MALLOC(2*strlen(s));
+	platform_separator_strrpl(s2,s,"%","%%");
+    fputs(s2, stdout);
+    if(s2)
+        L_FREE(s2);
     lua_pop(L, 1);  /* pop result */
   }
+  /*-\NEW\shenyuanyuan\2020.7.4\print接口输出日志时，某些带有%的字符串导致异常重启*/
   fputs("\n", stdout);
   return 0;
 }

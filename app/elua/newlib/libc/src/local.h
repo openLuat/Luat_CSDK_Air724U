@@ -14,7 +14,7 @@
 #define __LOCAL_H__
 
 
-int	__sflags(const char *, int *);
+int	lualibc_sflags(const char *, int *);
 
 /*
  * Return true if the given FILE cannot be written now.

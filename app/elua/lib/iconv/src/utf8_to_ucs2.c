@@ -144,8 +144,12 @@ static int enc_utf8_to_unicode_one(const char* pInput, char* pOutput, int endian
         case 2:
             b1 = *pInput;
             b2 = *(pInput + 1);
-            if ( (b2 & 0xE0) != 0x80 )
-                return -1;
+            /*+\BUG\wangyuan\2020.11.18\遇到一些特殊字符会返回错误*/
+			/*UTF-8二进制形式为 1100xxxx 10xxxxxx
+			例如:'·'的  UTF-8编码 11000010 10110111*/
+            if ( (b2 & 0xC0) != 0x80 )
+            	return -1;
+			/*-\BUG\wangyuan\2020.11.18\遇到一些特殊字符会返回错误*/
             if(endian)
             {
                 *pOutput++ = (b1 >> 2) & 0x07;

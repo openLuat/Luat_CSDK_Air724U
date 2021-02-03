@@ -59,7 +59,19 @@ typedef struct UartMapTag
     const E_AMOPENAT_UART_PORT port;
     const PUART_MESSAGE        msg;
 }UartMap;
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+typedef enum{
+	UART_NO_EVENT_CONFIG = -1,
+	UART_RX_EVENT_CONFIG,
+	UART_TX_DONE_EVENT_CONFIG,
+	UART_MAX_EVENT_CONFIG
+}PLATFORM_UART_EVENT_CONFIG;
 
+typedef struct{
+	PLATFORM_UART_EVENT_CONFIG UartConfigEvent;
+	int UartConfigId;
+}PLATFORM_UART_CONFIG;
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 typedef struct UartContextTag
 {
     uint8 opened;
@@ -67,7 +79,13 @@ typedef struct UartContextTag
     /*+\NEW\zhutianhua\2018.12.27 14:20\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
     uint8 rs485Io;
     uint8 rs485ValidLevel;
+	/*+\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
+	uint32 rs485DelayTime;
+	/*-\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
     /*-\NEW\zhutianhua\2018.12.27 14:20\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
+    /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+    uint32 uartBand;//存储串口的波特率。485通讯需要计算oe的停止时间
+    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
 }UartContext;
 
 /*+\NEW\zhutianhua\2018.12.27 15:8\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
@@ -128,6 +146,18 @@ static UartPhyContext uartPhyContext[3]/*openat uart 1 & 2 & host uart*/ =
 #endif
 /*-\NEW\liweiqiang\2014.7.21\修正AM002_LUA项目RAM不够编译不过的问题*/
 
+/*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+HANDLE rs485_oe_task_hand = NULL;
+
+typedef enum
+{
+  enable_rs485_oe = 0x10,
+  disable_rs485_oe,
+  close_rs485_oe
+}rs485_oe_event;
+
+/*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+
 static void uart0_message_handle(T_AMOPENAT_UART_MESSAGE* evt);
 static void uart1_message_handle(T_AMOPENAT_UART_MESSAGE* evt);
 static void uart2_message_handle(T_AMOPENAT_UART_MESSAGE* evt);
@@ -144,7 +174,12 @@ static const UartMap uartmap[NUM_UART] =
 /*-\NEW\zhuwangbin\2019.12.31\添加uart3功能*/
 /*-\NEW\liweiqiang\2013.8.31\增加host uart通讯支持*/
 };
-
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+static PLATFORM_UART_CONFIG gUartConfig = {
+	.UartConfigEvent = UART_NO_EVENT_CONFIG,
+	.UartConfigId = -1,
+};
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 static UartContext uartContext[NUM_UART];
 
 static HANDLE hAtcReadSem = 0;
@@ -187,8 +222,8 @@ u32 usbdata_mode = 0;
 static char debugStdoutBuffer[128];//openat接口的print接口buff最大为127字节与其同步
 /*-\NEW\liweiqiang\2013.4.7\优化debug口输出*/
 static UINT16 debugStdoutCachedCount = 0;
-
-static void sendUartMessage(int uart_id)
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+static void sendUartMessage(int uart_id,platform_msg_type event_id)
 {
     PlatformMsgData msgData;
    
@@ -196,9 +231,19 @@ static void sendUartMessage(int uart_id)
 
     OPENAT_print("uart sendUartMessage uart %d tick %d", uart_id, OPENAT_get_system_tick());
 
-    platform_rtos_send(MSG_ID_RTOS_UART_RX_DATA, &msgData);
-}
+	if(gUartConfig.UartConfigId == uart_id && 
+			((UART_TX_DONE_EVENT_CONFIG == gUartConfig.UartConfigEvent && MSG_ID_RTOS_UART_TX_DONE == event_id) 
+			|| (UART_RX_EVENT_CONFIG == gUartConfig.UartConfigEvent && MSG_ID_RTOS_UART_RX_DATA == event_id)))
+	{
+		platform_rtos_send_high_priority(event_id,&msgData);
+	}
+	else
 
+	{
+		platform_rtos_send(event_id, &msgData);
+	}
+}
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 /*+\NEW\zhuwangbin\2018.8.10\添加OPENAT_DRV_EVT_UART_TX_DONE_IND上报*/
 static void sendUartTxDoneMessage(int uart_id)
 {
@@ -253,10 +298,12 @@ static void uart_message_handle(uint8 id, T_AMOPENAT_UART_MESSAGE* evt)
                 QueueInsert(&uartPhyContext[phyid].rxqueue, uartPhyContext[phyid].temprxbuff, length);
             }
         }
-        
+
         if(needMsg)
         {
-            sendUartMessage(id+1);
+			/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+            sendUartMessage(id+1,MSG_ID_RTOS_UART_RX_DATA);
+			/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
         }   
     }
 	/*+\NEW\zhuwangbin\2018.8.10\添加OPENAT_DRV_EVT_UART_TX_DONE_IND上报*/
@@ -265,7 +312,9 @@ static void uart_message_handle(uint8 id, T_AMOPENAT_UART_MESSAGE* evt)
         /*+\NEW\zhutianhua\2018.12.27 15:33\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
         platform_uart_disable_rs485_oe(id);
         /*-\NEW\zhutianhua\2018.12.27 15:33\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
-        sendUartTxDoneMessage(id+1);
+		/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+        sendUartMessage(id+1,MSG_ID_RTOS_UART_TX_DONE);
+		/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
     }
 	/*-\NEW\zhuwangbin\2018.8.10\添加OPENAT_DRV_EVT_UART_TX_DONE_IND上报*/
 /*-\NEW\liweiqiang\2013.4.7\优化uart/atc数据接收消息提示,避免发消息过于频繁导致系统无法响应 */
@@ -303,7 +352,7 @@ static void host_uart_recv(UINT8 *data, UINT32 length)
 
     if(needMsg)
     {
-        sendUartMessage(3);
+        sendUartMessage(3,MSG_ID_RTOS_UART_RX_DATA);
     }
 }
 /*-\NEW\liweiqiang\2014.1.2\host uart ID 0xA2数据透传支持 */
@@ -358,7 +407,9 @@ static u32 uart_phy_open( unsigned id, u32 baud, int databits, int parity, int s
     }
 /*-\NEW\liweiqiang\2014.1.2\host uart ID 0xA2数据透传支持 */
 #endif
-
+    /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+    uartContext[id].uartBand = baud;
+    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
     uartParam.baud  = baud;
     uartParam.dataBits = databits;
 
@@ -663,8 +714,10 @@ void RILAPI_ReceiveData(void *data, int len)
     OPENAT_release_semaphore(hAtcReadSem);
 
     if(needMsg && (vatc_mode != 1))
-    {
-        sendUartMessage(PLATFORM_UART_ID_ATC);
+    {	
+		/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+        sendUartMessage(PLATFORM_UART_ID_ATC,MSG_ID_RTOS_UART_RX_DATA);
+		/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
     }
 /*-\NEW\liweiqiang\2013.4.7\优化uart/atc数据接收消息提示,避免发消息过于频繁导致系统无法响应 */
 }
@@ -692,9 +745,36 @@ void USBAPI_ReceiveData(void *data, int len)
 
     if(needMsg)
     {
-        sendUartMessage(PLATFORM_PORT_ID_USB);
+		/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+        sendUartMessage(PLATFORM_PORT_ID_USB,MSG_ID_RTOS_UART_RX_DATA);
+		/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
     }
 }
+
+/**+\BUG3623\zhuwangbin\2020.11.18\uart.on(uart.USB, "receive" 丢数据**/
+BOOL USBAPI_IsEmpty(void)
+{
+	BOOL isEmpty;
+
+	OPENAT_wait_semaphore(hUsbReadSem, COS_WAIT_FOREVER);
+	isEmpty = usbRx_Q.empty ? TRUE : FALSE;
+	OPENAT_release_semaphore(hUsbReadSem);
+
+	return isEmpty;
+}
+
+
+u32 USBAPI_FreeSpace(void)
+{
+	u32 space;
+	
+	OPENAT_wait_semaphore(hUsbReadSem, COS_WAIT_FOREVER);
+	space = QueueGetFreeSpace(&usbRx_Q);
+	OPENAT_release_semaphore(hUsbReadSem);
+
+	return space;
+}
+/**-\BUG3623\zhuwangbin\2020.11.18\uart.on(uart.USB, "receive" 丢数据**/
 
 void platform_setup_usb_queue(void)
 {
@@ -736,36 +816,99 @@ u32 platform_uart_setup( unsigned id, u32 baud, int databits, int parity, int st
 }
 
 /*+\NEW\zhutianhua\2018.12.27 14:54\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
-void platform_uart_enable_rs485_oe( unsigned id)
+void platform_uart_enable_rs485_oe( unsigned char id)
 {
     if(uartContext[id].opened && uartContext[id].rs485ValidLevel != RS485_INVALID_LEVEL)
     {
-       IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io), uartContext[id].rs485ValidLevel);
-       OPENAT_print("platform_uart_enable_rs485_oe id=%d, realIO=%d, level=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io), uartContext[id].rs485ValidLevel);
-    }
+    /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+       //IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io), uartContext[id].rs485ValidLevel);
+       //OPENAT_print("platform_uart_enable_rs485_oe id=%d, realIO=%d, level=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io), uartContext[id].rs485ValidLevel);
+        OPENAT_send_message(rs485_oe_task_hand, enable_rs485_oe, (void *)&id, sizeof(id));
+    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+	}
 }
 
-void platform_uart_disable_rs485_oe( unsigned id)
+void platform_uart_disable_rs485_oe( unsigned char id)
 {
     if(uartContext[id].opened && uartContext[id].rs485ValidLevel != RS485_INVALID_LEVEL)
     {
-       IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io), (uartContext[id].rs485ValidLevel==0) ? 1 : 0);
-       OPENAT_print("platform_uart_disable_rs485_oe id=%d, realIO=%d, level=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io), (uartContext[id].rs485ValidLevel==0) ? 1 : 0);
+    /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+       //IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io), (uartContext[id].rs485ValidLevel==0) ? 1 : 0);
+       //OPENAT_print("platform_uart_disable_rs485_oe id=%d, realIO=%d, level=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io), (uartContext[id].rs485ValidLevel==0) ? 1 : 0);
+        OPENAT_send_message(rs485_oe_task_hand, disable_rs485_oe, (void *)&id, sizeof(id));
+    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
     }
 }
 
-void platform_uart_close_rs485_oe( unsigned id)
+void platform_uart_close_rs485_oe( unsigned char id)
 {
     if(uartContext[id].opened && uartContext[id].rs485ValidLevel != RS485_INVALID_LEVEL)
     {
-        platform_uart_disable_rs485_oe(id);
-        OPENAT_print("platform_uart_close_rs485_oe id=%d, realIO=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io));
-        IVTBL(close_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io));        
-        uartContext[id].rs485ValidLevel = RS485_INVALID_LEVEL;
+    /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+        //platform_uart_disable_rs485_oe(id);
+        //OPENAT_print("platform_uart_close_rs485_oe id=%d, realIO=%d\n", id, platform_pio_get_gpio_port(uartContext[id].rs485Io));
+        //IVTBL(close_gpio)(platform_pio_get_gpio_port(uartContext[id].rs485Io));        
+        //uartContext[id].rs485ValidLevel = RS485_INVALID_LEVEL;
+        OPENAT_send_message(rs485_oe_task_hand, close_rs485_oe, (void *)&id, sizeof(id));
+    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
     }
 }
 
-u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel)
+/*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+void rs485_oe_task(void* p)
+{
+    char *oe_pin = NULL;
+	int msgId;
+    while(1)
+    {
+        OPENAT_wait_message(rs485_oe_task_hand, &msgId, &oe_pin, OPENAT_OS_SUSPENDED);
+        switch (msgId)
+        {
+        case enable_rs485_oe:
+            IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io), uartContext[*oe_pin].rs485ValidLevel);
+            OPENAT_print("platform_uart_enable_rs485_oe id=%d, realIO=%d, level=%d\n", *oe_pin, platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io), uartContext[*oe_pin].rs485ValidLevel);
+            break;
+        case disable_rs485_oe:
+            // Modbus 通讯时规定主机发送完一组命令必须间隔3.5个字符再发送下一组新命令，这个3.5字符主要用来告诉其他设备这次命令（数据）已结束
+            //1*1000*1000是一秒钟时间。
+            //(1 * 1000 * 1000 / oe_band)代表传输一个位需要多少ms
+            //比如9600bps，意思就是说每1秒（也就是1000毫秒）传输9600个位，
+            //osiDelayUS(4 * 10 * (1 * 1000 * 1000 / uartContext[*oe_pin].uartBand));
+            //这个地方按理说应该写4，但是等任务调度过来。实际已经过去一段时间了，为了提高传输效率。做相应的减少
+            /*+\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
+            if (uartContext[*oe_pin].rs485DelayTime)
+            {
+				osiDelayUS(uartContext[*oe_pin].rs485DelayTime);
+			}
+			else
+			{
+				osiDelayUS(5 * (1 * 1000 * 1000 / uartContext[*oe_pin].uartBand));
+            }
+			/*-\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
+			IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io), (uartContext[*oe_pin].rs485ValidLevel==0) ? 1 : 0);
+            OPENAT_print("platform_uart_disable_rs485_oe id=%d, realIO=%d, level=%d\n", *oe_pin, platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io), (uartContext[*oe_pin].rs485ValidLevel==0) ? 1 : 0);
+            break;
+        case close_rs485_oe:
+            IVTBL(set_gpio)(platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io), (uartContext[*oe_pin].rs485ValidLevel==0) ? 1 : 0);
+            OPENAT_print("platform_uart_close_rs485_oe id=%d, realIO=%d\n", *oe_pin, platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io));
+            IVTBL(close_gpio)(platform_pio_get_gpio_port(uartContext[*oe_pin].rs485Io));        
+            uartContext[*oe_pin].rs485ValidLevel = RS485_INVALID_LEVEL;
+            break;
+        default:
+            break;
+        }
+		/*+\bug_3639\rww\2020.11.18\内存泄漏死机*/
+		if (oe_pin != NULL)
+		{
+			OPENAT_free(oe_pin);
+		}
+		/*-\bug_3639\rww\2020.11.18\内存泄漏死机*/
+    }
+}
+
+/*+\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
+/*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel, u32 rs485DelayTime)
 {      
     u32 ret = PLATFORM_ERR;
 
@@ -780,8 +923,18 @@ u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel)
             
             uartContext[id].rs485Io = rs485IO;
             uartContext[id].rs485ValidLevel = rs485ValidLevel;
+			uartContext[id].rs485DelayTime = rs485DelayTime;
             OPENAT_print("platform_uart_setup_rs485_oe id=%d, io=%d, level=%d\n", id, rs485IO, cfg.param.defaultState);
-            
+            /*+\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
+			if(rs485_oe_task_hand == NULL)
+            {
+                OPENAT_create_task(&rs485_oe_task_hand, rs485_oe_task, NULL, NULL,
+                                            2 * 1024, 30,
+                                            0,
+                                            0,
+                                            "rs485_oe_task");
+            }
+		    /*-\NEW\czm\2020.9.11\bug:2929 485发送1200波特率下最后一字节错误*/
             ret = PLATFORM_OK;
         }
     }
@@ -789,7 +942,7 @@ u32 platform_uart_setup_rs485_oe(unsigned id, u32 rs485IO, u32 rs485ValidLevel)
     return ret;
 }
 /*-\NEW\zhutianhua\2018.12.27 14:54\新增uart.set_rs485_oe接口，可配置rs485 io使能*/
-
+/*-\bug4024\zhuwangbin\2020.12.25\uart.set_rs485_oe添加可选参数,用来配置485延迟时间*/
 
 /*+\NEW\liweiqiang\2013.4.20\增加uart.close接口 */
 u32 platform_uart_close( unsigned id )
@@ -840,8 +993,8 @@ u32 platform_s_uart_send( unsigned id, u8 data )
 
 /*+\NEW\liweiqiang\2013.4.7\修改uart数据发送为buffer方式 */
 /*+\BUG\wangyuan\2020.04.03\usb虚拟串口功能不能使用*/
-// #include "at_engine.h"
-// extern atDevice_t *gAtDevice;
+//#include "at_engine.h"
+//extern atDevice_t *gAtDevice;
 /*-\BUG\wangyuan\2020.04.03\usb虚拟串口功能不能使用*/
 u32 platform_s_uart_send_buff( unsigned id, const u8 *buff, u16 len )
 {
@@ -856,10 +1009,27 @@ u32 platform_s_uart_send_buff( unsigned id, const u8 *buff, u16 len )
     {
         debugPortWrite(buff, len);
     }
-	else if(PLATFORM_PORT_ID_USB == id)
-    {  
-
-    }
+	/*+\NEW\shenyuanyuan\2019.5.8\将lua版本的usb AT口改为lua脚本可控制的普通数据传输口 */
+	// else if(PLATFORM_PORT_ID_USB == id)
+    // {  
+    // 	int    plen = 0;
+	// 	char   *pbuf = NULL;
+	//     if(buff != NULL && gAtDevice != NULL)
+	//     {
+    //         /*+\BUG\hedonghao\2019.9.2\使用usbdata的demo，pc端串口工具通过usb枚举出的usb at口和模块通信，串口工具发送一些特殊字符结尾的数据(最后再加上回车换行)，模块会死机，必现 */
+	//         plen = len+3;
+	//         pbuf = (char *)malloc(plen * sizeof(char));
+	//         ASSERT(pbuf != NULL);
+    //         sprintf(pbuf, "%s\r\n",buff);
+    //         pbuf[plen - 1] = '\0';
+	// 		/*+\BUG\wangyuan\2020.04.03\usb虚拟串口功能不能使用*/
+	// 		atDeviceWrite(gAtDevice, buff, len);
+	// 		/*-\BUG\wangyuan\2020.04.03\usb虚拟串口功能不能使用*/
+    //         /*-\BUG\hedonghao\2019.9.2\使用usbdata的demo，pc端串口工具通过usb枚举出的usb at口和模块通信，串口工具发送一些特殊字符结尾的数据(最后再加上回车换行)，模块会死机，必现 */
+	// 		free(pbuf);
+	// 	}
+    // }
+	/*-\NEW\shenyuanyuan\2019.5.8\将lua版本的usb AT口改为lua脚本可控制的普通数据传输口 */
     else
     {
         OPENAT_print("uart phy write:%d %d", id,len);
@@ -913,4 +1083,12 @@ int platform_s_uart_set_flow_control( unsigned id, int type )
 {
   return PLATFORM_ERR;
 }
+/*+\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
+int platform_uart_config_event(int uartId, PLATFORM_UART_EVENT_CONFIG event)
+{
+	gUartConfig.UartConfigEvent = event;
+	gUartConfig.UartConfigId = uartId;
+	return 1;
+}
+/*-\new\wj\2020.11.13\兼容2G版本 uart.config功能*/
 #endif

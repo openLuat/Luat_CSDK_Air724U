@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "platform_fs.h"
 
 #define liolib_c
 #define LUA_LIB
@@ -20,7 +21,7 @@
 /*+\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
 #include "auxmods.h"
 #include "am_openat_fs.h"
-#define IO_SDCARD 	0x01
+#define IO_SDCARD 	0xaa
 /*-\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
 
 #define IO_INPUT	1
@@ -179,6 +180,7 @@ static int io_open (lua_State *L) {
 }
 /*+\new\liangjian\2020.06.17\增加目录信息读取方法*/
 static int io_open_dir (lua_State *L) {
+  int iRet; 
   const char *dirname = luaL_checkstring(L, 1);
   if(dirState == DIR_IDLE)
   	{
@@ -188,7 +190,15 @@ static int io_open_dir (lua_State *L) {
 	  memcpy(dirDict,dirname,strlen(dirname)+1);
 	  dirState = DIR_READY;
 	  OPENAT_print("io_open_dir1  %s",dirname);
-	  lua_pushinteger(L, 1);
+    iRet = OPENAT_find_open(dirDict);
+    if(iRet != 1)
+    {
+      lualibc_free(dirDict);
+      dirState = DIR_IDLE;
+	    lua_pushinteger(L, 0);
+    }
+    else
+      lua_pushinteger(L, 1);
 	  return 1;
   	}
   return 0;
@@ -520,49 +530,191 @@ static int f_write (lua_State *L) {
   return g_write(L, tofile(L), 2);
 }
 /*+\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
-#ifdef  LUA_SDCARD_SUPPORT
+/*+\new\wj\2020.9.1\完善mount，unmount，format接口*/
 static int io_mount(lua_State *L)
 {
+
+	bool ret = FALSE;
+	PLATFORM_FS_MOUNT_PARAM fs_param;
+	int n_param = lua_gettop(L);
+	int len;
+	int clock;
+	memset(&fs_param,0,sizeof(PLATFORM_FS_MOUNT_PARAM));
 	int op = luaL_checkinteger( L, 1 );
-	
-	int ret = 0;
-	
-	if (op == IO_SDCARD)
-	{
-		ret = platformfs_Mount_sdcard();
-	}
-	lua_pushinteger(L, ret);
+	do{
+		if(op == IO_SDCARD)
+		{
+			#ifdef  LUA_SDCARD_SUPPORT
+			ret = platformfs_Mount_sdcard();
+			#else
+			ret = FALSE;
+			#endif
+		}
+		else if(op == E_PLATFROM_FLASH_INTERNAL || op == E_PLATFROM_FLASH_EXTERN_PINLCD || op == E_PLATFROM_FLASH_EXTERN_PINGPIO)
+		{
+			fs_param.exFlash = (PLATFORM_FLASH_TYPE)op;
+			fs_param.path = luaL_checklstring(L , 2, &len);
+			if(!fs_param.path)
+				break;
+			fs_param.size = luaL_optnumber(L , 3,  0);
+			if(!fs_param.size)
+				break;
+			fs_param.offset = luaL_optnumber(L, 4, 0);	
+			clock = luaL_optnumber(L , 5,  40000000);
+			if(166000000/clock < 2 || 166000000/clock > 255)
+				break;
+			fs_param.clkDiv = 166000000/clock;
+				
+			ret = platform_fs_mount(&fs_param);	
+		}
+	}while(0);	
+		
+	lua_pushinteger(L, ret ? 1 : 0);
 
     return 1;
 }
 
 static int io_unmount(lua_State *L)
 {
+	PLATFORM_FS_MOUNT_PARAM fs_param;
+	bool ret = FALSE;
+	int len;
+	int clock;
+	int n_param = lua_gettop(L);
 	int op = luaL_checkinteger( L, 1 );
-	int ret = 0;
-	if (op == IO_SDCARD)
-	{
-		ret = platformfs_uMount_sdcard();
-	}
-	lua_pushinteger(L, ret);
+	do{
+		if(op == IO_SDCARD)
+		{
+			#ifdef  LUA_SDCARD_SUPPORT
+			ret = platformfs_uMount_sdcard();
+			#else
+			ret = FALSE;
+			#endif
+		}
+		else if(op == E_PLATFROM_FLASH_INTERNAL || op == E_PLATFROM_FLASH_EXTERN_PINLCD || op == E_PLATFROM_FLASH_EXTERN_PINGPIO)
+		{
+			fs_param.exFlash = (PLATFORM_FLASH_TYPE)op;
+			fs_param.path = luaL_checklstring(L , 2, &len);
+			if(!fs_param.path)
+				break;
+			fs_param.size = luaL_optnumber(L , 3,  0);
+			fs_param.offset = luaL_optnumber(L, 4, 0);
+			clock = luaL_optnumber(L , 5,  40000000);
+			if(166000000/clock < 2 || 166000000/clock > 255)
+				break;
+			fs_param.clkDiv = 166000000/clock;
+				
+			ret = platform_fs_unmount(&fs_param);	
+		}
+	}while(0);	
+		
+	lua_pushinteger(L, ret ? 1 : 0);
 
     return 1;
 }
 
 static int io_format(lua_State *L)
 {
+	PLATFORM_FS_MOUNT_PARAM fs_param;
+	bool ret = FALSE;
+	int len;
+	int clock;
+	int n_param = lua_gettop(L);
 	int op = luaL_checkinteger( L, 1 );
-	int ret = 0;
-	if (op == IO_SDCARD)
-	{
-		ret = platformfs_Format_sdcard();
-	}
-	lua_pushinteger(L, ret);
+	do{
+		if(op == IO_SDCARD)
+		{
+		#ifdef	LUA_SDCARD_SUPPORT
+			ret = platformfs_Format_sdcard();
+		#else
+			ret = FALSE;
+		#endif
+		}
+		else if(op == E_PLATFROM_FLASH_INTERNAL || op == E_PLATFROM_FLASH_EXTERN_PINLCD || op == E_PLATFROM_FLASH_EXTERN_PINGPIO)
+		{
+			fs_param.exFlash = (PLATFORM_FLASH_TYPE)op;
+			fs_param.path = luaL_checklstring(L , 2, &len);
+			if(!fs_param.path)
+				break;
+			fs_param.size = luaL_optnumber(L , 3,  0);
+			fs_param.offset = luaL_optnumber(L, 4, 0);
+			clock = luaL_optnumber(L , 5,  40000000);
+			if(166000000/clock < 2 || 166000000/clock > 255)
+				break;
+			fs_param.clkDiv = 166000000/clock;
+			
+			ret = platform_fs_format(&fs_param);	
+		}
+	}while(0);	
+
+
+	lua_pushinteger(L, ret ? 1 : 0);
 
     return 1;
 }
-#endif
+/*-\new\wj\2020.9.1\完善mount，unmount，format接口*/
 /*-\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
+/*+\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
+static int io_otp_write(lua_State *L)
+{
+	int address,data,size;
+    char* buf;
+    
+	address = luaL_checkinteger(L, 1);
+    buf = lua_tolstring( L, 2, &size );
+		
+	lua_pushinteger(L, platformfs_otp_write(address, buf, size));
+	
+	return 1;
+}
+
+static int io_otp_read(lua_State *L)
+{
+	int address,data,size;
+    
+	address = luaL_checkinteger(L, 1);
+	size = luaL_checkinteger(L, 2);
+
+	char* buf = malloc(size);	
+	platformfs_otp_read(address, buf, size);
+	
+	luaL_Buffer b;
+
+	luaL_buffinit( L, &b );
+	luaL_addlstring(&b, buf, size);
+	luaL_pushresult( &b );
+
+	free(buf);
+	
+	return 1;
+}
+
+static int io_otp_erase(lua_State *L)
+{
+	int address, size;
+    
+	address = luaL_checkinteger(L, 1);
+	size = luaL_checkinteger(L, 2);
+	
+	lua_pushinteger(L, platformfs_otp_erase(address, size));
+	
+	return 1;
+}
+
+static int io_otp_lock(lua_State *L)
+{
+	int address, size;
+    
+	address = luaL_checkinteger(L, 1);
+	size = luaL_checkinteger(L, 2);
+
+	lua_pushinteger(L, platformfs_otp_lock(address, size));
+	
+	return 1;
+}
+/*-\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
+
+
 
 static int f_seek (lua_State *L) {
   static const int mode[] = {SEEK_SET, SEEK_CUR, SEEK_END};
@@ -620,11 +772,15 @@ static const luaL_Reg iolib[] = {
   {"type", io_type},
   {"write", io_write},
   /*+\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
-#ifdef  LUA_SDCARD_SUPPORT
   {"mount", io_mount},
   {"unmount", io_unmount},
   {"format", io_format},
-#endif
+	/*+\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
+	{"otp_erase", io_otp_erase},
+	{"otp_write", io_otp_write},
+	{"otp_read", io_otp_read},
+	{"otp_lock", io_otp_lock},
+	/*-\bug2991\zhuwangbin\2020.06.11\增加lua otp接口*/
   /*-\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
   {NULL, NULL}
 };
@@ -692,6 +848,9 @@ LUALIB_API int luaopen_io (lua_State *L) {
   #ifdef  LUA_SDCARD_SUPPORT
   MOD_REG_NUMBER( L, "SDCARD", IO_SDCARD );
   #endif
+  MOD_REG_NUMBER( L, "INTERNAL",E_PLATFROM_FLASH_INTERNAL);
+  MOD_REG_NUMBER(L, "EXTERN_PINLCD", E_PLATFROM_FLASH_EXTERN_PINLCD);
+  MOD_REG_NUMBER(L,"EXTERN_PINGPIO",E_PLATFROM_FLASH_EXTERN_PINGPIO);
   /*-\BUG\wangyuan\2020.06.11\将sdcard挂载、卸载、格式化操作放到io库中*/
   return 1;
 }

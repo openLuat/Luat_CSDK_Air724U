@@ -14,7 +14,8 @@
 
 // *****************************************************************************
 // platform Allocator support
-void* platform_malloc( size_t size );
+#define platform_malloc(size) platform_malloc1((size), __FUNCTION__, __LINE__)
+void* platform_malloc1( size_t size, const char* fun, UINT32 line);
 void* platform_calloc( size_t nelem, size_t elem_size );
 void platform_free( void* ptr );
 void* platform_realloc( void* ptr, size_t size );

@@ -128,6 +128,7 @@ static uint8 DHT11_Colle(char *data)
 
 uint8 DHT11_GetData_Num(uint8 pin, uint8 *HumNum, uint8 *TemNum)
 {
+    HANDLE crihand=NULL;
     char data[5] = {0};
     uint8 var = 0;
     if (pin == 0 || pin == 1 || pin == 2 || pin == 3 || pin == 7)
@@ -138,8 +139,9 @@ uint8 DHT11_GetData_Num(uint8 pin, uint8 *HumNum, uint8 *TemNum)
     return 2;
 
 start:
-
+    crihand = OPENAT_enter_critical_section();
     var = DHT11_Colle(&data[0]);
+    OPENAT_exit_critical_section(crihand);
     if (var != 0)
     {
         OneWire_printf("[dht11]DHT11_GetData_Num: DHT11_Colle:%d", var);
@@ -153,6 +155,7 @@ start:
     *HumNum = data[0];
     *TemNum = data[2];
     dht11_data = -1;
+
     return 0;
 }
 
