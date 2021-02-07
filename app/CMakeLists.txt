@@ -23,6 +23,7 @@ endif()
 if(CONFIG_BUILD_APP_MBEDTLS)
 	add_subdirectory_if_exist(mbedtls)
 endif()
+
 if(CONFIG_BUILD_APP_FTP)
     add_subdirectory_if_exist(ftp)
 endif()
@@ -51,4 +52,11 @@ if(CONFIG_BUILD_APP_AT_ENGINE)
     add_subdirectory_if_exist(at_engine)
 endif()
 
+if(CONFIG_BUILD_APP_SMS)
+    add_subdirectory_if_exist(sms)
+endif()
+
+if(CONFIG_BUILD_APP_RTMP)
+	add_subdirectory_if_exist(librtmp)
+endif()
 #/*-\ADD\chenzhimin\2020.07.9\ */

@@ -62,6 +62,7 @@ typedef enum {
 #endif
 
 typedef void (*ATUnsolHandler)(const char *s, const char *sms_pdu);
+typedef void (*ATUnsolSMSHandler)(const int sms_index);
 
 
 /*********************************************************
@@ -177,6 +178,8 @@ void at_response_free(ATResponse *p_response);
 
 
 VOID at_message(UINT8 *pData, UINT16 length);
+
+void at_regSmsHanlerCb(ATUnsolSMSHandler cb);
 
 #endif
 

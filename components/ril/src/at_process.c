@@ -24,12 +24,15 @@ static int s_readCount = 0;
 static void (*s_netStatusCb)(int status);
 
 static ATUnsolHandler s_unsolHandler = NULL;
+static ATUnsolSMSHandler s_unsolSMSHandler = NULL;
+
 
 static const char *s_smsUnsoliciteds[] = {
     "+CMT:",
     //    "+CMGR:",
     "+CDS:",
     "+CBM:",
+    "+CMTI"
     //   "^MODE",
     //   "^CARDMODE",
     //  "+NITZ"
@@ -458,11 +461,25 @@ static void readerLoop(void *arg)
         {
             char *line1;
             const char *line2;
+			int err;
+			char* out;
 
             // The scope of string returned by 'readline()' is valid only
             // till next call to 'readline()' hence making a copy of line
             // before calling readline again.
             line1 = strdup(line);
+			err = at_tok_nextstr(&line1, &out);
+		    if (err < 0)
+		        return;
+			err = at_tok_nextstr(&line1, &out);
+		    if (err < 0)
+		        return;
+						
+            if (s_unsolSMSHandler != NULL)
+            {
+                s_unsolSMSHandler(atoi(out));
+            }
+			#if 0
             line2 = readline();
 
             if (line2 == NULL)
@@ -475,7 +492,10 @@ static void readerLoop(void *arg)
             {
                 s_unsolHandler(line1, line2);
             }
-            RIL_Free(line1);
+			#endif
+			
+			//error:
+			//RIL_Free(line1);
         }
         else
         {
@@ -692,6 +712,12 @@ void at_regNetStatusCb(void (*netStatusCb)(int))
 {
     s_netStatusCb = netStatusCb;
 }
+
+void at_regSmsHanlerCb(ATUnsolSMSHandler cb)
+{
+	s_unsolSMSHandler = cb;
+}
+
 
 /*********************************************************
   Function:    at_send_command_singleline
