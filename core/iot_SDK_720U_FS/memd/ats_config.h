@@ -20,7 +20,7 @@
 
 #define GMI_ID "CSDK"
 #define GMM_ID "CSDK_720U"
-#define GMR_ID "CSDK_V302080_RDA8910_FS"
+#define GMR_ID "CSDK_V302111_RDA8910_FS"
 
 /**
  * Whether to support coap AT commands
