@@ -23,7 +23,7 @@
 /**
  * Build identify string
  */
-#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CUSTOMIZE_CSDK_FS-debug-DEVEL-svn2111"
+#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CUSTOMIZE_CSDK_FS-debug-DEVEL-svn2117"
 
 /**
  * whether it is 8910 series
@@ -906,7 +906,7 @@
 /**
  * whether charger can power up after shutdown
  */
-/* #undef CONFIG_CHARGER_POWERUP */
+#define CONFIG_CHARGER_POWERUP
 /**
  * support normal shutdown power off mode in pmic 2720 platform
  */
