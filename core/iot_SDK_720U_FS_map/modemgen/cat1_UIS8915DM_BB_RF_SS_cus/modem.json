@@ -9,101 +9,101 @@
             "plain_file": [
                 {
                     "file": "mem_index_list",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\memory_index_list.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\memory_index_list.bin"
                 },
                 {
                     "file": "nvm\\static_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\static_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\static_nv.bin"
                 },
                 {
                     "file": "nvm\\phy_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\phy_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\phy_nv.bin"
                 },
                 {
                     "file": "nvm\\dynamic_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\dynamic_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\dynamic_nv.bin"
                 },
                 {
                     "file": "nvm\\rf_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\rf_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\rf_nv.bin"
                 },
                 {
                     "file": "nvm\\cfw_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\cfw_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\cfw_nv.bin"
                 },
                 {
                     "file": "nvm\\audio_calib.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\audio_calib.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\audio_calib.bin"
                 },
                 {
                     "file": "nvm\\audio_codec_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\audio_codec_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\audio_codec_nv.bin"
                 },
                 {
                     "file": "nvm\\bt_sprd.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\bt_sprd.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\bt_sprd.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_customize_data.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_customize_data.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_customize_data.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_user_data.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_user_data.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_user_data.bin"
                 },
                 {
                     "file": "nvm\\sim_lock_control_key.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_control_key.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_lock_control_key.bin"
                 },
                 {
                     "file": "nvm\\ims_csm_setting.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_csm_setting.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_csm_setting.bin"
                 },
                 {
                     "file": "nvm\\ims_sapp_setting.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_sapp_setting.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_sapp_setting.bin"
                 },
                 {
                     "file": "nvm\\ims_isim_setting.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_isim_setting.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\ims_isim_setting.bin"
                 },
                 {
                     "file": "nvm\\sim_delta_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_delta_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_delta_nv.bin"
                 },
                 {
                     "file": "nvm\\sim_delta_nv_card2.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_delta_nv_card2.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\sim_delta_nv_card2.bin"
                 },
                 {
                     "file": "nvm\\plmn_delta_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\plmn_delta_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\plmn_delta_nv.bin"
                 },
                 {
                     "file": "nvm\\plmn_delta_nv_card2.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\plmn_delta_nv_card2.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\nvbin\\plmn_delta_nv_card2.bin"
                 },
                 {
                     "file": "nvm/ims_delta_nv.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\ims_delta_nv\\delta_nv.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\ims_delta_nv\\delta_nv.bin"
                 }
             ],
             "lzma3_file": [
                 {
                     "file": "cp.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\cp.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\cp.bin"
                 },
                 {
                     "file": "riscV.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\riscV.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\riscV.bin"
                 },
                 {
                     "file": "zsp.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\zsp.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\zsp.bin"
                 },
                 {
                     "file": "bcpu_gsm.bin",
-                    "local_file": "E:/8910/8910V13_3/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\bcpu_gsm.bin"
+                    "local_file": "E:/JOB/RDA8910_V1.3_compare/out/8915DM_cat1_CUSTOMIZE_CSDK_FS_debug/modemgen/cat1_UIS8915DM_BB_RF_SS_cus\\cpbin\\bcpu_gsm.bin"
                 }
             ]
         }
