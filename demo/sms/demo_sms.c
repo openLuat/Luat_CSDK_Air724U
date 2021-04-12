@@ -57,7 +57,10 @@ static void demo_smstask(PVOID pParameter)
 	DEMO_NETWORK_MESSAGE*    msg;
     sms_print("[sms]wait network ready....");
 	bool err;
-	
+
+    OPENAT_send_at_command("AT+SETVOLTE=1\r", strlen("AT+SETVOLTE=1\r"));
+    iot_os_sleep(10000);
+
     while(1)
     {
         iot_os_wait_message(demo_sms_task, (PVOID)&msg);

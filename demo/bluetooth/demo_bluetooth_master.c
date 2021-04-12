@@ -106,6 +106,10 @@ void bluetooth_callback(T_OPENAT_BLE_EVENT_PARAM *result)
 				memcpy(msg->bleRcvBuffer, result->dataPtr,result->len);  
                 iot_os_send_message(ble_test_handle,msg);
 			}
+            else
+            {
+                iot_os_free(msg);
+            }
 			break;
         case OPENAT_BLE_CONNECT:
             msg->handle  =  result->handle;
