@@ -9,7 +9,10 @@
 #include "am_openat_sms.h"
 
 #define smslib_print 	iot_debug_print
-
+#define SMS_QUEUE_COUNT 10
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define GSM_CHARACTER_SET_SIZE 0x80
 typedef struct T_SmsInfo_TAG
 {
 	bool longsmsfg;
@@ -23,13 +26,105 @@ typedef struct T_SmsInfo_TAG
 	char datetime[30];
 }T_SmsInfo;
 
-HANDLE demo_readsms_task;
+typedef struct 
+{
+    int status;
+} T_SMS_TIMER_PARAM;
+
+typedef struct SmsEntityQueueTag
+{
+    u8 current;                                 
+    u8 last;                                    
+    u8 funFirst;                                
+    u8 funLast;                                 
+	char tNewSms[SMS_QUEUE_COUNT];				/*短信编号*/
+}SmsEntityQueue;
+
+static HANDLE demo_readsms_task;
 extern bool g_IsSMSRdy;
 
 static RecSmsHandlerCb g_recsmshandlecb = NULL;
 static int isn = 0;
 static T_SmsInfo SmsInfo = {0};
-static char tnewsms[10] = {0};
+static T_SMS_TIMER_PARAM timerSMSParam;
+static HANDLE smstimer;
+static SmsEntityQueue s_SmsEntityQueue={0};
+
+
+const char GsmToChar[GSM_CHARACTER_SET_SIZE] =
+{         /*+0x0        +0x1        +0x2        +0x3        +0x4        +0x5        +0x6        +0x7*/
+/*0x00*/    0x40,       0x9c,       0x24,       0x9d,       0x8a,       0x82,       0x97,       0x8d,
+/*0x07*/    0x95,       0x80,       0x0a,       0xed,       0xed,       0x0d,       0x8f,       0x86,
+/*0x10*/    0,          0x5f,       0xe8,       0xe2,       0x00,       0xea,       0xe3,       0x00,
+/*0x18*/    0xe4,       0xe9,       0x00,       0x20,       0x92,       0x91,       0xe1,       0x90,
+/*0x20*/    0x20,       0x21,       0x22,       0x23,       0xAD,       0x25,       0x26,       0x27,
+/*0x28*/    0x28,       0x29,       0x2a,       0x2b,       0x2c,       0x2d,       0x2e,       0x2f,
+/*0x30*/    0x30,       0x31,       0x32,       0x33,       0x34,       0x35,       0x36,       0x37,
+/*0x37*/    0x38,       0x39,       0x3a,       0x3b,       0x3c,       0x3d,       0x3e,       0x3f,
+/*0x40*/    0xa1,       0x41,       0x42,       0x43,       0x44,       0x45,       0x46,       0x47,
+/*0x48*/    0x48,       0x49,       0x4a,       0x4b,       0x4c,       0x4d,       0x4e,       0x4f,
+/*0x50*/    0x50,       0x51,       0x52,       0x53,       0x54,       0x55,       0x56,       0x57,
+/*0x58*/    0x58,       0x59,       0x5a,       0x8e,       0x99,       0xa5,       0x9a,       0x20,
+/*0x60*/    0xa8,       0x61,       0x62,       0x63,       0x64,       0x65,       0x66,       0x67,
+/*0x68*/    0x68,       0x69,       0x6a,       0x6b,       0x6c,       0x6d,       0x6e,       0x6f,
+/*0x70*/    0x70,       0x71,       0x72,       0x73,       0x74,       0x75,       0x76,       0x77,
+/*0x78*/    0x78,       0x79,       0x7a,       0x84,       0x94,       0xa4,       0x81,       0x85
+};
+
+const char GsmToChar_Ctl[GSM_CHARACTER_SET_SIZE] =
+{
+        /*+0x0        +0x1        +0x2        +0x3        +0x4        +0x5        +0x6        +0x7*/
+/*0x00*/    0,          0,           0,         0,          0 ,         0,          0,          0,       
+/*0x07*/    0,          0,           0,         0,          0,          0,          0,          0,      
+/*0x10*/    0,          0,           0,         0,          0x5E,       0,          0,          0,      
+/*0x18*/    0,          0,           0,         0x20,       0,          0,          0,          0,       
+/*0x20*/    0,          0,           0,         0,          0,          0,          0,          0,       
+/*0x28*/    0x7B,       0x7D,        0,         0,          0,          0,          0,          0x5C,  
+/*0x30*/    0,          0,           0,         0,          0,          0,          0,          0,       
+/*0x38*/    0,          0,           0,         0,          0x5B,       0x7E,       0x5D,       0,       
+/*0x40*/    0x7C,       0,           0,         0,          0,          0,          0,          0,        
+/*0x48*/    0,          0,           0,         0,          0,          0,          0,          0,      
+/*0x50*/    0,          0,           0,         0,          0,          0,          0,          0,        
+/*0x58*/    0,          0,           0,         0,          0,          0,          0,          0,        
+/*0x60*/    0,          0,           0,         0,          0,          0,          0,          0,        
+/*0x68*/    0,          0,           0,         0,          0,          0,          0,          0,       
+/*0x70*/    0,          0,           0,         0,          0,          0,          0,          0,        
+/*0x78*/    0,          0,           0,         0,          0,          0,          0,          0   
+};
+
+static char mapGsmToChar ( char gsmChar )
+{
+	char retVal = 0;
+	iot_debug_assert(gsmChar < GSM_CHARACTER_SET_SIZE,NULL,0);
+	retVal = GsmToChar[gsmChar];
+	return (retVal);
+}
+
+static char mapGsmCtlToChar ( char gsmChar )
+{
+	char retVal = 0;
+	iot_debug_assert(gsmChar < GSM_CHARACTER_SET_SIZE,NULL,0);
+	retVal = GsmToChar_Ctl[gsmChar];
+	return (retVal);
+}
+
+uint16 Gsm7BitToChar(char *charString, const int8* gsmData, int16 length)
+{
+	int16 done = 0;
+	int16 len = 0;
+	while( (done < length) && (gsmData[done] < GSM_CHARACTER_SET_SIZE) )
+	{
+		charString[len] = mapGsmToChar(gsmData[done]);
+		if(gsmData[done] == 0x1b)
+		{
+		    done++;
+		    charString[len] = mapGsmCtlToChar(gsmData[done]);
+		}
+		++done;
+		++len;
+	}
+	return (len);
+}
 
 static void check_smsready(void)
 {
@@ -39,30 +134,59 @@ static void check_smsready(void)
 	}
 }
 
-static void remove_tnewsms(void)
+static VOID sms_queue_init(VOID)
 {
-	int i;
-	if(strlen(tnewsms)==0)
-		return;
-	
-	for(i = 0; i< strlen(tnewsms); i++)
-	{
-		tnewsms[i] = tnewsms[i+1];
-		
-		if(tnewsms[i+2] == '\0')
-			break;
-	}
+    u8 i = 0;
+    u8 first = MIN(s_SmsEntityQueue.current,s_SmsEntityQueue.funFirst);
+    for ( i=first; i<=s_SmsEntityQueue.last; i++) {
+		char SmsEnt = 0x00;
+        SmsEnt = s_SmsEntityQueue.tNewSms[i];
+		SmsEnt = 0x00;
+    }
+    memset(&s_SmsEntityQueue,0,sizeof(SmsEntityQueue));
 }
 
-static void insert_tnewsms(int index)
+static BOOL sms_queue_head_out(VOID)
 {
-	if(strlen(tnewsms)==10)
-	{
-		smslib_print("[smslib] tnewsms is full");
-		return;
-	}
-	tnewsms[strlen(tnewsms)] = index; 
+    char SmsEnt = 0x00;
+
+   if(s_SmsEntityQueue.current == s_SmsEntityQueue.last) /* the queue is empty */
+       return FALSE;
+
+   SmsEnt = s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.current];
+   if(SmsEnt != 0x00){
+       SmsEnt = 0x00;
+   }
+   s_SmsEntityQueue.current = (s_SmsEntityQueue.current + 1) %  SMS_QUEUE_COUNT;
+   return TRUE;
 }
+
+static BOOL sms_queue_is_empty(VOID)
+{
+    return (s_SmsEntityQueue.current == s_SmsEntityQueue.last);
+}
+
+static BOOL sms_queue_append(char tnewsms)
+{
+                                                /* get first index */
+    u8 first =  MAX(s_SmsEntityQueue.current,s_SmsEntityQueue.funFirst);
+
+    if (tnewsms == 0x00){
+        smslib_print("[smslib]ERROR: tnewsms is null!");
+        return FALSE;
+    }
+
+    if((s_SmsEntityQueue.last + 1) % SMS_QUEUE_COUNT == first){
+        smslib_print("[smslib]ERROR: sms queue is full!");
+        return FALSE;                           /* the queue is full */
+    }
+    else{
+        s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.last] = tnewsms;
+        s_SmsEntityQueue.last = (s_SmsEntityQueue.last + 1) %  SMS_QUEUE_COUNT;
+        return TRUE;
+    }
+}
+
 
 /* 0x4E00 <= ucs2 < 0xA000 */ 
 static u16 get_ucs2_offset(u16 ucs2)
@@ -249,37 +373,41 @@ gb2312_to_ucs2_exit:
 // dst: 目标字符串指针
 // size: 源编码串长度
 // 返回: 目标字符串长度
-static int gsmDecode7bit(const void *src, void *dst, size_t size)
+static u16 gsmDecode7bit(u8 inPaddingBits, u8 *pInBuf, u8 *pOutBuf, u16 inLen)
 {
-    const uint8_t *pSrc = (const uint8_t *)src;
-    uint8_t *pDest = (uint8_t *)dst;
-    uint16_t nSrc = 0;
-    uint16_t nDst = 0;
-    uint16_t nByte = 0;
-    uint16_t nLeft = 0;
+	u16 inIdx, outIdx;
+	u8 bits;
 
-    while (nSrc < size)
-    {
-        *pDest = (((*pSrc << nByte) | nLeft) & 0x7f);
-        nLeft = (*pSrc >> (7 - nByte));
+	inIdx = 0;
+	outIdx = 0;
+	bits = 0;
 
-        pDest++;
-        nDst++;
-        nByte++;
+	if (inPaddingBits) {
+		bits = 7 - inPaddingBits;
+		pOutBuf[outIdx] = pInBuf[inIdx] >> (7 - bits);
+		inIdx++;
+		if ((++bits % 7) == 0) {
+			bits = 0;
+			outIdx++;
+		}
+	}
 
-        if (nByte == 7)
-        {
-            *pDest = nLeft;
-            pDest++;
-            nDst++;
-            nByte = 0;
-            nLeft = 0;
-        }
-        pSrc++;
-        nSrc++;
-    }
-    return nDst;
+	while (inIdx < inLen) {
+		if (bits == 0) {
+			pOutBuf[outIdx] = 0;
+		}
+		pOutBuf[outIdx++] |= ((pInBuf[inIdx] << bits) & 0x7F);
+		pOutBuf[outIdx] = pInBuf[inIdx] >> (7 - bits);
+		inIdx++;
+		if ((++bits % 7) == 0) {
+			bits = 0;
+			outIdx++;
+		}
+	}
+
+	return outIdx;
 }
+
 
 // 可打印字符串转换为字节数据
 // 如："C8329BFD0E01" --> {0xC8, 0x32, 0x9B, 0xFD, 0x0E, 0x01}
@@ -407,7 +535,6 @@ static int gsmSerializeNumbers(const char* pSrc, char* pDst, int nSrcLength)
         *pDst++ = ch;        // 复制先出现的字符
     }
 	
-	smslib_print("[smslib] gsmSerializeNumbers *(pDst-1): %c",*(pDst-1));	
     // 最后的字符是'F'吗？
     if(*(pDst-1) == 'F')
     {
@@ -420,37 +547,6 @@ static int gsmSerializeNumbers(const char* pSrc, char* pDst, int nSrcLength)
    
     // 返回目标字符串长度
     return nDstLength;
-}
-
-static bool send_sms(char *pdu, int pdulen)
-{
-	ATResponse *p_response = NULL;
-    bool result = FALSE;
-	char* out;
-	int err;
-	char cmd[64];
-
-	smslib_print("[smslib] send_sms start");
-
-	memset(cmd, 0, 64);
-	sprintf(cmd, "AT+CMGS=%d",pdulen);
-	
-    err = at_send_command_sms(cmd, pdu, "+CMGS:", &p_response);
-    if (err < 0 || p_response->success == 0)
-    {
-        smslib_print("[smslib]at_send_command_singleline error %d",err);
-        goto error;
-    }
-	
-	return TRUE;
-error:
-	smslib_print("[smslib] send_sms end");
-	if(p_response!=NULL)
-	{
-		at_response_free(p_response);
-		p_response=NULL;
-	}  
-	return result;
 }
 
 bool gsmDecodePdu(char* pdu, int pdulen)
@@ -484,7 +580,6 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	}
 	/*--PDU数据，不包括短信息中心号码*/
 	strcpy(ppdu, pdu+((strlen(pdu)/2-pdulen)*2));
-	smslib_print("[smslib]gsmDecodePdu ppdu: %s", ppdu);
 
 	gsmString2Bytes(ppdu, buf, 2);
 	/*--PDU短信首字节的高4位,第6位为数据报头标志位*/
@@ -498,7 +593,6 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	{
 		SmsInfo.longsmsfg =FALSE;
 	}
-	smslib_print("[smslib]gsmDecodePdu fo: %02x, longsms: %d", fo, longsms);
 
 	gsmString2Bytes(ppdu+2, _addlen, 2);
 	/*-回复地址数字个数*/
@@ -506,7 +600,6 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	addlen = ((addlen%2==0)?(addlen):(addlen+1));
 	offset = offset + addlen;
 	
-	smslib_print("[smslib]gsmDecodePdu ppdu[6]: %c, ppdu[7]: %c", ppdu[6], ppdu[7]);
 	#if 1	
 	if((ppdu[6] == '6') && (ppdu[7] == '8'))
 	{
@@ -515,22 +608,17 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	}
 	else
 		strncpy(out, ppdu+6, addlen);
-	smslib_print("[smslib]gsmDecodePdu 1 out: %s", out);
 	gsmSerializeNumbers(out,SmsInfo.num,addlen);
-	smslib_print("[smslib]gsmDecodePdu _addnum: %s, SmsInfo.num: %s", out, SmsInfo.num);	
 
 	gsmString2Bytes(ppdu+offset+6, buf, 2);
 	/*--协议标识 (TP-PID)*/
 	flag = buf[0];
-	smslib_print("[smslib]gsmDecodePdu flag: %d, offset: %d", flag, offset);
 	offset = offset + 2;
 	gsmString2Bytes(ppdu+offset+6, buf, 2);
 	/*--用户信息编码方式 Dcs=8，表示短信存放的格式为UCS2编码*/
 	dcs = buf[0];
-	smslib_print("[smslib]gsmDecodePdu dcs: %d, offset: %d", dcs, offset);
 	offset = offset + 2;
 	strncpy(out, ppdu+offset+6, 14);
-	smslib_print("[smslib]gsmDecodePdu out: %s", out);
 	/*--时区7个字节*/
 	gsmSerializeNumbers(out,tz,14);
 	smslib_print("[smslib]gsmDecodePdu tz: %s, offset: %d", tz, offset);
@@ -542,81 +630,110 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	gsmString2Bytes(ppdu+offset+6, buf, 2);
 	/*--短信文本长度*/
 	txtlen = buf[0];
-	smslib_print("[smslib]gsmDecodePdu txtlen: %d, offset: %d", txtlen, offset);
 	offset = offset + 2;
 	strcpy(data, ppdu+offset+6);
 	/*--短信文本*/
-	buflen = gsmString2Bytes(data, buff, strlen(data));
-	smslib_print("[smslib]gsmDecodePdu data: %s, offset: %d", data, offset);
+	buflen = gsmString2Bytes(data, buf, strlen(data));
+	u8 paddingBits = 0;
+	u8 new_udhl = 0;
 	if(longsms)
 	{
-		if(buff[2]  == 3)
+		if(buf[2]  == 3)
 		{
-			isn = buff[3];
-			total = buff[4];
-			idx = buff[5];
+			isn = buf[3];
+			total = buf[4];
+			idx = buf[5];
 			SmsInfo.isn = isn;
 			SmsInfo.total = total;
 			/*--去掉报头6个字节*/
-			udhl = 7;
-			memcpy(buf, buff, buflen);
+			udhl = 6;
 		}
-		else if(buff[2] == 4)
+		else if(buf[2] == 4)
 		{
-			isn = (buff[3]<<8)|buff[4];
-			total = buff[5];
-			idx = buff[6];
+			isn = (buf[3]<<8)|buf[4];
+			total = buf[5];
+			idx = buf[6];
 			SmsInfo.isn = isn;
 			SmsInfo.total = total;
 			/*--去掉报头7个字节*/
-			udhl = 8;
-			memcpy(buf, buff, buflen);
+			udhl = 7;
 		}
+		if (udhl % 7) 
+		{
+			new_udhl = udhl + 7 - (udhl % 7);
+			paddingBits = 7 - (udhl % 7);
+		} else 
+		{
+			new_udhl = udhl;
+			paddingBits = 0;
+		}
+		memcpy(buff, buf+udhl, buflen-udhl);
 	}
 	else
 	{
-		memcpy(buf, buff, buflen);
+		memcpy(buff, buf, buflen);
 	}
 	smslib_print("[smslib]gsmDecodePdu isn: %d, total: %d, idx: %d, udhl: %d", isn, total, idx, udhl);
 	if(dcs == 0x00)/*--7bit encode*/
 	{
+		memset(buf, 0, 400);
+		memset(data, 0, 400);
+		datalen = gsmDecode7bit(paddingBits, buff, buf, buflen);
+		buflen = Gsm7BitToChar(data, buf, datalen);
+		
 		if(longsms)
 		{
-			memset(buf, 0, 400);
-			datalen = gsmDecode7bit(buff, buf, buflen);
-			memcpy(SmsInfo.longdata[idx-1], buf+udhl+1, datalen-udhl-1);
-			SmsInfo.longdatalen[idx-1] = datalen-udhl-1;
+			memcpy(SmsInfo.longdata[idx-1], data, buflen);
+			SmsInfo.longdatalen[idx-1] = buflen-udhl;
 			SmsInfo.cnt++;
 		}
 		else
 		{
-			gsmDecode7bit(buf, SmsInfo.data, buflen);
+			memcpy(SmsInfo.data, data, buflen);
 		}
 	}
 	else if(dcs == 0x04)/*--8bit encode*/
 	{
 		if(longsms)
 		{
-			memcpy(SmsInfo.longdata[idx-1], buf, buflen);
+			memcpy(SmsInfo.longdata[idx-1], buff, buflen);
 			SmsInfo.longdatalen[idx-1] = buflen;
 			SmsInfo.cnt++;
 		}
 		else
 		{
-	 		memcpy(SmsInfo.data, buf, buflen);
+	 		memcpy(SmsInfo.data, buff, buflen);
 		}
 	}
 	else
 	{
 		if(longsms)
 		{
-			memcpy(SmsInfo.longdata[idx-1],  buf+udhl+1, buflen-udhl-1);
-			SmsInfo.longdatalen[idx-1] = buflen-udhl-1;
+			char*pbuf = buff;
+			size_t pbuflen = buflen-udhl;
+			memset(data, 0, 400);
+			if(!iconv_ucs2_to_gb2312_endian_ext(&pbuf, &pbuflen, &data, &datalen, 1))
+			{
+				smslib_print("sms gsmDecodePdu ERROR");
+				OPENAT_free(buf);
+				OPENAT_free(data);
+				return FALSE;
+			}
+			memcpy(SmsInfo.longdata[idx-1], data, datalen);
+			SmsInfo.longdatalen[idx-1] = datalen;
 			SmsInfo.cnt++;
 		}
 		else
 		{
-			memcpy(SmsInfo.data, buf, buflen);
+			memset(data, 0, 400);
+			if(!iconv_ucs2_to_gb2312_endian_ext(&buf, &buflen, &data, &datalen, 1))
+			{
+				smslib_print("sms gsmDecodePdu ERROR");
+				OPENAT_free(buf);
+				OPENAT_free(data);
+				return FALSE;
+			}
+			memcpy(SmsInfo.data, data, datalen);
 		}
 	}	
 	#endif
@@ -625,11 +742,44 @@ bool gsmDecodePdu(char* pdu, int pdulen)
 	return TRUE;
 }
 
+static bool send_sms(char *pdu, int pdulen)
+{
+	ATResponse *p_response = NULL;
+    bool result = FALSE;
+	char* out;
+	int err;
+	char cmd[64];
+
+	smslib_print("[smslib] send_sms start");
+
+	memset(cmd, 0, 64);
+	sprintf(cmd, "AT+CMGS=%d",pdulen);
+	HANDLE cr = iot_os_enter_critical_section();
+    err = at_send_command_sms(cmd, pdu, "+CMGS:", &p_response);
+    if (err < 0 || p_response->success == 0)
+    {
+        smslib_print("[smslib]at_send_command_singleline error %d",err);
+        goto error;
+    }
+	iot_os_exit_critical_section(cr);
+	return TRUE;
+error:
+	smslib_print("[smslib] send_sms end");
+	if(p_response!=NULL)
+	{
+		at_response_free(p_response);
+		p_response=NULL;
+	}
+	iot_os_exit_critical_section(cr);
+	return result;
+}
+
 static bool delete_sms(int index)
 {
 	int err;
   	ATResponse *p_response = NULL;
 	char cmd[64];
+	HANDLE cr = iot_os_enter_critical_section();
 
 	smslib_print("[smslib] send_sms start");
 
@@ -640,12 +790,40 @@ static bool delete_sms(int index)
 	if (err < 0 || p_response->success == 0){
 		goto error;
 	}
-	
+	iot_os_exit_critical_section(cr);
 	return TRUE;
 error:
 	at_response_free(p_response);
+	
 	return FALSE;
 
+}
+
+static void longsmsmergetimeout(void *pParameter)
+{
+	T_SMS_TIMER_PARAM *timerParam = (T_SMS_TIMER_PARAM *)pParameter;
+	char* data = OPENAT_malloc(600);
+	memset(data,0,600);
+	int datalen = 0;
+	iot_os_stop_timer(smstimer);
+	int i;
+	for(i = 0; i < SmsInfo.total; i++)
+	{
+		memcpy(data+datalen, SmsInfo.longdata[i], SmsInfo.longdatalen[i]);
+		datalen += SmsInfo.longdatalen[i];
+		SmsInfo.longdatalen[i] = 0;
+		memset(SmsInfo.longdata[i], 0, 400);
+	}
+	
+	if(g_recsmshandlecb != NULL)
+		g_recsmshandlecb(timerParam->status, data, SmsInfo.num, SmsInfo.datetime);
+	
+	memset(SmsInfo.num, 0, 15);
+	memset(SmsInfo.datetime, 0, 30);
+	SmsInfo.cnt = 0;
+	SmsInfo.total = 0;
+	SmsInfo.longsmsfg = FALSE;
+	OPENAT_free(data);
 }
 
 static void longsmsmerge(int status)
@@ -653,7 +831,9 @@ static void longsmsmerge(int status)
 	smslib_print("[smslib] longsmsmerge status: %d, SmsInfo.cnt: %d, SmsInfo.total:%d", status, SmsInfo.cnt, SmsInfo.total);
 	if(SmsInfo.cnt != SmsInfo.total)
 		return ;
+	iot_os_stop_timer(smstimer);
 	char* data = OPENAT_malloc(600);
+	memset(data,0,600);
 	int datalen = 0;
 
 	int i;
@@ -679,89 +859,96 @@ static void longsmsmerge(int status)
 
 static void sms_read()
 {
-	if(strlen(tnewsms) > 0)
+	smslib_print("[smslib] read_sms");
+	while(1)
 	{
-		int err;
-	  	ATResponse *p_response = NULL;
-		char* out;
-		char cmd[64];
-		int pdulen = 0;
-		char *pdu = OPENAT_malloc(500);
-		memset(cmd, 0, 64);
-		smslib_print("[smslib] read_sms tnewsms[0]: %d", tnewsms[0]);
-		
-		sprintf(cmd, "AT+CMGR=%d", tnewsms[0]);
-		//+CMGR: 0,,25
-		//0891683108501505F0040D91685112723869F20000121062519085230531D98C5603
-
-		err = at_send_command_singleline(cmd, "+CMGR:", &p_response);
-		if (err < 0 || p_response->success == 0){
-			goto error;
-		}
-		char* line = p_response->p_intermediates->line;  
-		char* line1 = p_response->p_intermediates->p_next->line; 
-		
-	    err = at_tok_start(&line);
-	    if (err < 0)
-	        goto error;
-		err = at_tok_nextstr(&line, &out);
-		if (err < 0)
-			goto error;
-		err = at_tok_nextstr(&line, &out);
-		if (err < 0)
-			goto error;
-		err = at_tok_nextstr(&line, &out);
-		if (err < 0)
-			goto error;
-		pdulen = atoi(out);
-		strcpy(pdu, line1);
-		smslib_print("[smslib] read_sms 0 pdulen: %d, pdu: %s", pdulen, pdu);
-		
-		err = gsmDecodePdu(pdu,pdulen);
-		smslib_print("[smslib]read sms err: %d", err);
-		#if 1
-		if(!SmsInfo.longsmsfg)
+		if(!sms_queue_is_empty())
 		{
-			if(g_recsmshandlecb != NULL)
-				g_recsmshandlecb(err, SmsInfo.data, SmsInfo.num, SmsInfo.datetime);
-			memset(SmsInfo.data, 0, 161);
-			memset(SmsInfo.num, 0, 15);
-			memset(SmsInfo.datetime, 0, 30);
+			int err;
+		  	ATResponse *p_response = NULL;
+			char* out;
+			char cmd[64];
+			int pdulen = 0;
+			char *pdu = OPENAT_malloc(500);
+			memset(cmd, 0, 64);
+			smslib_print("[smslib] read_sms s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.current]: %d", s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.current]);
+			
+			sprintf(cmd, "AT+CMGR=%d", s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.current]);
+			HANDLE cr = iot_os_enter_critical_section();
+			
+			//+CMGR: 0,,25
+			//0891683108501505F0040D91685112723869F20000121062519085230531D98C5603
+			err = at_send_command_singleline(cmd, "+CMGR:", &p_response);
+			if (err < 0 || p_response->success == 0){
+				goto error;
+			}
+			char* line = p_response->p_intermediates->line;  
+			char* line1 = p_response->p_intermediates->p_next->line; 
+			
+		    err = at_tok_start(&line);
+		    if (err < 0)
+		        goto error;
+			err = at_tok_nextstr(&line, &out);
+			if (err < 0)
+				goto error;
+			err = at_tok_nextstr(&line, &out);
+			if (err < 0)
+				goto error;
+			err = at_tok_nextstr(&line, &out);
+			if (err < 0)
+				goto error;
+			iot_os_exit_critical_section(cr);
+			pdulen = atoi(out);
+			strcpy(pdu, line1);
+			smslib_print("[smslib] read_sms 0 pdulen: %d, pdu: %s", pdulen, pdu);
+			
+			err = gsmDecodePdu(pdu,pdulen);
+			smslib_print("[smslib]read sms err: %d", err);
+			#if 1
+			if(!SmsInfo.longsmsfg)
+			{
+				if(g_recsmshandlecb != NULL)
+					g_recsmshandlecb(err, SmsInfo.data, SmsInfo.num, SmsInfo.datetime);
+				memset(SmsInfo.data, 0, 161);
+				memset(SmsInfo.num, 0, 15);
+				memset(SmsInfo.datetime, 0, 30);
+			}
+			else
+			{
+				/*长短信处理*/
+				longsmsmerge(err);
+				timerSMSParam.status = err;
+				iot_os_start_timer(smstimer, 60000);
+			}
+			#endif
+			delete_sms(s_SmsEntityQueue.tNewSms[s_SmsEntityQueue.current]);
+			OPENAT_free(pdu);
+			sms_queue_head_out();
+			continue;
+		error:
+			at_response_free(p_response);
+			OPENAT_free(pdu);
+			iot_os_exit_critical_section(cr);
+			iot_os_sleep(2000);
 		}
 		else
 		{
-			/*长短信处理*/
-			longsmsmerge(err);
+			iot_os_sleep(2000);
 		}
-		#endif
-		delete_sms(tnewsms[0]);
-		OPENAT_free(pdu);
-		remove_tnewsms();
-		/*读取下一条短信*/
-		sms_read();
-		return;
-	error:
-		at_response_free(p_response);
-		OPENAT_free(pdu);
-		return;
 	}
 	iot_os_delete_task(demo_readsms_task);
 }
 
 static void _unsolSMSHandler(const int sms_index)
 {
-	smslib_print("[smslib]demo_unsolSMSHandler sms_index %d", sms_index);
-	insert_tnewsms(sms_index);
-	smslib_print("[smslib]demo_unsolSMSHandler strlen(tnewsms) %d", strlen(tnewsms));
-	if(strlen(tnewsms) == 1)
-		demo_readsms_task = iot_os_create_task(sms_read, NULL, 1024*6, 32, OPENAT_OS_CREATE_DEFAULT, "sms_read");
+	smslib_print("[smslib]_unsolSMSHandler sms_index: %d", sms_index);
+	sms_queue_append((char)sms_index);
 }
 
 bool sms_init(void)
 {
 	/*检测等待SMS READY上报*/
 	check_smsready();
-	at_regSmsHanlerCb(_unsolSMSHandler);
 
 	int err;
   	ATResponse *p_response = NULL;
@@ -778,13 +965,13 @@ bool sms_init(void)
 	}
 
 	err = at_send_command("AT+CSCS=\"UCS2\"", &p_response);
-	smslib_print("[smslib]CSMP error %d, success %d", err,(p_response?p_response->success:-1));
+	smslib_print("[smslib]CSCS error %d, success %d", err,(p_response?p_response->success:-1));
 	if (err < 0 || p_response->success == 0){
 		goto error;
 	}
 
 	err = at_send_command("AT+CPMS=\"SM\"", &p_response);
-	smslib_print("[smslib]CSMP error %d, success %d", err,(p_response?p_response->success:-1));
+	smslib_print("[smslib]CPMS error %d, success %d", err,(p_response?p_response->success:-1));
 	if (err < 0 || p_response->success == 0){
 		goto error;
 	}
@@ -795,11 +982,16 @@ bool sms_init(void)
 		goto error;
 	}
 
-	err = at_send_command("AT+CMGD=1,3", &p_response);
-	smslib_print("[smslib]CNMI error %d, success %d", err,(p_response?p_response->success:-1));
+	err = at_send_command("AT+CMGD=1,4", &p_response);
+	smslib_print("[smslib]CMGD error %d, success %d", err,(p_response?p_response->success:-1));
 	if (err < 0 || p_response->success == 0){
 		goto error;
 	}
+	
+	sms_queue_init();
+	smstimer = iot_os_create_timer(longsmsmergetimeout, (PVOID)&timerSMSParam);
+	at_regSmsHanlerCb(_unsolSMSHandler);
+	iot_os_create_task(sms_read, NULL, 1024*4, 32, OPENAT_OS_CREATE_DEFAULT, "sms_read");
 	
 	return TRUE;
 error:
@@ -818,7 +1010,7 @@ BOOL sms_send(char* num, char* data)
 	char* ppdu = NULL;
 	int pdulen = 0;
 	char udhi[17] = {0};
-	int i;
+	int i = 0;
 	char numfix = 0x81;
 	
 	int datalen = strlen(data);
@@ -837,10 +1029,9 @@ BOOL sms_send(char* num, char* data)
 	}
 	 
 	int ppdatalen = gsmBytes2String(pdata, ppdata, _pdatalen);
-
-	if(ppdatalen > 140)
+	if(_pdatalen > 140)
 	{
-		pducnt = (_pdatalen + 133)/134 - 1;
+		pducnt = (_pdatalen + 133)/134;
 		isn = (isn == 255) ? 0 : (isn + 1);
 	}
 	
@@ -856,16 +1047,15 @@ BOOL sms_send(char* num, char* data)
 		strncpy(pnum, &num[0], pnumlen);
 	}
 	
-	for(i = 0; i <= pducnt; i++)
-	{
+	do{
 		memset(pdu, 0, 500);
 		memset(ppnum, 0, 15);
 		ppdu = pdu;
 		if(pducnt > 0)
 		{	
 			char len_mul = 0x8C;
-			if(i == pducnt)
-				len_mul = _pdatalen-(pducnt*134) + 6;
+			if(i == (pducnt-1))
+				len_mul = _pdatalen-((pducnt-1)*134) + 6;
 			//udhi:6位协议头格式
 			sprintf(udhi, "050003%02X%02X%02X", isn, pducnt+1, i+1);
 			smslib_print("sms udhi:%s ", udhi);
@@ -876,10 +1066,11 @@ BOOL sms_send(char* num, char* data)
 			ppdu += sprintf(ppdu, "000800%02X",len_mul);
 			strcat(ppdu, udhi);
 			ppdu += strlen(udhi);
-			if(i == pducnt)
+			if(i == (pducnt-1))
 				strncat(ppdu, (ppdata + i*134*2), (ppdatalen - i*134*2));
 			else
 				strncat(ppdu, (ppdata + i*134*2), 134*2);
+			i++;
 		}
 		else
 		{
@@ -898,6 +1089,7 @@ BOOL sms_send(char* num, char* data)
 			return FALSE;
 		}
 	}
+	while(i < pducnt);
 	OPENAT_free(pdata);
 	OPENAT_free(ppdata);
 	OPENAT_free(pdu);
