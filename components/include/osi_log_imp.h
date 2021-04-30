@@ -68,7 +68,7 @@ void osiTraceLteEx(unsigned module, unsigned category, unsigned partype, const c
 
 void osiTraceSendTraData(uint8_t type, osiBuffer_t *bufs, unsigned count, unsigned dlen);
 
-void osiTraceRawSend(uint8_t flowid, unsigned tag, const void *data, uint32_t len);
+bool osiTraceRawSend(uint8_t flowid, unsigned tag, const void *data, uint32_t len);
 void SCI_TraceCapData(unsigned data_type, const void *src_ptr, uint32_t size);
 
 enum

@@ -13,7 +13,7 @@ static void demo_hello_Debug(PVOID pParameter)
     //关闭看门狗，死机不会重启。默认打开
     iot_debug_set_fault_mode(OPENAT_FAULT_HANG);
     //打开调试信息，默认关闭
-    iot_vat_send_cmd("AT^TRACECTRL=0,1,3\r\n", sizeof("AT^TRACECTRL=0,1,3\r\n"));
+    iot_vat_send_cmd("AT^TRACECTRL=0,1,1\r\n", sizeof("AT^TRACECTRL=0,1,1\r\n"));
 
     volatile int n = 0;
     for (n = 0; n < 15; n++)

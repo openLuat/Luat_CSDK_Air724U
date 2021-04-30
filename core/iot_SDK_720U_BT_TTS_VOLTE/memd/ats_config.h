@@ -20,7 +20,7 @@
 
 #define GMI_ID "CSDK"
 #define GMM_ID "CSDK_720U"
-#define GMR_ID "CSDK_V302076_RDA8910_BT_TTS_VOLTE"
+#define GMR_ID "CSDK_V302269_RDA8910_BT_TTS_VOLTE"
 
 /**
  * Whether to support coap AT commands

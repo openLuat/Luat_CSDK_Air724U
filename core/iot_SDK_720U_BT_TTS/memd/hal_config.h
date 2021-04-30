@@ -23,7 +23,7 @@
 /**
  * Build identify string
  */
-#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CSDK_BT_TTS-debug-DEVEL-svn2076"
+#define CONFIG_BUILD_IDENTIFY "8915DM_cat1_CSDK_BT_TTS-debug-DEVEL-svn2269"
 
 /**
  * whether it is 8910 series
@@ -868,12 +868,12 @@
 /**
  * whether to support SIM1 hot plug
  */
-#define CONFIG_BOARD_SUPPORT_SIM1_DETECT
+/* #undef CONFIG_BOARD_SUPPORT_SIM1_DETECT */
 
 /**
  * gpio for SIM1 hot plug detect
  */
-#define CONFIG_BOARD_SIM1_DETECT_GPIO 4
+/* #undef CONFIG_BOARD_SIM1_DETECT_GPIO */
 
 /**
  * whether to support SIM2 hot plug

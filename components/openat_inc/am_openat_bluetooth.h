@@ -70,12 +70,25 @@ typedef enum
     BLE_GET_ADDR,           ///< 获取蓝牙MAC地址
     BLE_SET_BEACON_DATA,     ///< 设置beacon数据
     BLE_SET_SCAN_PARAM,		///< 设置BLE扫描参数
+    BT_GET_ADDR,           ///< 获取蓝牙MAC地址
+    BT_READ_STATE,			///< 读BT 是否使能
+    BT_SET_NAME,           ///< 设置BT名称
+    BT_SET_VISIBILITY,      ///< 设置BT可见性
+    BT_SET_HFP_VOL,      ///< 设置hfp的音量
+    BT_HFP_CALL_REJECT,  ///< HFP拒绝来电
+    BT_HFP_CALL_ANSWER,  ///< HFP接听来电
+    BT_HFP_CALL_HANGUP,  ///< HFP挂断来电
+    BT_HFP_CALL_REDIAL,  ///< HFP重拨
+    BT_HFP_CALL_DIAL,  ///< HFP拨号
+    BT_SET_AVRCP_VOL,  ///< 设置AVRCP的音量
+    BT_SET_AVRCP_SONGS,    ///< AVRCP的歌曲控制
 } E_OPENAT_BT_CMD;
 
 typedef enum
 {
     BLE_SLAVE = 0,    ///< 设置BLE从模式
     BLE_MASTER,	      ///< 设置BLE主模式
+    BT_CLASSIC,	          ///< 设置经典蓝牙
 } E_OPENAT_BT_MODE;
 
 typedef enum
@@ -120,16 +133,25 @@ typedef struct
     UINT16 minor; 
 }T_OPENAT_BLE_BEACON_DATA;
 
+typedef enum
+{
+    BT_AVRCP_STATE_PAUSE = 0x00,
+    BT_AVRCP_STATE_START,
+    BT_AVRCP_STATE_PREVI,
+    BT_AVRCP_STATE_NEXT,
+} E_OPENAT_BT_AVRCP_STATE;
+
 typedef union {
     T_OPENAT_BLE_ADV_PARAM  *advparam;   ///< 设置BLE 广播参数
     T_OPENAT_BLE_SCAN_PARAM  *scanparam;   ///< 设置BLE 扫描参数
     T_OPENAT_BLE_ADV_DATA   *advdata;    ///< 广播包数据、响应包数据
-    UINT8 	*data;    ///< 设置BLE 广播名称、获取蓝牙MAC地址
-    UINT8       advEnable;          ///< 是否使能广播、使能扫描
+    UINT8 	*data;    ///< 设置BLE 广播名称、获取蓝牙MAC地址、设置BT名称、hfp呼叫拨号
+    UINT8       advEnable;          ///< 是否使能广播、使能扫描、设置BT可见性、设置hfp音量、设置avrcp音量
     T_OPENAT_BLE_UUID  *uuid;   ///< 添加服务、发现特征、打开通知、关闭通知
     T_OPENAT_BLE_CHARACTERISTIC_PARAM  *characteristicparam;   ///< 添加特征
     T_OPENAT_BLE_DESCRIPTOR_PARAM   *descriptorparam;   ///< 添加描述
     T_OPENAT_BLE_BEACON_DATA   *beacondata;   ///< 设置beacon数据
+    E_OPENAT_BT_AVRCP_STATE state; ///< 设置BT的歌曲播放状态
 }U_OPENAT_BT_IOTCTL_PARAM;
 
 typedef enum{
@@ -146,9 +168,21 @@ typedef enum{
     OPENAT_BT_DELETE_DEVICE_RES,
     OPENAT_BT_DEV_PIN_REQ,
     OPENAT_BT_SSP_NUM_IND,
-    OPENAT_BT_SPP_CONNECT_IND_will_del,
-    OPENAT_BT_SPP_DISCONNECT_IND_will_del,
+    OPENAT_BT_SPP_CONNECT_IND,
+    OPENAT_BT_SPP_DISCONNECT_IND,
     OPENAT_BT_SPP_DATA_RECIEVE_IND,
+    OPENAT_BT_SPP_DATA_SEND_IND,
+	OPENAT_BT_HFP_CONNECT_RES,
+	OPENAT_BT_HFP_DISCONNECT_RES,
+	OPENAT_BT_REOPEN_IND,				//stop of BT reopen
+	OPENAT_BT_REOPEN_ACTION_IND, //start of BT reopen
+    OPENAT_BT_HFP_CALLSETUP_OUTGOING,
+    OPENAT_BT_HFP_CALLSETUP_INCOMING,
+    OPENAT_BT_HFP_CALLSETUP_NONE,
+    OPENAT_BT_HFP_RING_INDICATION,
+    OPENAT_BT_AVRCP_CONNECT_COMPLETE,
+    OPENAT_BT_AVRCP_DISCONNECT_COMPLETE,
+
     OPENAT_BLE_SET_PUBLIC_ADDR = 51,
     OPENAT_BLE_SET_RANDOM_ADDR,
     OPENAT_BLE_ADD_WHITE_LIST,
@@ -165,6 +199,7 @@ typedef enum{
     OPENAT_BLE_SET_SCAN_ENABLE,
     OPENAT_BLE_SET_SCAN_DISENABLE,
     OPENAT_BLE_SET_SCAN_REPORT,
+    OPENAT_BLE_SET_SCAN_FINISH,
     OPENAT_BLE_CONNECT_IND,
     OPENAT_BLE_DISCONNECT_IND,
     OPENAT_BLE_FIND_CHARACTERISTIC_IND,
@@ -177,11 +212,14 @@ typedef VOID (*F_BT_CB)(VOID* param);
 void OPENAT_SetBLECallback(F_BT_CB handler);
 BOOL OPENAT_OpenBT(E_OPENAT_BT_MODE mode);
 BOOL OPENAT_CloseBT(void);
+BOOL OPENAT_IotctlBT(E_OPENAT_BT_CMD cmd,U_OPENAT_BT_IOTCTL_PARAM param);
+UINT8 OPENAT_GetVisibilityBT(void);
+int8 OPENAT_GetAvrcpVolBT(void);
+
 BOOL OPENAT_WriteBLE(UINT16 handle,T_OPENAT_BLE_UUID uuid,char *data,UINT8 len);
 BOOL OPENAT_IotctlBLE(UINT16 handle,E_OPENAT_BT_CMD cmd,U_OPENAT_BT_IOTCTL_PARAM param);
 BOOL OPENAT_DisconnectBLE(UINT16 handle);
 BOOL OPENAT_ConnectBLE(UINT8 addr_type, char *addr);
-
 
 
 #endif /* AM_OPENAT_FS_H */

@@ -1119,7 +1119,7 @@
     ITEM_NAME    = gain_br_channel_power[0]
     ITEM_ID      = 442
     ITEM_TYPE    = 4 (LONG)
-    ITEM_CONTENT = 0x11C0
+    ITEM_CONTENT = 0x1C0
     ITEM_INDEX   = 110
     ITEM_PARENT  = 109
     ITEM_DESC    = BR power control word of the first level
@@ -1129,7 +1129,7 @@
     ITEM_NAME    = gain_br_channel_power[1]
     ITEM_ID      = 442
     ITEM_TYPE    = 4 (LONG)
-    ITEM_CONTENT = 0x180
+    ITEM_CONTENT = 0x1C0
     ITEM_INDEX   = 111
     ITEM_PARENT  = 109
     ITEM_DESC    = BR power control word of the second level
@@ -1210,7 +1210,7 @@
     ITEM_NAME    = gain_edr_channel_power[0]
     ITEM_ID      = 442
     ITEM_TYPE    = 4 (LONG)
-    ITEM_CONTENT = 0x11C0
+    ITEM_CONTENT = 0x1C0
     ITEM_INDEX   = 119
     ITEM_PARENT  = 118
     ITEM_DESC    = EDR power control word of the first level
@@ -1220,7 +1220,7 @@
     ITEM_NAME    = gain_edr_channel_power[1]
     ITEM_ID      = 442
     ITEM_TYPE    = 4 (LONG)
-    ITEM_CONTENT = 0x180
+    ITEM_CONTENT = 0x1C0
     ITEM_INDEX   = 120
     ITEM_PARENT  = 118
     ITEM_DESC    = EDR power control word of the second level
@@ -1280,7 +1280,7 @@
     ITEM_NAME    = gain_edr_channel_power[7]
     ITEM_ID      = 442
     ITEM_TYPE    = 4 (LONG)
-    ITEM_CONTENT = 0x1B29
+    ITEM_CONTENT = 0x1B1F
     ITEM_INDEX   = 126
     ITEM_PARENT  = 118
     ITEM_DESC    = EDR power control word of the eighth level

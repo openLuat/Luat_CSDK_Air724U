@@ -209,7 +209,7 @@ typedef struct GpioIntDebounceTag
     INT16           debounceFaildCount; /*防抖失败记录，调试使用*/
     INT16           debounceSuccCount; /*防抖成功记录，调试使用*/
     INT16           intCount;
-
+	BOOL            inputState;
     /***************
     checkedCount  每次防抖++,最大为debounceCount*2;
     
@@ -1969,8 +1969,8 @@ typedef enum
   OPENAT_BT_PHONE_CALL_INFO_IND,
   OPENAT_BT_HFG_SCO_INFO_IND,
 
-  OPENAT_BT_SPP_CONNECT_IND,
-  OPENAT_BT_SPP_DISCONNECT_IND,
+  OPENAT_BT_SPP_CONNECT,
+  OPENAT_BT_SPP_DISCONNECT,
   OPENAT_BT_SPP_DISCONNECT_CNF,
   OPENAT_BT_SPP_CONNECT_CNF,
   OPENAT_BT_SPP_DATA_IND,
